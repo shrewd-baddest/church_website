@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base html styles are fine */
+@layer base {
+  html {
+    @apply transition-all;
+    font-size: var(--app-font-size);
+    background-color: rgb(var(--background-color));
+  }
+
+  p {
+    @apply m-0 text-sm text-teal-950;
+  }
+}
+
+/* Use components layer for inputs */
+@layer components {
+  input {
+    @apply pl-2 font-semibold bg-slate-100 outline-none rounded-lg border-2 ml-2 mb-6;
+  }
+}
