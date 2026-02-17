@@ -83,13 +83,13 @@ const Login: React.FC = () => {
               />
 
               <p className="my-8 text-sm text-center text-teal-950">
-                Forget passWord?
+                Forget password?
               </p>
 
               <input
                 type="button"
                 value="Reset Password"
-                onClick={() => resetSubmit()}
+                onClick={() => navigate('/reset')}
                 className="text-lg font-bold text-black cursor-pointer bg-slate-50"
               />
             </div>

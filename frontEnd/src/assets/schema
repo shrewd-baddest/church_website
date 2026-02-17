@@ -8,6 +8,9 @@ CREATE TABLE members (
     phone VARCHAR(20),
     year_of_study VARCHAR(20),
     course VARCHAR(100),
+    password VARCHAR NOT NULL,
+    reset_otp TEXT,
+    reset_otp_expires TIMESTAMP,
     join_date DATE DEFAULT CURRENT_DATE
 );
 CREATE TABLE roles (
