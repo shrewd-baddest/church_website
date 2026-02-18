@@ -31,12 +31,9 @@ export const Reset = async (req, res) => {
 };
 
 export const OTPverification = async (req, res) => {
-  const reg = decodeURIComponent(req.params.reg);
-  const { userEnteredOtp } = req.body;
-  const hashedInputOtp = crypto
-    .createHash("sha256")
-    .update(userEnteredOtp)
-    .digest("hex");
+  const reg = decodeURIComponent(req.params.regNo);
+  const { otp } = req.body;
+  const hashedInputOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
   const user = await db.query(
     `SELECT reset_otp, reset_otp_expires 
@@ -51,7 +48,7 @@ export const OTPverification = async (req, res) => {
   ) {
     await db.query(
       `UPDATE members 
-   SET password = NULL, reset_otp = NULL, reset_otp_expires = NULL
+   SET password = $1, reset_otp = NULL, reset_otp_expires = NULL
    WHERE member_id = $1`,
       [reg],
     );

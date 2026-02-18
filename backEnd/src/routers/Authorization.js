@@ -6,4 +6,4 @@ export const auth = Router();
 
 auth.post("/login", Login);
 auth.post("/reset", Reset);
-auth.post("/otp/:reg", OTPverification);
+auth.post("/otp/:regNo", OTPverification);

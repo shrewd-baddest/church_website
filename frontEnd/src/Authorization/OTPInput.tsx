@@ -1,5 +1,5 @@
-import { useRef, useState, ChangeEvent, KeyboardEvent } from "react";
-
+import { useRef, useState} from "react";
+import type{ ChangeEvent, KeyboardEvent } from "react"
 interface OTPInputProps {
   length?: number;
   onComplete: (otp: string) => void;

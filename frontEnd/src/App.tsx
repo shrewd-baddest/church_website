@@ -21,7 +21,7 @@ const App: React.FC = () => {
       <Route element={<Authorisation />}>
         <Route index element={<Login />} />
         <Route path="/reset" element={<Reset />} />
-        <Route path="/otp/:id" element={<ResetPasswordPage />} />
+        <Route path="/otp/:reg" element={<ResetPasswordPage />} />
       </Route>
     )
   );

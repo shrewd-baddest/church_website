@@ -7,11 +7,11 @@ import OTPInput from "./OTPInput";
 export default function ResetPasswordPage() {
   const navigate=useNavigate();
   const {reg}=useParams<{reg:string}>();
-  console.log(reg);
-   const handleOTPComplete = async (otp: string) => {
+  const regNo=encodeURIComponent(reg)
+  const handleOTPComplete = async (otp: string) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/authorisation/otp/${reg}`,
+        `http://localhost:3000/authentication/otp/${regNo}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -20,13 +20,13 @@ export default function ResetPasswordPage() {
       );
 
       const data = await response.json();
-
+ 
       if (data.message === "password updated successfully") {
         alert("password updated successfully");
         navigate("/");
       }
     }catch (error) {
-  alert((error as Error).message);
+  console.error((error as Error).message);
 }
 
   }
