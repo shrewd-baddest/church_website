@@ -6,11 +6,11 @@ import {
   Route,
 } from "react-router-dom";
 import Authorisation from "./assets/Layouts/Authorisation";
-import Reset from "./Authorization/Reset";
-import ResetPasswordPage from "./Authorization/ResetPasswordPage";
+import Reset from "./pages/Authorization/Reset";
+import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
 
 // Lazy-loaded component
-const Login = lazy(() => import("./Authorization/Login"));
+const Login = lazy(() => import("./pages/Authorization/Login"));
  
 // Fallback component
 const FallBack: React.FC = () => <div>🍷 Please wait ...</div>;
