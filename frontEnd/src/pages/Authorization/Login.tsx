@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 
       if (response.data.status === "success") {
         localStorage.setItem("token", response.data.token);
-        navigate("/dashboard");
+        navigate("/dashboard",{replace:true});
       } else {
         alert(response.data.message);
       }
