@@ -15,6 +15,12 @@
   }
 }
 
+
+.card {
+	@apply bg-white rounded-lg shadow-md p-6;
+}
+
+
 /* Use components layer for inputs */
 @layer components {
   input {
