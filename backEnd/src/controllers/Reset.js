@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import sendMail from "../Configs/emailConfig.js";
 import bcrypt from "bcrypt";
-import { db } from "../Configs/dbConfig.js";
+import { testDb } from "../Configs/dbConfig.js";
 
 export const Reset = async (req, res) => {
   const { userName, email, password } = req.body;
@@ -19,7 +19,7 @@ export const Reset = async (req, res) => {
 
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-  const user = await db.query(
+  const user = await testDb.query(
     `UPDATE members 
    SET reset_otp = $1, reset_otp_expires = $2 ,email=$3,password=$4
    WHERE member_id = $5`,
@@ -35,7 +35,7 @@ export const OTPverification = async (req, res) => {
   const { otp } = req.body;
   const hashedInputOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-  const user = await db.query(
+  const user = await testDb.query(
     `SELECT reset_otp, reset_otp_expires 
    FROM members 
    WHERE member_id = $1`,
@@ -46,7 +46,7 @@ export const OTPverification = async (req, res) => {
     user.rows[0].reset_otp !== hashedInputOtp ||
     new Date() > user.rows[0].reset_otp_expires
   ) {
-    await db.query(
+    await testDb.query(
       `UPDATE members 
    SET password = $1, reset_otp = NULL, reset_otp_expires = NULL
    WHERE member_id = $1`,
@@ -55,7 +55,7 @@ export const OTPverification = async (req, res) => {
 
     return res.status(400).json({ message: "Invalid or expired OTP" });
   } else {
-    await db.query(
+    await testDb.query(
       `UPDATE members 
    SET  reset_otp = NULL, reset_otp_expires = NULL
    WHERE member_id = $1`,

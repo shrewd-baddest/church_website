@@ -68,10 +68,10 @@ const Login = async (req, res) => {
       { expiresIn: "1h" },
     );
 
-    res.json({ token, status: "success", role });
+    return res.json({ token, status: "success", role });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 

@@ -1,103 +1,111 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
-import onsoo from "../../assets/Images/futuristic-sports-car-qx65b3sxm4ed6g6v.jpg";
-const Login: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
-  const [passWord, setPassword] = useState<string>("");
-  const [user, setUser] = useState<string>("");
+import { useAuth } from "../../context/AuthContext";
+import { FaHome } from "react-icons/fa";
 
+interface ErrorResponse {
+  message: string;
+}
+
+const Login: React.FC = () => {
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-
   const submit = async () => {
+    console.log("Submitting login with:", { username, password });
     try {
       const response = await axios.post(
         "http://localhost:3000/authentication/login",
         {
-          user,
-          passWord,
+          user: username,
+          passWord: password,
         }
       );
+      console.log("Login response:", response.data);
 
       if (response.data.status === "success") {
-        localStorage.setItem("token", response.data.token);
-        navigate("/dashboard");
+        login(response.data.user, response.data.token);
+        navigate("/");
       } else {
-        alert(response.data.message);
+        alert(response.data.message || "Login failed");
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.message);
-      }
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      console.error("Login error:", error);
+      console.error("Error response:", axiosError.response?.data);
+      console.error("Error status:", axiosError.response?.status);
+      alert((axiosError.response?.data as ErrorResponse)?.message || "Login failed. Please check your credentials.");
     }
   };
 
   return (
-    <div className="h-full m-0 overflow-hidden">
-      <div className="grid grid-cols-2 gap-0 mt-0 rounded-lg h-fit bg-slate-50">
-        <div>
-          <h3 className="mt-0 mb-10 ml-2 text-sm font-bold text-black">
-            Kirinyaga Catholic Student Associations
-          </h3>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        {/* Back to   FaHome Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center text-sm text-gray-600 hover:text-blue-600 mb-4 transition-colors"
+        >
+          < FaHome className="w-4 h-4 mr-1" />
+          Back to  Home
+        </button>
 
-          <div className="flex flex-col items-center justify-start pb-5 pl-20">
-            <h1 className="mt-2 mb-4 text-4xl font-bold">
-              Holla,
-              <br /> Welcome Back
-            </h1>
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Welcome Back
+        </h2>
 
-            <p className="mb-16 text-sm text-teal-950">
-              Hey, Welcome back to your special place
-            </p>
-
-            <div className="grid grid-cols-1 font-semibold">
-              <div>
-                <label>User Name:</label>
-                <input
-                  type="text"
-                  className="lg:w-[100%]"
-                  onChange={(e) => setUser(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label>Password:</label>
-                <input
-                  type="password"
-                  className="lg:w-[100%]"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <input type="checkbox" />
-                <label>Remember me</label>
-              </div>
-
-              <input
-                type="button"
-                value="Sign in"
-                onClick={submit}
-                className="text-lg bg-blue-700 cursor-pointer text-cyan-100"
-              />
-
-              <p className="my-8 text-sm text-center text-teal-950">
-                Forget password?
-              </p>
-
-              <input
-                type="button"
-                value="Reset Password"
-                onClick={() => navigate('/reset')}
-                className="text-lg font-bold text-black cursor-pointer bg-slate-50"
-              />
-            </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Username
+            </label>
+            <input
+              type="text"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+            />
           </div>
-        </div>
 
-        <div className="h-full p-4 mt-0 mr-1 w-fit">
-          <img src={onsoo} alt="car" className="h-screen cover" />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <input type="checkbox" id="remember" className="mr-2" />
+            <label htmlFor="remember" className="text-sm text-gray-600">
+              Remember me
+            </label>
+          </div>
+
+          <button
+            onClick={submit}
+            className="w-full bg-blue-700 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors"
+          >
+            Sign In
+          </button>
+
+          <div className="text-center mt-4">
+            <button
+              onClick={() => navigate('reset')}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Forgot Password?
+            </button>
+          </div>
         </div>
       </div>
     </div>

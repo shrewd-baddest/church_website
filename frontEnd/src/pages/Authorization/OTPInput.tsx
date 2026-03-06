@@ -1,74 +1,92 @@
-import { useRef, useState} from "react";
-import type{ ChangeEvent, KeyboardEvent } from "react"
-interface OTPInputProps {
-  length?: number;
-  onComplete: (otp: string) => void;
-}
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
-export default function OTPInput({
-  length = 6,
-  onComplete,
-}: OTPInputProps) {
-  const [otp, setOtp] = useState<string[]>(
-    new Array(length).fill("")
-  );
+const OTPInput: React.FC = () => {
+  const [otp, setOtp] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const { reg } = useParams<{ reg: string }>();
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const handleVerify = async () => {
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/authorisation/otp/${reg}`,
+        { otp, passWord: newPassword }
+      );
 
-
-  const handleChange = (value: string, index: number) => {
-    if (!/^[0-9]?$/.test(value)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Move to next input
-    if (value && index < length - 1) {
-      inputsRef.current[index + 1]?.focus();
+      if (response.data.status === "success") {
+        // Auto-login after password reset
+        login(response.data.user, response.data.token);
+        alert("Password reset successful!");
+        navigate("/");
+      } else {
+        alert(response.data.message || "Verification failed");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message);
+        alert("Verification failed. Please check your OTP.");
+      }
     }
-
-    // Auto submit when complete
-    if (newOtp.every((digit) => digit !== "")) {
-      onComplete(newOtp.join(""));
-    }
-  };
-
-  const handleKeyDown = (
-    e: KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    handleChange(e.target.value, index);
   };
 
   return (
-    <div style={{ display: "flex", gap: "10px" }}>
-      {otp.map((digit, index) => (
-        <input
-          key={index}
-          type="text"
-          maxLength={1}
-          value={digit}
-          ref={(el) => {inputsRef.current[index] = el}}
-          onChange={(e) => handleInputChange(e, index)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
-          style={{
-            width: "40px",
-            height: "40px",
-            textAlign: "center",
-            fontSize: "20px",
-          }}
-        />
-      ))}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Verify OTP
+        </h2>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Enter OTP
+            </label>
+            <input
+              type="text"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="Enter 6-digit OTP"
+              maxLength={6}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New Password
+            </label>
+            <input
+              type="password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+            />
+          </div>
+
+          <button
+            onClick={handleVerify}
+            className="w-full bg-blue-700 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors"
+          >
+            Verify & Reset Password
+          </button>
+
+          <div className="text-center mt-4">
+            <button
+              onClick={() => navigate('/login')}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default OTPInput;

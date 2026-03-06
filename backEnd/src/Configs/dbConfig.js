@@ -1,5 +1,6 @@
-import pg from "pg";
-import dotenv from "dotenv";
+import pg from 'pg';
+const { Client } = pg;
+import dotenv from 'dotenv';
 dotenv.config();
 const { Pool } = pg;
 
@@ -17,9 +18,9 @@ export const db = new Pool({
 export const testDb = async () => {
   try {
     const client = await db.connect();
-    console.log("✅ PostgreSQL connected successfully");
+    console.log('✅ PostgreSQL connected successfully');
     client.release();
-  } catch (err) {
-    console.error("❌ PostgreSQL connection failed:", err.message);
+  } catch (error) {
+    console.error('❌ PostgreSQL connection failed:', error.message);
   }
 };

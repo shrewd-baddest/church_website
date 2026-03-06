@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useData } from '../context/DataContext';
-import AboutTab from '../components/AboutTab';
-import OfficialsTab from '../components/OfficialsTab';
-import MembersTab from '../components/MembersTab';
-import ActivitiesTab from '../components/ActivitiesTab';
-import RegistrationTab from '../components/RegistrationTab';
-import ChannelsTab from '../components/ChannelsTab';
-import NotificationsTab from '../components/NotificationsTab';
-import TshirtsTab from '../components/TshirtsTab';
+import { useData } from './context/DataContext';
+import AboutTab from './components/AboutTab';
+import OfficialsTab from './components/OfficialsTab';
+import MembersTab from './components/MembersTab';
+import ActivitiesTab from './components/ActivitiesTab';
+import RegistrationTab from './components/RegistrationTab';
+import ChannelsTab from './components/ChannelsTab';
+import NotificationsTab from './components/NotificationsTab';
+import TshirtsTab from './components/TshirtsTab';
 import { FaInfoCircle, FaUserTie, FaUsers, FaCalendarAlt, FaUserPlus, FaShareAlt, FaBars, FaBell, FaTshirt, FaArrowLeft } from "react-icons/fa";
 import './JumuiyaDetail.css';
 
