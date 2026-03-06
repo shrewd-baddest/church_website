@@ -1,6 +1,5 @@
-import React from "react";
-import Headers from "../../layOuts/Headers";
 import { Outlet } from "react-router-dom";
+import Headers from "../../pages/Landing/components/Navigation/Navigation";
 import Footers from "../../layOuts/Footers";
 const Pageoulet = () => {
   return (
@@ -9,7 +8,6 @@ const Pageoulet = () => {
       <main className="flex-1">
         <Outlet />
       </main>
-     
       <Footers />
     </div>
   );

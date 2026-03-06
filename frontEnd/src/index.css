@@ -26,4 +26,58 @@
   input {
     @apply pl-2 font-semibold bg-slate-100 outline-none rounded-lg border-2 ml-2 mb-6;
   }
+    /* Main layout container */
+  .main-container {
+    @apply min-h-screen bg-gray-50;
+  }
+
+  /* Navigation bar styling */
+  .nav-bar {
+    @apply sticky top-0 z-50 bg-white/90 backdrop-blur-sm shadow-sm border-b border-gray-100 px-8 py-4 flex justify-between items-center;
+  }
+
+  /* Logo text styling */
+  .nav-logo {
+    @apply text-2xl font-extrabold text-blue-600 tracking-tight cursor-pointer;
+  }
+
+  /* Navigation list container */
+  .nav-list {
+    @apply flex items-center space-x-8;
+  }
+
+  /* Individual navigation tab styling */
+  .nav-tab {
+    @apply flex items-center space-x-2 text-gray-600 font-medium hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md hover:bg-blue-50;
+  }
+
+  /* Primary button styling (e.g., Log In) */
+  .btn-primary {
+    @apply bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-200;
+  }
+
+  /* Content area container */
+  .content-container {
+    @apply container mx-auto p-12 text-center;
+  }
+
+  /* Main heading styling */
+  .heading-primary {
+    @apply text-4xl font-bold text-gray-900 tracking-tight;
+  }
+
+  /* Hero section styling */
+  .hero-section {
+    @apply relative overflow-hidden;
+  }
+
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-33.33%);
+    }
+  }
 }

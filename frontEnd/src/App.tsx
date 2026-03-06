@@ -1,10 +1,5 @@
 import { lazy, Suspense } from "react";
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  RouterProvider,
-  Route,
-} from "react-router-dom";
+import {createBrowserRouter,createRoutesFromElements,RouterProvider,Route,} from "react-router-dom";
 import Authorisation from "./assets/Layouts/Authorisation";
 import Reset from "./pages/Authorization/Reset";
 import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
@@ -16,12 +11,57 @@ import Prayer from "./pages/Devotions/pages/Prayer";
 import Readings from "./pages/Devotions/pages/Readings";
 import Dashboard from "./pages/Devotions/pages/Dashboard";
 import Layout from "./pages/Devotions/components/Layout";
+import { AboutSection, CommunitySection, SupportSection } from "./pages/Landing/components/sections";
+import ActivitiesSection from "./pages/Landing/components/sections/activities";
+import GallerySection from "./pages/Landing/components/sections/gallery";
+import ProjectsSection from "./pages/Landing/components/sections/projects";
+import OfficialsSection from "./pages/Landing/components/sections/officials";
+import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
+import ImageSlider from "./pages/Landing/components/ImageSlider";
+import { useAuth } from "./context/AuthContext";
 
 // Lazy-loaded component
 const Login = lazy(() => import("./pages/Authorization/Login"));
  
 // Fallback component
 const FallBack: React.FC = () => <div>🍷 Please wait ...</div>;
+
+const Home: React.FC = () => {
+  const { user } = useAuth();
+  
+  return (
+    <div className="bg-gray-50 min-h-screen flex flex-col">
+      <main className="flex-grow">
+        {/* Show landing page content when NOT logged in */}
+        {!user && (
+          <>
+            <ImageSlider />
+            <AboutSection />
+            <CommunitySection />
+            <GallerySection />
+          </>
+        )}
+        
+        {/* Show all sections when logged in */}
+        {user && (
+          <>
+            <JumuiyaSection />
+            <OfficialsSection />
+            <ProjectsSection />
+            <ActivitiesSection />
+            <GallerySection 
+            />
+          </>
+        )}
+        
+        {/* Show Support section when NOT logged in */}
+        {!user && <SupportSection />}
+      </main>
+    </div>
+  );
+};
+
+
 
 const App: React.FC = () => {
   const router = createBrowserRouter(
@@ -36,10 +76,9 @@ const App: React.FC = () => {
 
 
       <Route path="/" element={<Pageoulet />}>
-        {/* <Route index element={<Home />} /> */}
+        <Route index element={<Home />} />
 
-
-      
+        
        <Route path="devotions" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="readings" element={<Readings />} />

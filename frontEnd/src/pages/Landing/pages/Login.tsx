@@ -1,12 +1,7 @@
 import React, { useState } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import {  FaHome } from "react-icons/fa";
-
-interface ErrorResponse {
-  message: string;
-}
+import { useAuth } from "../../AuthContext";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>("");
@@ -15,16 +10,14 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   const submit = async () => {
-    console.log("Submitting login with:", { username, password });
     try {
       const response = await axios.post(
-        "http://localhost:3001/authentication/login",
+        "http://localhost:3001/api/login",
         {
           username,
           password,
         }
       );
-      console.log("Login response:", response.data);
 
       if (response.data.status === "success") {
         login(response.data.user, response.data.token);
@@ -32,27 +25,17 @@ const Login: React.FC = () => {
       } else {
         alert(response.data.message || "Login failed");
       }
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError;
-      console.error("Login error:", error);
-      console.error("Error response:", axiosError.response?.data);
-      console.error("Error status:", axiosError.response?.status);
-      alert((axiosError.response?.data as ErrorResponse)?.message || "Login failed. Please check your credentials.");
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message);
+        alert("Login failed. Please check your credentials.");
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        {/* Back to   FaHome Button */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center text-sm text-gray-600 hover:text-blue-600 mb-4 transition-colors"
-        >
-          < FaHome className="w-4 h-4 mr-1" />
-          Back to   FaHome
-        </button>
-        
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
           Welcome Back
         </h2>
@@ -100,7 +83,7 @@ const Login: React.FC = () => {
 
           <div className="text-center mt-4">
             <button
-              onClick={() => navigate('reset')}
+              onClick={() => navigate('/reset')}
               className="text-sm text-blue-600 hover:underline"
             >
               Forgot Password?

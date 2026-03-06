@@ -1,14 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaHome } from "react-icons/fa";
+import { Home } from "lucide-react";
 
-interface OTPInputProps {
-  onComplete: (otp: string) => void;
-}
-
-const OTPInput: React.FC<OTPInputProps> = () => {
-  
+const OTPInput: React.FC = () => {
   const [otp, setOtp] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -49,13 +44,13 @@ const OTPInput: React.FC<OTPInputProps> = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        {/* Back to FaHome Button */}
+        {/* Back to Home Button */}
         <button
           onClick={() => navigate('/')}
           className="flex items-center text-sm text-gray-600 hover:text-blue-600 mb-4 transition-colors"
         >
-          <FaHome className="w-4 h-4 mr-1" />
-          Back to FaHome
+          <Home className="w-4 h-4 mr-1" />
+          Back to Home
         </button>
 
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">

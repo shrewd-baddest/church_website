@@ -1,12 +1,8 @@
 import React, { useState } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import {  FaHome } from "react-icons/fa";
-
-interface ErrorResponse {
-  message: string;
-}
+import { Home } from "lucide-react";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>("");
@@ -18,7 +14,7 @@ const Login: React.FC = () => {
     console.log("Submitting login with:", { username, password });
     try {
       const response = await axios.post(
-        "http://localhost:3001/authentication/login",
+        "http://localhost:3001/api/login",
         {
           username,
           password,
@@ -32,25 +28,24 @@ const Login: React.FC = () => {
       } else {
         alert(response.data.message || "Login failed");
       }
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+    } catch (error: any) {
       console.error("Login error:", error);
-      console.error("Error response:", axiosError.response?.data);
-      console.error("Error status:", axiosError.response?.status);
-      alert((axiosError.response?.data as ErrorResponse)?.message || "Login failed. Please check your credentials.");
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      alert(error.response?.data?.message || "Login failed. Please check your credentials.");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        {/* Back to   FaHome Button */}
+        {/* Back to Home Button */}
         <button
           onClick={() => navigate('/')}
           className="flex items-center text-sm text-gray-600 hover:text-blue-600 mb-4 transition-colors"
         >
-          < FaHome className="w-4 h-4 mr-1" />
-          Back to   FaHome
+          <Home className="w-4 h-4 mr-1" />
+          Back to Home
         </button>
         
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
@@ -100,7 +95,7 @@ const Login: React.FC = () => {
 
           <div className="text-center mt-4">
             <button
-              onClick={() => navigate('reset')}
+              onClick={() => navigate('/reset')}
               className="text-sm text-blue-600 hover:underline"
             >
               Forgot Password?
