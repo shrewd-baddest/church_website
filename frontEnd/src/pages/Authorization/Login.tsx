@@ -1,11 +1,11 @@
 import React, { useState } from "react";
- import axios from "axios";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
- import onsoo from '../assets/Images/futuristic-sports-car-qx65b3sxm4ed6g6v.jpg'
+import onsoo from "../../assets/Images/futuristic-sports-car-qx65b3sxm4ed6g6v.jpg";
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [passWord, setPassword] = useState<string>("");
-  const [user,setUser]=useState<string>("");
+  const [user, setUser] = useState<string>("");
 
   const navigate = useNavigate();
 
@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   const submit = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/authorisation/login",
+        "http://localhost:3000/authentication/login",
         {
           user,
           passWord,

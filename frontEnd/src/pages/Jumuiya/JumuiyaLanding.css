@@ -1,0 +1,170 @@
+.landing-page {
+    min-height: 100vh;
+    padding: var(--space-3xl) 0;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: var(--space-3xl);
+    padding: var(--space-3xl) 0;
+}
+
+.hero-subtitle {
+    font-size: 0.875rem;
+    color: var(--primary);
+    margin-bottom: var(--space-md);
+    font-weight: 800;
+    letter-spacing: 0.2rem;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    margin-bottom: var(--space-lg);
+    background: linear-gradient(135deg, var(--text-primary) 0%, color-mix(in srgb, var(--primary), black 20%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.03em;
+}
+
+.hero-description {
+    max-width: 650px;
+    margin: 0 auto;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.jumuiya-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-xl);
+}
+
+.jumuiya-card-wrap {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.jumuiya-card {
+    height: 420px;
+    border-radius: var(--rl);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-lg);
+    transition: var(--t-base);
+    background: white;
+}
+
+.card-background {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+}
+
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 0.9) 0%,
+            color-mix(in srgb, var(--jumuiya-color), transparent 40%) 50%,
+            color-mix(in srgb, var(--jumuiya-color), transparent 80%) 100%);
+    transition: opacity var(--t-base);
+    z-index: 1;
+}
+
+.card-content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2rem;
+    color: white;
+    margin-bottom: var(--space-sm);
+    font-weight: 800;
+}
+
+.card-description {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: var(--space-lg);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.jumuiya-card-wrap:hover .jumuiya-card {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+}
+
+.jumuiya-card-wrap:hover .card-background {
+    transform: scale(1.1);
+}
+
+.jumuiya-card-wrap:hover .card-overlay {
+    opacity: 0.9;
+}
+
+.landing-footer {
+    margin-top: var(--space-3xl);
+    padding: var(--space-2xl);
+    text-align: center;
+    border-top: 1px solid var(--border);
+}
+
+.landing-footer p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .landing-page {
+        padding-top: var(--space-xl);
+    }
+
+    .hero {
+        margin-bottom: var(--space-xl);
+    }
+
+    .jumuiya-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .jumuiya-card {
+        height: 360px;
+    }
+}

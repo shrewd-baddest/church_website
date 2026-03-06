@@ -13,15 +13,33 @@ app.use(express.json());
 
 app.use("/authentication", auth);
 
-const initServer = async () => {
-  try {
-    await testDb();
-    app.listen(PORT, () => {
-      console.log(`server is running in port ${PORT}`);
-    });
-  } catch (error) {
-    console.error(error.message);
-  }
-};
+process.on('exit', (code) => {
+  console.log(`Process exiting with code: ${code}`);
+});
 
-initServer();
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+try {
+  await testDb();
+  const server = app.listen(PORT, () => {
+    console.log(`server is running in port ${PORT}`);
+  });
+
+  server.on('close', () => {
+    console.log('Server listener closed');
+  });
+
+  server.on('error', (err) => {
+    console.error('Server listener error:', err);
+  });
+
+  // Keep-alive heartbeat
+  setInterval(() => {
+    // console.log('Heartbeat...');
+  }, 10000);
+
+} catch (error) {
+  console.error("Failed to start server:", error.message);
+}
