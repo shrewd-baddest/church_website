@@ -1,0 +1,62 @@
+import { Router } from "express";
+import { getTableData, createRecord, deleteRecord, getAllData } from "../controllers/ApiController.js";
+
+export const api = Router();
+
+// Allowed tables for security
+const allowedTables = ['members', 'events', 'contributions', 'officials', 'projects', 'activities', 'gallery', 'jumuiya', 'users'];
+
+// Middleware to validate table name
+const validateTable = (req, res, next) => {
+  const tableName = req.params.table;
+  if (!allowedTables.includes(tableName)) {
+    return res.status(400).json({ error: `Invalid table name: ${tableName}` });
+  }
+  next();
+};
+
+// GET all data from all tables (must be before /:table route)
+api.get('/all/data', async (req, res) => {
+  try {
+    const data = await getAllData();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET all records from a table
+api.get('/:table', validateTable, async (req, res) => {
+  try {
+    const { table } = req.params;
+    const data = await getTableData(table);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST create a new record in a table
+api.post('/:table', validateTable, async (req, res) => {
+  try {
+    const { table } = req.params;
+    const newRecord = await createRecord(table, req.body);
+    res.status(201).json(newRecord);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE a record from a table
+api.delete('/:table/:id', validateTable, async (req, res) => {
+  try {
+    const { table, id } = req.params;
+    const deleted = await deleteRecord(table, id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+    res.json(deleted);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
