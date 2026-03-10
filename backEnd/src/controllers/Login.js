@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import { client } from "../Configs/dbConfig.js";
+import { testDb } from "../Configs/dbConfig.js";
 dotenv.config();
 
 const Login = async (req, res) => {
@@ -13,7 +13,7 @@ const Login = async (req, res) => {
   }
 
   try {
-    const result = await client.query(
+    const result = await testDb.query(
       "SELECT * FROM members WHERE member_id = $1",
       [userReg],
     );

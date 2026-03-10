@@ -1,4 +1,4 @@
-import { testDb } from "./Configs/dbConfig.js";
+import { connectDb } from "./Configs/dbConfig.js";
 import { serverConfig } from "./Configs/serverConfigs.js";
 import { app } from "./app.js";
 import logger from "./logger/winston.js";
@@ -8,7 +8,7 @@ import logger from "./logger/winston.js";
 const initServer = async () => {
   try {
     // asychronous operation to connect to remote postgree db
-    await testDb();
+    await connectDb();
     app.listen( serverConfig.PORT , serverConfig.HOST , () => {
       logger.info("⚙️  Server is running on port: " + process.env.PORT);
     });

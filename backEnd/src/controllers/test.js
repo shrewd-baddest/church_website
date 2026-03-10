@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { client } from "./Configs/dbConfig.js";
+import { testDb } from "./Configs/dbConfig.js";
 import verifyToken from "../middleWares/Tokens.js";
 import logger from "../logger/winston.js";
 
@@ -17,7 +17,7 @@ app.post("/user", async (req, res) => {
   }
 
   try {
-    const result = await client.query(
+    const result = await testDb.query(
       "SELECT * FROM members WHERE member_id = $1",
       [user]
     );
@@ -59,7 +59,7 @@ app.post("/user", async (req, res) => {
 
 app.get("/profile", verifyToken, async (req, res) => {
   try {
-    const result = await client.query(
+    const result = await testDb.query(
       "SELECT id, member_id, email FROM members WHERE member_id = $1",
       [req.user.id]
     );
