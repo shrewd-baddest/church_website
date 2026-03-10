@@ -1,6 +1,7 @@
 import pg from 'pg';
 const { Client } = pg;
- import dotenv from 'dotenv';
+import dotenv from 'dotenv';
+import logger from '../logger/winston.js';
 dotenv.config();
  
 const client = new Client({
@@ -17,9 +18,12 @@ const client = new Client({
 export const testDb = async () => {
   try {
     await client.connect();
-    console.log('Connected to the database successfully!');
+    logger.info('Connected to the database successfully!');
+    return client;
   } catch (error) {
-    console.error('Failed to connect to the database:', error.message);
-    console.log(error.message);
+    logger.error('Failed to connect to the database:', error.message , error.stack);
   }
 };
+
+// Export client for direct query access
+export { client };

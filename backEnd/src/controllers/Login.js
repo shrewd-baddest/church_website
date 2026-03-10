@@ -1,55 +1,53 @@
 import dotenv from "dotenv";
-dotenv.config();
-import { testDb } from "../Configs/dbConfig.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { client } from "../Configs/dbConfig.js";
+dotenv.config();
 
 const Login = async (req, res) => {
-  const { passWord, email, googleEmail } = req.body;
+  const { userReg, password } = req.body;
+  console.log(userReg, password);
+
+  if (!userReg || !password) {
+    logger.warn("Login attempt with missing credentials");
+    return res.status(400).json({ error: "Username and password required" });
+  }
+
   try {
-    // Check if user exists
-    let user;
-    if (email) {
-      const response = await testDb.query("SELECT * FROM users  WHERE email = $1", [
-        email,
-      ]);
-      if (response.rows.length === 0) {
-        return res.status(401).json({ message: "Invalid email" });
-      }
+    const result = await client.query(
+      "SELECT * FROM members WHERE member_id = $1",
+      [userReg],
+    );
 
-      
-      user = response.rows[0];
-
-      
-      // Compare password
-      const isMatch = await bcrypt.compare(passWord, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid  password" });
-      }
-    } else if (googleEmail) {
-      const response = await testDb.query("SELECT * FROM users  WHERE email = $1", [
-        googleEmail,
-      ]);
-      if (response.rows.length === 0) {
-        return res.status(401).json({ message: "Invalid email" });
-      }
-
-      user = response?.rows[0];
+    if (result.rows.length === 0) {
+      logger.warn(`Login attempt with invalid username: ${userReg}`);
+      return res.status(401).json({ error: "Invalid username or password" });
     }
 
-    // // Generate JWT token
-    // const token = jwt.sign(
-    //   { id: user.id, role: user.role },
-    //   process.env.SECRET_KEY,
-    //   { expiresIn: "1h" },
-    // );
-    // const role = user.role;
-  //  return res.json({ token, status: "success", role });
+    const user = result.rows[0];
 
-    return res.json({ status: "success", });
-  } catch (error) {
-    console.error(error);
-   return res.status(500).json({ message: "Server error " });
+    const match = await bcrypt.compare(password, user.password);
+    logger.info(
+      `Login attempt for user: ${userReg} - ${match ? "Success" : "Failure"}`,
+    );
+    if (!match) {
+      logger.warn(`Login attempt with invalid password for user: ${userReg}`);
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // In production, generate a JWT instead of using member_id directly
+    res.json({
+      status: "success",
+      message: "Login successful",
+      // user: {
+      //   id: user.member_id,
+      //   username: user.member_id,
+      //   email: user.email,
+      // },
+      // token: user.member_id,
+    });
+  } catch (err) {
+    logger.error("Error during login process", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
