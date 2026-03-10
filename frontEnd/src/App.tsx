@@ -19,6 +19,7 @@ import OfficialsSection from "./pages/Landing/components/sections/officials";
 import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
 import ImageSlider from "./pages/Landing/components/ImageSlider";
 import { useAuth } from "./context/AuthContext";
+import { PublicRoute, ProtectedRoute } from "./Regulator";
 
 // Lazy-loaded component
 const Login = lazy(() => import("./pages/Authorization/Login"));
@@ -68,7 +69,11 @@ const App: React.FC = () => {
     createRoutesFromElements(
       <>
 
-      <Route path="/login" element={<Authorisation />} >
+      <Route path="/login" element={
+        <PublicRoute>
+          <Authorisation />
+        </PublicRoute>
+      } >
         <Route index element={<Login />} />
         <Route path="reset" element={<Reset />} />
         <Route path="otp/:reg" element={<ResetPasswordPage />} />
@@ -79,7 +84,11 @@ const App: React.FC = () => {
         <Route index element={<Home />} />
 
         
-       <Route path="devotions" element={<Layout />}>
+       <Route path="devotions" element={
+         <ProtectedRoute>
+           <Layout />
+         </ProtectedRoute>
+       }>
           <Route index element={<Dashboard />} />
           <Route path="readings" element={<Readings />} />
           <Route path="prayer" element={<Prayer />} />

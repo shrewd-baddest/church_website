@@ -9,7 +9,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('members')
   const [data, setData] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+
   const [showAddUser, setShowAddUser] = useState(false)
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'user' })
   
@@ -32,22 +32,43 @@ function AdminPanel({ onClose }: AdminPanelProps) {
 
   const loadData = async () => {
     setLoading(true)
-    setError(null)
     try {
-      const promises = tables.map(table => apiService.fetchTableData(table))
+      // Fetch each table independently so one failure doesn't break the entire panel
+      const promises = tables.map(async (table) => {
+        try {
+          return await apiService.fetchTableData(table)
+        } catch (err) {
+          console.error(`Failed to load data for ${table}:`, err)
+          return [] // Return empty array on failure
+        }
+      })
+      
       const results = await Promise.all(promises)
       const dataObj: Record<string, any[]> = {}
       tables.forEach((table, index) => {
         dataObj[table] = results[index]
       })
       setData(dataObj)
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-      console.log('Data load error (expected if DB not connected):', errorMessage)
-      setData({})
     } finally {
       setLoading(false)
     }
+  }
+
+  const getRecordId = (record: any): string | number => {
+    // Prioritize common ID fields
+    if (record.id) return record.id;
+    if (record.user_id) return record.user_id;
+    if (record.member_id) return record.member_id;
+
+    // Fallback for other potential conventions, e.g., gallery_id
+    const idKey = Object.keys(record).find(key => key.endsWith('_id'));
+    if (idKey && record[idKey]) {
+      return record[idKey];
+    }
+
+    // Last resort, but fragile.
+    console.warn("Could not determine a specific ID column, falling back to the first column.");
+    return record[Object.keys(record)[0]];
   }
 
   const handleDelete = async (table: string, id: string | number) => {
@@ -127,7 +148,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
                 ))}
                 <td className="px-4 py-2 border-b">
                   <button
-                    onClick={() => handleDelete(tableName, record[Object.keys(record)[0]])}
+                    onClick={() => handleDelete(tableName, getRecordId(record))}
                     className="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                   >
                     Delete
@@ -144,7 +165,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch('http://localhost:3001/authentication/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +173,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
         body: JSON.stringify(newUser),
       })
       const result = await response.json()
-      if (response.ok && result.success) {
+      if (response.ok) {
         alert('User added successfully!')
         setNewUser({ username: '', password: '', role: 'user' })
         setShowAddUser(false)

@@ -1,4 +1,5 @@
-import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
 // Define the shape of the context data
 interface AuthContextType {
@@ -18,23 +19,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<{ user_id: number; username: string; role: string } | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-
-   
+  // Check for stored user/token on initial load
   useEffect(() => {
-    // // On initial load, check if user info is in localStorage
-    // const storedUser = localStorage.getItem('user');
-    // const storedToken = localStorage.getItem('token');
-    // if (storedUser == " " || storedUser == "undefined"   &&  storedToken == " " || storedToken == "undefined" ) {
-    //   setUser(JSON.parse(storedUser));
-    //   setToken(storedToken);
-    // }
+    const storedUser = localStorage.getItem('user');
+    const storedToken = localStorage.getItem('token');
+    
+    if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
+      setUser(JSON.parse(storedUser));
+    }
+    if (storedToken && storedToken !== "undefined" && storedToken !== "null") {
+      setToken(storedToken);
+    }
   }, []);
 
   const login = (userData: { user_id: number; username: string; role: string }, authToken: string) => {
+    console.log("AuthContext login called with:", userData, authToken);
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', authToken);
+    console.log("AuthContext user state after login:", userData);
   };
 
   const logout = () => {
@@ -48,6 +52,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return token || localStorage.getItem('token');
   };
 
+  // Compute isAuthenticated based on user state
+  const isAuthenticated = !!user && !!token;
+
   return (
     <AuthContext.Provider 
       value={{ 
@@ -55,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         token, 
         login, 
         logout, 
-        isAuthenticated: !!user && !!token,
+        isAuthenticated,
         getAuthToken 
       }}
     >
