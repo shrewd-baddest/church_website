@@ -20,6 +20,7 @@ const allowedTables = [
   "gallery",
   "jumuiya",
   "users",
+  "announcements"
 ];
 
 // Middleware to validate table name

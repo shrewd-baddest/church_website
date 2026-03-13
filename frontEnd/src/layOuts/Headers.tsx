@@ -25,6 +25,11 @@ const Headers = () => {
             <li className="font-semibold">Home</li>
           </Link>
 
+          <Link to="/community-hub" className="flex flex-row items-center gap-1 px-4 py-2">
+            <FaInfoCircle className="inline w-5 h-5" />
+            <li className="font-semibold">Community Hub</li>
+          </Link>
+
           <Link
             to="/jumuia"
             className="flex flex-row items-center gap-1 px-4 py-2"
@@ -102,6 +107,13 @@ const Headers = () => {
               >
                 <FaHome className="w-5 h-5" />
                 <li className="font-semibold">Home</li>
+              </Link>
+              <Link
+                to="/community-hub"
+                className="flex flex-row items-center gap-1 px-4 py-2"
+              >
+                <FaInfoCircle className="inline w-5 h-5" />
+                <li className="font-semibold">Community Hub</li>
               </Link>
               <Link
                 to="/jumuia"

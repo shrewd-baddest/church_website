@@ -1,0 +1,72 @@
+/**
+ * Social Media Links Styles
+ */
+
+.csa-choir-social {
+    background-color: var(--csa-choir-primary);
+    color: var(--csa-choir-text-inverse);
+    text-align: center;
+}
+
+.csa-choir-social__title {
+    font-size: var(--csa-choir-font-size-3xl);
+    margin-bottom: var(--csa-choir-spacing-sm);
+    color: var(--csa-choir-white);
+}
+
+.csa-choir-social__subtitle {
+    font-size: var(--csa-choir-font-size-lg);
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: var(--csa-choir-spacing-xl);
+}
+
+.csa-choir-social__links {
+    display: flex;
+    justify-content: center;
+    gap: var(--csa-choir-spacing-lg);
+    flex-wrap: wrap;
+}
+
+.csa-choir-social__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--csa-choir-spacing-sm);
+    padding: var(--csa-choir-spacing-md);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--csa-choir-border-radius-md);
+    color: var(--csa-choir-white);
+    transition: all var(--csa-choir-transition-base);
+    min-width: 120px;
+}
+
+.csa-choir-social__link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+}
+
+.csa-choir-social__link svg {
+    width: 32px;
+    height: 32px;
+}
+
+.csa-choir-social__label {
+    font-size: var(--csa-choir-font-size-sm);
+    font-weight: var(--csa-choir-font-weight-medium);
+}
+
+@media (max-width: 640px) {
+    .csa-choir-social__links {
+        gap: var(--csa-choir-spacing-md);
+    }
+
+    .csa-choir-social__link {
+        min-width: 100px;
+        padding: var(--csa-choir-spacing-sm);
+    }
+
+    .csa-choir-social__link svg {
+        width: 24px;
+        height: 24px;
+    }
+}

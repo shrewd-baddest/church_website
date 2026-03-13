@@ -1,0 +1,90 @@
+/**
+ * How to Join Styles
+ */
+
+.csa-choir-how-to-join {
+    background-color: var(--csa-choir-white);
+}
+
+.csa-choir-how-to-join__title {
+    font-size: var(--csa-choir-font-size-3xl);
+    text-align: center;
+    margin-bottom: var(--csa-choir-spacing-xl);
+    color: var(--csa-choir-primary);
+}
+
+.csa-choir-how-to-join__steps {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--csa-choir-spacing-lg);
+}
+
+.csa-choir-how-to-join__step {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--csa-choir-spacing-lg);
+    position: relative;
+}
+
+.csa-choir-how-to-join__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 60px;
+    bottom: -24px;
+    width: 2px;
+    background-color: var(--csa-choir-border-color);
+}
+
+.csa-choir-how-to-join__number {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--csa-choir-accent);
+    color: var(--csa-choir-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--csa-choir-font-size-2xl);
+    font-weight: var(--csa-choir-font-weight-bold);
+    font-family: var(--csa-choir-font-family-heading);
+    position: relative;
+    z-index: var(--csa-choir-z-base);
+}
+
+.csa-choir-how-to-join__content {
+    flex: 1;
+    padding-top: var(--csa-choir-spacing-xs);
+}
+
+.csa-choir-how-to-join__step-title {
+    font-size: var(--csa-choir-font-size-xl);
+    font-weight: var(--csa-choir-font-weight-bold);
+    color: var(--csa-choir-primary);
+    margin-bottom: var(--csa-choir-spacing-xs);
+}
+
+.csa-choir-how-to-join__step-description {
+    font-size: var(--csa-choir-font-size-base);
+    color: var(--csa-choir-text-secondary);
+    line-height: var(--csa-choir-line-height-relaxed);
+}
+
+@media (max-width: 640px) {
+    .csa-choir-how-to-join__step {
+        gap: var(--csa-choir-spacing-md);
+    }
+
+    .csa-choir-how-to-join__number {
+        width: 48px;
+        height: 48px;
+        font-size: var(--csa-choir-font-size-xl);
+    }
+
+    .csa-choir-how-to-join__step:not(:last-child)::after {
+        left: 24px;
+    }
+}

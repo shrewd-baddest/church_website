@@ -1,0 +1,171 @@
+/**
+ * Music Classes Styles
+ */
+
+.csa-choir-music-classes {
+    background-color: var(--csa-choir-bg-secondary);
+}
+
+.csa-choir-music-classes__title {
+    font-size: var(--csa-choir-font-size-3xl);
+    text-align: center;
+    margin-bottom: var(--csa-choir-spacing-sm);
+    color: var(--csa-choir-primary);
+}
+
+.csa-choir-music-classes__subtitle {
+    text-align: center;
+    font-size: var(--csa-choir-font-size-lg);
+    color: var(--csa-choir-text-secondary);
+    margin-bottom: var(--csa-choir-spacing-xl);
+}
+
+.csa-choir-music-classes__card {
+    display: flex;
+    flex-direction: column;
+}
+
+.csa-choir-music-classes__header {
+    margin-bottom: var(--csa-choir-spacing-md);
+}
+
+.csa-choir-music-classes__class-title {
+    font-size: var(--csa-choir-font-size-xl);
+    font-weight: var(--csa-choir-font-weight-bold);
+    color: var(--csa-choir-primary);
+    margin-bottom: var(--csa-choir-spacing-xs);
+}
+
+.csa-choir-badge--skill-beginner {
+    background-color: var(--csa-choir-info);
+    color: var(--csa-choir-white);
+}
+
+.csa-choir-badge--skill-intermediate {
+    background-color: var(--csa-choir-warning);
+    color: var(--csa-choir-white);
+}
+
+.csa-choir-badge--skill-advanced {
+    background-color: var(--csa-choir-accent);
+    color: var(--csa-choir-white);
+}
+
+.csa-choir-music-classes__description {
+    font-size: var(--csa-choir-font-size-base);
+    color: var(--csa-choir-text-secondary);
+    line-height: var(--csa-choir-line-height-relaxed);
+    margin-bottom: var(--csa-choir-spacing-md);
+    flex: 1;
+}
+
+.csa-choir-music-classes__schedule {
+    display: flex;
+    align-items: center;
+    gap: var(--csa-choir-spacing-xs);
+    font-size: var(--csa-choir-font-size-sm);
+    color: var(--csa-choir-text-muted);
+    margin-bottom: var(--csa-choir-spacing-md);
+}
+
+.csa-choir-music-classes__schedule svg {
+    flex-shrink: 0;
+}
+
+/* Modal Styles */
+.csa-choir-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: var(--csa-choir-spacing-md);
+    backdrop-filter: blur(4px);
+}
+
+.csa-choir-modal {
+    background-color: var(--csa-choir-bg-primary);
+    border-radius: var(--csa-choir-radius-lg);
+    width: 100%;
+    max-width: 450px;
+    padding: var(--csa-choir-spacing-lg);
+    box-shadow: var(--csa-choir-shadow-lg);
+    animation: csa-choir-modal-in 0.3s ease-out;
+}
+
+@keyframes csa-choir-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.csa-choir-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--csa-choir-spacing-lg);
+    border-bottom: 1px solid var(--csa-choir-border);
+    padding-bottom: var(--csa-choir-spacing-md);
+}
+
+.csa-choir-modal__header h3 {
+    font-size: var(--csa-choir-font-size-xl);
+    color: var(--csa-choir-primary);
+    margin: 0;
+}
+
+.csa-choir-modal__close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--csa-choir-text-muted);
+    cursor: pointer;
+    line-height: 1;
+}
+
+.csa-choir-modal__close:hover {
+    color: var(--csa-choir-danger);
+}
+
+.csa-choir-modal__form .csa-choir-form-group {
+    margin-bottom: var(--csa-choir-spacing-md);
+}
+
+.csa-choir-modal__success {
+    text-align: center;
+    padding: var(--csa-choir-spacing-lg) 0;
+}
+
+.csa-choir-success-icon {
+    width: 60px;
+    height: 60px;
+    background-color: var(--csa-choir-success);
+    color: white;
+    font-size: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--csa-choir-spacing-md);
+}
+
+.csa-choir-modal__success h3 {
+    margin-bottom: var(--csa-choir-spacing-sm);
+    color: var(--csa-choir-primary);
+}
+
+.csa-choir-modal__success p {
+    color: var(--csa-choir-text-secondary);
+    margin-bottom: var(--csa-choir-spacing-lg);
+}

@@ -83,6 +83,7 @@ const GallerySection: React.FC = () => {
                     src={item.image_url} 
                     alt={item.title}
                     className="w-full h-32 md:h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+                    onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = 'https://picsum.photos/400/300?random=' + item.id; }}
                   />
                 ) : (
                   <div className="w-full h-32 md:h-48 bg-gray-200 flex items-center justify-center">
@@ -113,6 +114,7 @@ const GallerySection: React.FC = () => {
                   src={selectedImage.image_url} 
                   alt={selectedImage.title}
                   className="w-full max-h-48 md:max-h-96 object-contain"
+                  onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = 'https://picsum.photos/800/600?random=' + selectedImage.id; }}
                 />
               )}
               <div className="p-3 md:p-4">
