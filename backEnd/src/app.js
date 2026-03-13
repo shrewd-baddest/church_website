@@ -1,19 +1,34 @@
 import express from "express";
 import cors from "cors";
+import path from 'path';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
+import fs from 'fs';
 import authRoute from "./routers/index.js";
-import generateQuestionsRoute from "./routers/index.js";
+import { auth } from "./routers/Authorization.js";
+import { api } from "./routers/api.js";
+import { hubRouter } from "./routers/hubRouter.js";
+import { BackendDataService } from "./services/backend-data.js";
 import logger from "./logger/winston.js";
 import morganMiddleware from "./logger/morgan.js";
 import { rateLimit } from "express-rate-limit";
 import requestIp from "request-ip";
 import corsOptions from "./Configs/corsConfigs.js"
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
+
+// Initialize Backend Data Service
+BackendDataService.init();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("uploads"));
 
+// EJS Setup
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 // this is the best way to to get the actual ip adress of a device even if the server is behind a proxy 
 //rather than getting the proxy ip adress usefull in fare shairing of resorces
@@ -30,40 +45,68 @@ const limiter = rateLimit({
   keyGenerator: (req, res) => {
     return req.clientIp; // IP address from requestIp.mw(), as opposed to req.ip
   },
-  handler: (_, __, ___, options) => {
-    throw new ApiError(
-      options.statusCode || 500,
-      `There are too many requests. You are only allowed ${
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode || 429).json({
+      error: `There are too many requests. You are only allowed ${
         options.max
       } requests per ${options.windowMs / 60000} minutes`
-    );
+    });
   },
 });
 
 // Apply the rate limiting middleware to all requests
 app.use(limiter);
 
+// Gallery Storage Config
+const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => {
+        const uploadDir = path.join(__dirname, '../../frontEnd/public/images/gallery');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        cb(null, uploadDir);
+    },
+    filename: (_req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
+// Routes
+app.get('/', (_req, res) => res.redirect('/community-hub'));
+app.use("/authentication", auth);
+app.use("/api", api);
+app.use("/community-hub", hubRouter);
 
-//include versioning to avoid break  the app in feuture adaptation
-app.use("/authentication" , authRoute )
-app.use("/questions" , generateQuestionsRoute )
-
-
-// Catch handled rejections normally
-process.on("unhandledRejection", (reason, promise) => {
-  logger.error("Unhandled Rejection at:", promise, "reason:", reason);
-  process.exit(1); // Exit with failure code
+// Gallery APIs
+app.get('/api/choir/gallery', (_req, res) => {
+    const gallery = BackendDataService.load('choir_gallery.json', []);
+    res.json(gallery);
+});
+app.post('/api/choir/gallery', upload.single('photo'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const gallery = BackendDataService.load('choir_gallery.json', []);
+    const newPhoto = {
+        id: Date.now().toString(),
+        filename: req.file.filename,
+        eventName: req.body.eventName || 'Untitled Event',
+        description: req.body.description || '',
+        uploadDate: new Date().toISOString(),
+        imageUrl: `/images/gallery/${req.file.filename}`
+    };
+    gallery.push(newPhoto);
+    BackendDataService.save('choir_gallery.json', gallery);
+    res.status(201).json(newPhoto);
 });
 
-// Catch exceptions not in promises
-process.on("uncaughtException", (err) => {
-  logger.error("Uncaught Exception:", err);
-  process.exit(1); // Exit with failure code
-});
+// Other legacy questions routes
+app.use("/questions", authRoute);
 
-
+// Static Files
+app.use(express.static(path.join(__dirname, '../../frontEnd/public')));
+app.use(express.static(path.join(__dirname, '../../frontEnd/src/pages/sacramental/public')));
+app.use('/community-assets/backend', express.static(path.join(__dirname, '../../frontEnd/src/pages/sacramental/dist/backend')));
+app.use('/community-assets', express.static(path.join(__dirname, '../../frontEnd/src/pages/sacramental')));
 
 app.use(morganMiddleware);
 
-export  {app}
+export { app };
