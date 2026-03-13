@@ -1,18 +1,25 @@
 import express from "express";
 import cors from "cors";
 import authRoute from "./routers/index.js";
+import generateQuestionsRoute from "./routers/index.js";
 import logger from "./logger/winston.js";
 import morganMiddleware from "./logger/morgan.js";
 import { rateLimit } from "express-rate-limit";
 import requestIp from "request-ip";
+import corsOptions from "./Configs/corsConfigs.js"
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("uploads"));
 
 
+// this is the best way to to get the actual ip adress of a device even if the server is behind a proxy 
+//rather than getting the proxy ip adress usefull in fare shairing of resorces
 app.use(requestIp.mw());
+
+app.use(cors(corsOptions));
 
 // Rate limiter to avoid misuse of the service and avoid cost spikes
 const limiter = rateLimit({
@@ -40,9 +47,13 @@ app.use(limiter);
 
 //include versioning to avoid break  the app in feuture adaptation
 app.use("/authentication" , authRoute )
+app.use("/questions" , generateQuestionsRoute )
+
+
 // Catch handled rejections normally
 process.on("unhandledRejection", (reason, promise) => {
   logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1); // Exit with failure code
 });
 
 // Catch exceptions not in promises

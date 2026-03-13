@@ -1,10 +1,12 @@
 
 
-import v1authRoutes from "./v1/Authorization.js"
+import authRoutes from "./v1/Authorization.js"
+import generateQuestions from "./v1/GenerateQuestions.js"
 import {Router} from "express"
 
-const authRoute = Router()
+const route = Router()
 
-authRoute.use("/v1" , v1authRoutes)
+route.use("/v1" , authRoutes)
+route.use("/v1" , generateQuestions)
 
-export default authRoute
+export default route
