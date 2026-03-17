@@ -22,6 +22,7 @@ import mongoose from "mongoose";
 
 // Define the Question schema
 const QuestionSchema = new mongoose.Schema({
+<<<<<<< HEAD
   questionText: {
     type: String,
     required: true,
@@ -41,6 +42,21 @@ const QuestionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now, // timestamp when the question is created
   }
+=======
+  questionText: { type: String, required: true },
+  answers: [
+    {
+      option: { type: String, required: true },
+      text: { type: String, required: true },
+    },
+  ],
+ correctAnswer: {
+  option: { type: String, required: true },
+  text: { type: String, required: true, default: "Answer not provided" },
+  explanation: { type: String, required: true, default: "Explanation not provided" },
+},
+  createdAt: { type: Date, default: Date.now },
+>>>>>>> origin/main
 });
 
 // Create the model

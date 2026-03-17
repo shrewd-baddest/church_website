@@ -1,26 +1,12 @@
-# Backend MongoDB Connection Fix - Progress Tracker
+# TODO: Fix MongoDB Connection Issue &amp; Make Server Robust
 
-## Information Gathered
-- MongoDB URI in .env correct but connection fails with \"Invalid scheme\"
-- Caused by potential trailing whitespace/newline in env var
-- Multiple dotenv.config() calls
-- \"undefined\" from console.log(TOKEN) in emailConfig.js
+## Steps:
 
-## Steps
-- [x] Created test-mongo.js to isolate connect
-- [ ] Run test-mongo.js - confirm URI parsing
-- [ ] Edit backEnd/src/Configs/dbConfig.js - add URI.trim(), validation
-- [ ] Edit backEnd/src/server.js - add dotenv.config() once at top
-- [ ] Remove redundant dotenv.config() from other files (Tokens.js, Login.js, etc.)
-- [ ] Test: cd backEnd &amp;&amp; npm run dev
-- [ ] Delete test-mongo.js &amp;&amp; attempt_completion
+1. Clean merge conflicts in backEnd/src/server.js and backEnd/src/Configs/dbConfig.js
+2. Update backEnd/src/Configs/dbConfig.js: Remove process.exit(1) from connectToMongoDb catch
+3. Update backEnd/src/server.js: Wrap connectToMongoDb in try-catch, log error, set global flag (e.g. process.env.mongoConnected = 'false'), continue with app.listen
+4. Update backEnd/src/routers/v1/GenerateQuestions.js: Check if mongoConnected, else return static questions or error
+5. Test: cd backEnd &amp;&amp; npm start - server runs without crash
+6. User: Fix MONGODB_URI in backEnd/.env (check Atlas cluster status/IP whitelist)
 
-## Dependent Files
-- backEnd/src/Configs/dbConfig.js
-- backEnd/src/server.js
-- backEnd/src/middleWares/Tokens.js
-- backEnd/src/controllers/Login.js
-- backEnd/src/Configs/serverConfigs.js
-- backEnd/src/Configs/emailConfig.js
-
-Updated: Initial TODO
+Current progress: Starting Step 1

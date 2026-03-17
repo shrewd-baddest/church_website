@@ -67,6 +67,7 @@ route.post("/", async (req, res) => {
       },
     );
 
+<<<<<<< HEAD
     // if there is any kind of responce
     if (response) {
       const content = response?.data?.choices[0].message?.content;
@@ -85,6 +86,10 @@ route.post("/", async (req, res) => {
         //  them altogether to the mongo db and ensure accessible to the others members and routes
 
         // insert multiplegenerated question to the database strictry enforcing the model Question
+        if (process.env.mongoConnected !== 'true') {
+          return res.status(503).json({ error: "Questions feature unavailable (MongoDB down)", fallback: 'Use static questions' });
+        }
+
         const insertedDocs = await Question.insertMany(questionsArray);
 
         return res.status(201).json({
@@ -97,12 +102,65 @@ route.post("/", async (req, res) => {
           .status(500)
           .json({ error: "Failed to save questions to database" });
       }
+
     }
 
     logger.error(`Groq API error `);
     return res.status(502).json({ error: "Unexpected Groq API status" });
     
   } catch (error) {
+=======
+    // Check if the response from Groq API contains the expected content structure. If not,
+    //  log an error and return a 502 Bad Gateway response to indicate that there was an issue with the upstream Groq API.
+
+    if (!response?.data?.choices?.[0]?.message?.content) {
+      logger.error("Groq API error: No content in response");
+      return res
+        .status(502)
+        .json({ error: "Groq API error: No content in response" });
+    }
+
+    const content = response.data.choices[0].message.content;
+    const questionsArray = sansitiseAndParseQuestionBlock(content);
+
+    const validQuestions = questionsArray.filter(
+      (q) =>
+        q &&
+        q.questionText &&
+        Array.isArray(q.answers) &&
+        q.answers.length === 4 &&
+        q.correctAnswer?.option &&
+        q.correctAnswer?.text &&
+        q.correctAnswer?.explanation,
+    );
+
+    if (validQuestions.length === 0) {
+      logger.error("No valid questions parsed from Groq output");
+      return res
+        .status(400)
+        .json({ error: "No valid questions parsed from Groq output" });
+    }
+
+    // if there is at least 1 valid question after sanitising and validating through our custom filter and
+    //  modification function we insert them to the database and return the success message with the count of the inserted question
+
+    try {
+      const insertedDocs = await Question.insertMany(questionsArray, {
+        ordered: false,
+      });
+      return res.status(201).json({
+        message: "Questions generated and saved successfully",
+        count: insertedDocs.length,
+      });
+    } catch (err) {
+      console.error("Partial insert error:", err.message);
+      logger.error("Partial insert error:", err.message);
+      return res.status(500).json({ error: "Some questions failed to save" });
+    }
+  } catch (error) {
+    // Check if the error is an HTTP error from the Groq API
+    // This can happen if the API returns a non-2xx status code, such as 400 Bad Request, 401 Unauthorized, 404 Not Found, or 429 Too Many Requests.
+>>>>>>> origin/main
     if (error.response) {
       const status = error.response.status;
       logger.error(`Groq API error ${status}:`, error.response);
@@ -133,17 +191,44 @@ route.post("/", async (req, res) => {
       }
       logger.error(`Groq API error ${status}:`, error.response);
       return res.status(502).json({ error: "Groq API error" });
+<<<<<<< HEAD
+=======
+
+      // Check if the error is a network error (no response received)
+      // This can happen if the Groq API is down, there are connectivity issues, or the request times out.
+      //  We log this as a gateway timeout error and return a 504 status code to indicate that our server did not receive a timely response from the upstream Groq API.
+>>>>>>> origin/main
     } else if (error.request) {
       logger.error("Gateway Timeout: No response from Groq");
       return res
         .status(504)
         .json({ error: "Gateway Timeout: No response from Groq" });
+<<<<<<< HEAD
     } else {
       logger.error("Internal server error:", error.message);
       return res.status(500).json({ error: "Internal Server Error" });
+=======
+      // Other types of errors (e.g., coding errors, unexpected issues)
+    } else {
+      if (error.name === "ValidationError") {
+        logger.error("Mongo validation error:", err.message);
+        return res
+          .status(400)
+          .json({ error: "Invalid question schema", details: err.message });
+      }
+      logger.error("Internal server error:", error.message);
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: error.message,
+        stack: error.stack,
+      });
+>>>>>>> origin/main
     }
   }
 });
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 export default route;

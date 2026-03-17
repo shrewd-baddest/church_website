@@ -30,6 +30,10 @@ import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
 import ImageSlider from "./pages/Landing/components/ImageSlider";
 import { useAuth } from "./context/AuthContext";
 import { PublicRoute, ProtectedRoute } from "./Regulator";
+<<<<<<< HEAD
+=======
+import CommunityHub from "./pages/sacramental/CommunityHub";
+>>>>>>> origin/main
 
 // Lazy-loaded component
 const Login = lazy(() => import("./pages/Authorization/Login"));
@@ -90,7 +94,11 @@ const App: React.FC = () => {
         <Route path="/admin/quiz" element={<Appadmin />}/>
 
         <Route path="/" element={<Pageoulet />}>
+<<<<<<< HEAD
         <Route index element={<Home />} />
+=======
+          <Route index element={<Home />} />
+>>>>>>> origin/main
 
           <Route
             path="devotions"
@@ -107,9 +115,17 @@ const App: React.FC = () => {
             <Route path="rosary" element={<Rosary />} />
             <Route path="challenge" element={<Challenge />} />
           </Route>
+<<<<<<< HEAD
         </Route>
       </>,
     ),
+=======
+
+          <Route path="community-hub" element={<CommunityHub />} />
+        </Route>
+      </>
+    )
+>>>>>>> origin/main
   );
 
   return (

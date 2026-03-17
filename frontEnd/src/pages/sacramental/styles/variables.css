@@ -1,0 +1,122 @@
+/**
+ * CSS Variables - Design System
+ * Catholic academic aesthetic with neutral professional palette
+ * Prefix: csa-choir-
+ */
+
+:root {
+  /* Color Palette - Heavenly Blue & Gold */
+  --csa-choir-primary: #1e3a8a;
+  /* Royal Blue */
+  --csa-choir-primary-light: #3b82f6;
+  --csa-choir-primary-dark: #172554;
+  /* Deep Navy */
+  --csa-choir-accent: #d4af37;
+  /* Metallic Gold */
+  --csa-choir-accent-light: #f6e05e;
+  --csa-choir-accent-dark: #92400e;
+
+  --csa-choir-success: #27ae60;
+  --csa-choir-warning: #f39c12;
+  --csa-choir-error: #c0392b;
+  --csa-choir-info: #3498db;
+
+  /* Neutrals */
+  --csa-choir-white: #ffffff;
+  --csa-choir-off-white: #f8f9fa;
+  --csa-choir-light-gray: #ecf0f1;
+  --csa-choir-gray: #bdc3c7;
+  --csa-choir-dark-gray: #7f8c8d;
+  --csa-choir-charcoal: #2c3e50;
+  --csa-choir-black: #1a1a1a;
+
+  /* Background */
+  --csa-choir-bg-primary: #ffffff;
+  --csa-choir-bg-secondary: #f8f9fa;
+  --csa-choir-bg-tertiary: #ecf0f1;
+  --csa-choir-bg-overlay: rgba(44, 62, 80, 0.9);
+
+  /* Text */
+  --csa-choir-text-primary: #2c3e50;
+  --csa-choir-text-secondary: #7f8c8d;
+  --csa-choir-text-muted: #95a5a6;
+  --csa-choir-text-inverse: #ffffff;
+
+  /* Borders */
+  --csa-choir-border-color: #ecf0f1;
+  --csa-choir-border-color-dark: #bdc3c7;
+  --csa-choir-border-radius-sm: 4px;
+  --csa-choir-border-radius-md: 8px;
+  --csa-choir-border-radius-lg: 12px;
+
+  /* Spacing */
+  --csa-choir-spacing-xs: 0.5rem;
+  --csa-choir-spacing-sm: 1rem;
+  --csa-choir-spacing-md: 1.5rem;
+  --csa-choir-spacing-lg: 2rem;
+  --csa-choir-spacing-xl: 3rem;
+  --csa-choir-spacing-2xl: 4rem;
+
+  /* Typography */
+  --csa-choir-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --csa-choir-font-family-heading: 'Georgia', 'Times New Roman', serif;
+
+  --csa-choir-font-size-xs: 0.75rem;
+  --csa-choir-font-size-sm: 0.875rem;
+  --csa-choir-font-size-base: 1rem;
+  --csa-choir-font-size-lg: 1.125rem;
+  --csa-choir-font-size-xl: 1.25rem;
+  --csa-choir-font-size-2xl: 1.5rem;
+  --csa-choir-font-size-3xl: 2rem;
+  --csa-choir-font-size-4xl: 2.5rem;
+
+  --csa-choir-font-weight-normal: 400;
+  --csa-choir-font-weight-medium: 500;
+  --csa-choir-font-weight-semibold: 600;
+  --csa-choir-font-weight-bold: 700;
+
+  --csa-choir-line-height-tight: 1.2;
+  --csa-choir-line-height-normal: 1.5;
+  --csa-choir-line-height-relaxed: 1.8;
+
+  /* Shadows */
+  --csa-choir-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --csa-choir-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --csa-choir-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --csa-choir-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Transitions */
+  --csa-choir-transition-fast: 150ms ease-in-out;
+  --csa-choir-transition-base: 250ms ease-in-out;
+  --csa-choir-transition-slow: 350ms ease-in-out;
+
+  /* Container */
+  --csa-choir-container-max-width: 1200px;
+  --csa-choir-container-padding: 1rem;
+
+  /* Z-index Scale */
+  --csa-choir-z-base: 1;
+  --csa-choir-z-dropdown: 100;
+  --csa-choir-z-sticky: 200;
+  --csa-choir-z-modal: 300;
+  --csa-choir-z-tooltip: 400;
+}
+
+/* Responsive Typography */
+@media (min-width: 768px) {
+  :root {
+    --csa-choir-font-size-base: 1.0625rem;
+    --csa-choir-font-size-lg: 1.25rem;
+    --csa-choir-font-size-xl: 1.5rem;
+    --csa-choir-font-size-2xl: 1.875rem;
+    --csa-choir-font-size-3xl: 2.25rem;
+    --csa-choir-font-size-4xl: 3rem;
+    --csa-choir-container-padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --csa-choir-container-padding: 2rem;
+  }
+}

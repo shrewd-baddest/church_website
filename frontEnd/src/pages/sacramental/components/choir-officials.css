@@ -1,0 +1,109 @@
+/**
+ * Choir Officials Styles - Premium Redesign
+ */
+
+.csa-choir-officials {
+    background-color: var(--csa-choir-bg-secondary);
+    padding: var(--csa-choir-spacing-2xl) 0;
+}
+
+.csa-choir-officials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--csa-choir-spacing-xl);
+    padding: var(--csa-choir-spacing-lg) 0;
+}
+
+.csa-choir-official-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--csa-choir-spacing-xl);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.csa-choir-official-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    border-color: var(--csa-choir-accent);
+}
+
+.csa-choir-official-card__photo-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: var(--csa-choir-spacing-lg);
+    border: 3px solid var(--csa-choir-bg-tertiary);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.csa-choir-official-card__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.csa-choir-official-card__name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--csa-choir-primary);
+    margin-bottom: 0.25rem;
+}
+
+.csa-choir-official-card__role {
+    font-size: 0.9rem;
+    color: var(--csa-choir-text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--csa-choir-spacing-md);
+}
+
+.csa-choir-official-card__contact {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: auto;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.csa-choir-official-card__contact .csa-choir-btn {
+    flex: 1;
+    padding: 0.6rem;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+/* Specific button styles for clarity */
+.csa-choir-official-card__contact .csa-choir-btn--email {
+    background-color: var(--csa-choir-bg-tertiary);
+    color: var(--csa-choir-primary);
+    border: 1px solid var(--csa-choir-border-color);
+}
+
+.csa-choir-official-card__contact .csa-choir-btn--email:hover {
+    background-color: var(--csa-choir-primary);
+    color: white;
+}
+
+.csa-choir-official-card__contact .csa-choir-btn--call {
+    background-color: var(--csa-choir-primary);
+    color: white;
+}
+
+.csa-choir-official-card__contact .csa-choir-btn--call:hover {
+    opacity: 0.9;
+}

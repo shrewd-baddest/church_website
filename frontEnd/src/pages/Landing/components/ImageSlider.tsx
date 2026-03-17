@@ -98,7 +98,12 @@ function ImageSlider() {
         <img 
           src={getCurrentImage()} 
           alt={slides[currentSlide]?.title || `CSA Image ${currentSlide + 1}`} 
+<<<<<<< HEAD
           className="w-full h-full object-cover transition-opacity duration-500" 
+=======
+          className="w-full h-full object-cover transition-opacity duration-500"
+          onError={(e) => { (e.target as HTMLImageElement).onerror = null; (e.target as HTMLImageElement).src = `https://picsum.photos/1200/800?random=${currentSlide + 1}`; }}
+>>>>>>> origin/main
         />
         {/* Navigation Buttons - Hidden on very small screens, visible on mobile */}
         <button 
