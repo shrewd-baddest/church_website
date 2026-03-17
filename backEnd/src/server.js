@@ -3,8 +3,6 @@ import { serverConfig } from "./Configs/serverConfigs.js";
 import { app } from "./app.js";
 import logger from "./logger/winston.js";
 
-const PORT = serverConfig.PORT || 3001;
-const HOST = serverConfig.HOST || '0.0.0.0';
 
 // function that initiate express server , it waits for postgree db and mongo db to connect then runs the server at defined port 
 const initServer = async () => {
@@ -13,8 +11,8 @@ const initServer = async () => {
     await connectDb();
     await connectToMongoDb();
 
-    app.listen(PORT, HOST, () => {
-      logger.info(`⚙️  Server is running on http://${HOST}:${PORT}`);
+    app.listen(serverConfig.PORT, serverConfig.HOST , () => {
+      logger.info(`⚙️  Server is running on http://${serverConfig.HOST}:${serverConfig.PORT  }`);
       logger.debug("Server running. Listening for shutdown signals...");
     });
   } catch (error) {
@@ -38,3 +36,4 @@ signals.forEach((sig) => {
 });
 
 initServer();
+  

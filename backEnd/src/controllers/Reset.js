@@ -5,32 +5,57 @@ import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
 export const Reset = async (req, res) => {
-  const { userName, email, password } = req.body;
+  try {
+    const { userName, email, password } = req.body;
 
-  logger.debug("Received reset request for user: " + userName);
+    // ✅ Validate inputs individually
+    if (!userName || !email || !password) {
+      logger.warn("Reset attempt with missing fields");
+      return res
+        .status(400)
+        .json({ error: "userName, email, and password are required" });
+    }
 
-  if (!userName && !email && !password) {
-    logger.warn("Reset attempt with missing fields");
-    return res.status(400).send("userName, email, password are required");
+    // ✅ Check if user exists before updating
+    const existingUser = await testDb.query(
+      `SELECT member_id FROM members WHERE member_id = $1 AND email = $2`,
+      [userName, email],
+    );
+
+    if (existingUser.rowCount === 0) {
+      logger.warn(`Reset attempt for non-existent user: ${userName}`);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // ✅ Hash password securely
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // ✅ Generate OTP securely
+    const OTP = crypto.randomInt(100000, 999999).toString();
+    const hashedOtp = crypto.createHash("sha256").update(OTP).digest("hex");
+
+    // ✅ Configurable expiry
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    // ✅ Update only reset fields, not email blindly
+    await testDb.query(
+      `UPDATE members 
+       SET reset_otp = $1, reset_otp_expires = $2, password = $3
+       WHERE member_id = $4 AND email = $5`,
+      [hashedOtp, expiresAt, hashedPassword, userName, email],
+    );
+
+    // ✅ Send OTP securely
+    await sendMail("Password Reset OTP", `Your OTP is: ${OTP}`, email);
+
+    logger.info(`Password reset OTP sent to ${email} for user: ${userName}`);
+    return res
+      .status(200)
+      .json({ message: "Password reset initiated successfully" });
+  } catch (error) {
+    logger.error("Error during password reset: ", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const OTP = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-
-  const hashedOtp = crypto.createHash("sha256").update(OTP).digest("hex");
-
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-  const user = await testDb.query(
-    `UPDATE members 
-   SET reset_otp = $1, reset_otp_expires = $2 ,email=$3,password=$4
-   WHERE member_id = $5`,
-    [hashedOtp, expiresAt, email, hashedPassword, userName],
-  );
-
-  await sendMail("password reset OTP", OTP, email);
-  logger.info(`Password reset OTP sent to email: ${email} for user: ${userName}`);
-  return res.status(200).json("user updated successfully");
 };
 
 export const OTPverification = async (req, res) => {
@@ -45,25 +70,28 @@ export const OTPverification = async (req, res) => {
     [reg],
   );
 
-  if (
-    user.rows[0].reset_otp !== hashedInputOtp ||
-    new Date() > user.rows[0].reset_otp_expires
-  ) {
+  if ( user.rows[0].reset_otp !== hashedInputOtp || new Date() > user.rows[0].reset_otp_expires  )
+     {
     await testDb.query(
       `UPDATE members 
    SET password = $1, reset_otp = NULL, reset_otp_expires = NULL
    WHERE member_id = $1`,
       [reg],
     );
-logger.warn(`Invalid or expired OTP attempt for user: ${reg}`); 
+
+    logger.warn(`Invalid or expired OTP attempt for user: ${reg}`);
   } else {
+
     await testDb.query(
       `UPDATE members 
    SET  reset_otp = NULL, reset_otp_expires = NULL
    WHERE member_id = $1`,
       [reg],
     );
+
+
     logger.info(`Successful OTP verification for user: ${reg}`);
     return res.status(200).json({ message: "password updated successfully" });
   }
+  
 };

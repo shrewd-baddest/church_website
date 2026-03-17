@@ -90,7 +90,7 @@ route.post("/", async (req, res) => {
         q.correctAnswer?.text &&
         q.correctAnswer?.explanation,
     );
-
+c0onsole.log("Valid questions after sanitization and validation:", validQuestions);
     if (validQuestions.length === 0) {
       logger.error("No valid questions parsed from Groq output");
       return res

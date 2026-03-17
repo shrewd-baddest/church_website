@@ -1,10 +1,5 @@
 import { MailtrapClient } from "mailtrap";
-import dotenv from "dotenv";
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const TOKEN = process.env.MAILTRAP_TOKEN;
 console.log(TOKEN);
