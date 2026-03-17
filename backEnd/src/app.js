@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import fs from 'fs';
 import authRoute from "./routers/index.js";
-import { auth } from "./routers/Authorization.js";
+import { auth } from "./routers/v1/Authorization.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
 import { BackendDataService } from "./services/backend-data.js";
