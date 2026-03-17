@@ -72,9 +72,7 @@ export async function deleteFile(req, res) {
     const results = [];
 
     for (const publicId of ids) {
-      const result = await cloudinary.uploader.destroy(publicId, {
-        resource_type: "auto",
-      });
+      const result = await cloudinary.uploader.destroy(publicId);
 
       if (result.result !== "ok" && result.result !== "not found") {
          logger.warn("No publicId(s) provided");

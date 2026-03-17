@@ -46,9 +46,8 @@ const limiter = rateLimit({
   },
   handler: (_, __, ___, options) => {
     res.status(options.statusCode || 429).json({
-      error: `There are too many requests. You are only allowed ${
-        options.max
-      } requests per ${options.windowMs / 60000} minutes`,
+      error: `There are too many requests. You are only allowed ${options.max
+        } requests per ${options.windowMs / 60000} minutes`,
     });
   },
 });
