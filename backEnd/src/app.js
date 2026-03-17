@@ -4,10 +4,6 @@ import { fileURLToPath } from "url";
 import multer from "multer";
 import fs from "fs";
 import cors from "cors";
-import path from 'path';
-import { fileURLToPath } from 'url';
-import multer from 'multer';
-import fs from 'fs';
 import apiRoutes from "./routers/index.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
@@ -49,9 +45,8 @@ const limiter = rateLimit({
   },
   handler: (_, __, ___, options) => {
     res.status(options.statusCode || 429).json({
-      error: `There are too many requests. You are only allowed ${
-        options.max
-      } requests per ${options.windowMs / 60000} minutes`,
+      error: `There are too many requests. You are only allowed ${options.max
+        } requests per ${options.windowMs / 60000} minutes`,
     });
   },
 });
