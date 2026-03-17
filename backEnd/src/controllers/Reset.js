@@ -61,37 +61,64 @@ export const Reset = async (req, res) => {
 export const OTPverification = async (req, res) => {
   const reg = decodeURIComponent(req.params.regNo);
   const { otp } = req.body;
+
   const hashedInputOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-  const user = await testDb.query(
-    `SELECT reset_otp, reset_otp_expires 
-   FROM members 
-   WHERE member_id = $1`,
-    [reg],
-  );
+  const client = await testDb.connect();
 
-  if ( user.rows[0].reset_otp !== hashedInputOtp || new Date() > user.rows[0].reset_otp_expires  )
-     {
-    await testDb.query(
-      `UPDATE members 
-   SET password = $1, reset_otp = NULL, reset_otp_expires = NULL
-   WHERE member_id = $1`,
+  try {
+    await client.query("BEGIN");
+
+    const result = await client.query(
+      `SELECT * FROM password_resets WHERE member_id = $1`,
       [reg],
     );
 
-    logger.warn(`Invalid or expired OTP attempt for user: ${reg}`);
-  } else {
+    //   No OTP record
+    if (result.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "No OTP request found" });
+    }
 
-    await testDb.query(
-      `UPDATE members 
-   SET  reset_otp = NULL, reset_otp_expires = NULL
-   WHERE member_id = $1`,
-      [reg],
+    const resetData = result.rows[0];
+
+    //   Invalid or expired OTP
+    if (
+      resetData.otp !== hashedInputOtp ||
+      new Date() > resetData.otp_expires
+    ) {
+      await client.query("ROLLBACK");
+      logger.warn(`Invalid/expired OTP for user: ${reg}`);
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+
+    //   Update password + email (only if NULL)
+    await client.query(
+      `UPDATE members
+       SET password = $1,
+           email = COALESCE(email, $2)
+       WHERE member_id = $3`,
+      [resetData.temp_password, resetData.email, reg],
     );
 
+    //  Delete reset record
+    await client.query(`DELETE FROM password_resets WHERE member_id = $1`, [
+      reg,
+    ]);
 
-    logger.info(`Successful OTP verification for user: ${reg}`);
-    return res.status(200).json({ message: "password updated successfully" });
+    await client.query("COMMIT");
+
+    logger.info(`Password reset successful for user: ${reg}`);
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    logger.error(`OTP verification error for ${reg}: ${error.message}`);
+    return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    client.release();
   }
   
 };
