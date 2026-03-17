@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import multer from "multer";
 import fs from "fs";
 import authRoute from "./routers/index.js";
-import route from "./routers/v1/Authorization.js";
+import route from "./routers/index.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
 import { BackendDataService } from "./services/backend-data.js";
@@ -31,7 +31,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // this is the best way to to get the actual ip adress of a device even if the server is behind a proxy
-//rather than getting the proxy ip adress usefull in fare shairing of resorces
+//rather than getting the proxy ip adress , usefull in fare shairing of resorces
 app.use(requestIp.mw());
 
 app.use(cors(corsOptions));
