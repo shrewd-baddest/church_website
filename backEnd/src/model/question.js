@@ -22,7 +22,7 @@ import mongoose from "mongoose";
 
 // Define the Question schema
 const QuestionSchema = new mongoose.Schema({
-<<<<<<< HEAD
+HEAD
   questionText: {
     type: String,
     required: true,
@@ -42,7 +42,7 @@ const QuestionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now, // timestamp when the question is created
   }
-=======
+
   questionText: { type: String, required: true },
   answers: [
     {
@@ -56,7 +56,7 @@ const QuestionSchema = new mongoose.Schema({
   explanation: { type: String, required: true, default: "Explanation not provided" },
 },
   createdAt: { type: Date, default: Date.now },
->>>>>>> origin/main
+ 
 });
 
 // Create the model
