@@ -19,7 +19,8 @@ route.post("/", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant that generates multiple-choice questions strictly about Christianity. Do not create questions about mathematics, science, or any other topics, ⚠️ IMPORTANT , outside Christian faith, scripture, theology, and church life.",
+            content:
+              "You are a helpful assistant that generates multiple-choice questions strictly about Christianity. Do not create questions about mathematics, science, or any other topics, ⚠️ IMPORTANT , outside Christian faith, scripture, theology, and church life.",
           },
           {
             role: "user",
@@ -67,7 +68,9 @@ route.post("/", async (req, res) => {
     // Check if the response from Groq API contains the expected content structure.
     if (!response?.data?.choices?.[0]?.message?.content) {
       logger.error("Groq API error: No content in response");
-      return res.status(502).json({ error: "Groq API error: No content in response" });
+      return res
+        .status(502)
+        .json({ error: "Groq API error: No content in response" });
     }
 
     const content = response.data.choices[0].message.content;
@@ -83,10 +86,15 @@ route.post("/", async (req, res) => {
         q.correctAnswer?.text &&
         q.correctAnswer?.explanation,
     );
-c0onsole.log("Valid questions after sanitization and validation:", validQuestions);
+    console.log(
+      "Valid questions after sanitization and validation:",
+      validQuestions,
+    );
     if (validQuestions.length === 0) {
       logger.error("No valid questions parsed from Groq output");
-      return res.status(400).json({ error: "No valid questions parsed from Groq output" });
+      return res
+        .status(400)
+        .json({ error: "No valid questions parsed from Groq output" });
     }
 
     try {
@@ -108,21 +116,31 @@ c0onsole.log("Valid questions after sanitization and validation:", validQuestion
       logger.error(`Groq API error ${status}:`, error.response);
 
       if (status === 401) {
-        return res.status(401).json({ error: "Unauthorized: Invalid Groq API key" });
+        return res
+          .status(401)
+          .json({ error: "Unauthorized: Invalid Groq API key" });
       }
       if (status === 404) {
-        return res.status(404).json({ error: "Model not found or wrong endpoint" });
+        return res
+          .status(404)
+          .json({ error: "Model not found or wrong endpoint" });
       }
       if (status === 400) {
-        return res.status(400).json({ error: "Bad Request: Invalid payload or model name" });
+        return res
+          .status(400)
+          .json({ error: "Bad Request: Invalid payload or model name" });
       }
       if (status === 429) {
-        return res.status(429).json({ error: "Too Many Requests: Rate limit exceeded" });
+        return res
+          .status(429)
+          .json({ error: "Too Many Requests: Rate limit exceeded" });
       }
       return res.status(502).json({ error: "Groq API error" });
     } else if (error.request) {
       logger.error("Gateway Timeout: No response from Groq");
-      return res.status(504).json({ error: "Gateway Timeout: No response from Groq" });
+      return res
+        .status(504)
+        .json({ error: "Gateway Timeout: No response from Groq" });
     } else {
       logger.error("Internal server error:", error.message);
       return res.status(500).json({

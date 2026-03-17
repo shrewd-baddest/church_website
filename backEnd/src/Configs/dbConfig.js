@@ -13,9 +13,7 @@ const pool = new Pool({
   ssl: process.env.DB_HOST === "localhost" ? false : { rejectUnauthorized: false },
 });
 
-export const testDb = {
-  query: (text, params) => pool.query(text, params),
-};
+export const testDb = { query: (text, params) => pool.query(text, params),};
 
 export const connectDb = async () => {
   let client;

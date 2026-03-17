@@ -29,6 +29,7 @@ CREATE TABLE member_roles (
     role_id uuid REFERENCES roles(role_id),
     PRIMARY KEY(member_id, role_id)
 );
+
 CREATE TABLE events (
     event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_name VARCHAR(100) NOT NULL,
@@ -54,8 +55,6 @@ CREATE TABLE contributions (
         amount DECIMAL(10, 2) NOT NULL,
         contribution_type VARCHAR(50),
         contribution_date DATE DEFAULT CURRENT_DATE
-<<<<<<< HEAD
-=======
 );
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -67,5 +66,13 @@ CREATE TABLE notifications (
     posted_to VARCHAR(100) NOT NULL,
     member_id VARCHAR(30) REFERENCES members(member_id),
     status VARCHAR(100) DEFAULT 'normal' CHECK (status IN ('normal', 'urgent', 'info'))
->>>>>>> origin/main
+);
+
+CREATE TABLE IF NOT EXISTS uploads (
+  id SERIAL PRIMARY KEY,
+  public_id TEXT UNIQUE NOT NULL,
+  url TEXT NOT NULL,
+  format TEXT,
+  resource_type TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

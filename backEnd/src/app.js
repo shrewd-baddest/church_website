@@ -1,13 +1,9 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import multer from "multer";
 import fs from "fs";
 import cors from "cors";
-import path from 'path';
-import { fileURLToPath } from 'url';
 import multer from 'multer';
-import fs from 'fs';
 import apiRoutes from "./routers/index.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
@@ -16,6 +12,7 @@ import morganMiddleware from "./logger/morgan.js";
 import { rateLimit } from "express-rate-limit";
 import requestIp from "request-ip";
 import corsOptions from "./Configs/corsConfigs.js";
+import { testDb } from "./Configs/dbConfig.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -104,6 +101,9 @@ app.post("/api/choir/gallery", upload.single("photo"), (req, res) => {
 
 // Other legacy questions routes
 app.use("/questions", apiRoutes);
+app.use("/files" , apiRoutes)
+
+
 
 // Static Files
 app.use(express.static(path.join(__dirname, "../../frontEnd/public")));
@@ -122,6 +122,8 @@ app.use(
   "/community-assets",
   express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),
 );
+
+
 
 app.use(morganMiddleware);
 

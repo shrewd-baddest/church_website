@@ -1,5 +1,5 @@
 
-
+import logger from "../logger/winston.js"
 
 export const parseQuestionBlock = (block) => {
   const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
@@ -49,7 +49,8 @@ export const parseQuestionBlock = (block) => {
 
 
 export const sansitiseAndParseQuestionBlock = (content)=>{
-     content.split(/(?:\n\s*\n|---)/) // split on blank lines OR ---
+
+   const array =  content.split(/(?:\n\s*\n|---)/) // split on blank lines OR ---
           .map((block, i) => {
             const parsed = parseQuestionBlock(block);
             if (!parsed) {
@@ -60,6 +61,6 @@ export const sansitiseAndParseQuestionBlock = (content)=>{
           })
           .filter(Boolean);
 
-          return content
+          return array
 }
 
