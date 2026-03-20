@@ -17,6 +17,8 @@ import Readings from "./pages/Devotions/pages/Readings";
 import Dashboard from "./pages/Devotions/pages/Dashboard";
 import Layout from "./pages/Devotions/components/Layout";
 import Appadmin from "./pages/Devotions/Adminpage/App"
+import AdminPanel from "./pages/officials/AdminPanel";
+import PublicView from "./pages/officials/PublicView";
 import {
   AboutSection,
   CommunitySection,
@@ -88,6 +90,8 @@ const App: React.FC = () => {
           <Route path="otp/:reg" element={<ResetPasswordPage />} />
         </Route>
         <Route path="/admin/quiz" element={<Appadmin />}/>
+        <Route path="/admin/officials" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>}/>
+        <Route path="/officials" element={<PublicView />} />
 
         <Route path="/" element={<Pageoulet />}>
         <Route index element={<Home />} />

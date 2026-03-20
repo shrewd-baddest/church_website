@@ -1,4 +1,3 @@
-@"
 # Dependencies
 node_modules/
 
@@ -27,4 +26,7 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
-"@ | Out-File -Encoding utf8 .gitignore
+
+# Uploads and temporary files
+backEnd/tmp/
+backEnd/localFileUploads/

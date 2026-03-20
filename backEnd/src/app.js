@@ -7,6 +7,8 @@ import multer from 'multer';
 import apiRoutes from "./routers/index.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
+import officialsRouter from "./routers/officialsRouter.js";
+import jumuiyaOfficialsRouter from "./routers/jumuiyaOfficialsRouter.js";
 import { BackendDataService } from "./services/backend-data.js";
 import morganMiddleware from "./logger/morgan.js";
 import { rateLimit } from "express-rate-limit";
@@ -60,11 +62,15 @@ app.use(express.static(path.join(__dirname, "../../frontEnd/public")));
 app.use(express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/public")));
 app.use("/community-assets/backend",express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/dist/backend"),),);
 app.use("/community-assets", express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),);
+app.use("/localFileUploads", express.static(path.join(process.cwd(), "localFileUploads")));
+app.use("/uploads", express.static(path.join(process.cwd(), "localFileUploads")));
 
 
 // Routes
 app.get('/', (_req, res) => res.redirect('/community-hub'));
 app.use("/authentication", apiRoutes);
+app.use("/api/officials", officialsRouter);
+app.use("/api/jumuiya-officials", jumuiyaOfficialsRouter);
 app.use("/api", api);
 app.use("/community-hub", hubRouter);
 app.use("/questions", apiRoutes);
