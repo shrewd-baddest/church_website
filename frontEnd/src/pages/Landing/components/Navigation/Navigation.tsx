@@ -66,7 +66,7 @@ function Navigation() {
             <ul className="hidden md:flex items-center space-x-8">
               <li>
                 <a
-                  href="#jumuiya"
+                  href="/#jumuiya"
                   className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:scale-105 font-medium transition-all duration-300 transform"
                 >
                   <svg
@@ -88,7 +88,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#officials"
+                  href="/#officials"
                   className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:scale-105 font-medium transition-all duration-300 transform"
                 >
                   <svg
@@ -110,7 +110,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#projects"
+                  href="/#projects"
                   className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:scale-105 font-medium transition-all duration-300 transform"
                 >
                   <svg
@@ -133,7 +133,7 @@ function Navigation() {
 
               <li>
                 <a
-                  href="#activities"
+                  href="/#activities"
                   className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:scale-105 font-medium transition-all duration-300 transform"
                 >
                   <svg
@@ -156,7 +156,7 @@ function Navigation() {
 
               <li>
                 <a
-                  href="#gallery"
+                  href="/#gallery"
                   className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:scale-105 font-medium transition-all duration-300 transform"
                 >
                   <svg
@@ -228,7 +228,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#about"
+                  href="/#about"
                   className={`flex items-center gap-2 font-medium transition-all duration-300 transform hover:scale-105 ${activeSection === "about" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                 >
                   <svg
@@ -250,7 +250,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="jumuiya"
+                  href="/jumuiya"
                   className={`flex items-center gap-2 font-medium transition-all duration-300 transform hover:scale-105 ${activeSection === "jumuiya" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                 >
                   <svg
@@ -272,7 +272,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#gallery"
+                  href="/#gallery"
                   className={`flex items-center gap-2 font-medium transition-all duration-300 transform hover:scale-105 ${activeSection === "gallery" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                 >
                   <svg
@@ -294,7 +294,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#support"
+                  href="/#support"
                   className={`flex items-center gap-2 font-medium transition-all duration-300 transform hover:scale-105 ${activeSection === "support" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                 >
                   <svg
@@ -317,7 +317,7 @@ function Navigation() {
 
               <li>
                 <a
-                  href="devotions"
+                  href="/devotions"
                   className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:scale-105 font-medium transition-all duration-300 transform"
                 >
                   <svg
@@ -403,7 +403,7 @@ function Navigation() {
             <ul className="py-4 px-4 space-y-4">
               <li>
                 <a
-                  href="#jumuiya"
+                  href="/#jumuiya"
                   className="flex items-center gap-3 text-gray-600 hover:text-blue-600 font-medium transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -426,7 +426,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#officials"
+                  href="/#officials"
                   className="flex items-center gap-3 text-gray-600 hover:text-blue-600 font-medium transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -449,7 +449,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#projects"
+                  href="/#projects"
                   className="flex items-center gap-3 text-gray-600 hover:text-blue-600 font-medium transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -472,7 +472,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#activities"
+                  href="/#activities"
                   className="flex items-center gap-3 text-gray-600 hover:text-blue-600 font-medium transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -495,7 +495,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#gallery"
+                  href="/#gallery"
                   className="flex items-center gap-3 text-gray-600 hover:text-blue-600 font-medium transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -546,7 +546,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#about"
+                  href="/#about"
                   className={`flex items-center gap-3 font-medium transition-colors py-2 ${activeSection === "about" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -569,7 +569,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#jumuiya"
+                  href="/#jumuiya"
                   className={`flex items-center gap-3 font-medium transition-colors py-2 ${activeSection === "jumuiya" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -592,7 +592,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#gallery"
+                  href="/#gallery"
                   className={`flex items-center gap-3 font-medium transition-colors py-2 ${activeSection === "gallery" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -615,7 +615,7 @@ function Navigation() {
               </li>
               <li>
                 <a
-                  href="#support"
+                  href="/#support"
                   className={`flex items-center gap-3 font-medium transition-colors py-2 ${activeSection === "support" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

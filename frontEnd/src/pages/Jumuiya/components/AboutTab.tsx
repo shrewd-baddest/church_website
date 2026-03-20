@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 import type { JumuiyaData } from '../data/jumuiyaData';
 import { FaCalendarDay, FaClock, FaMapMarkerAlt, FaSignInAlt, FaUserShield, FaFilePdf } from 'react-icons/fa';
 import './TabsSystem.css';
@@ -8,34 +8,28 @@ import './TabsSystem.css';
 interface AboutTabProps {
     jumuiya: JumuiyaData;
     onNavigateBack: () => void;
-    onNavigateToRegistration?: () => void;
 }
 
-const AboutTab: React.FC<AboutTabProps> = ({ jumuiya, onNavigateToRegistration }) => {
+const AboutTab: React.FC<AboutTabProps> = ({ jumuiya }) => {
     const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
 
     const handleLoginClick = () => {
-        if (isAuthenticated) {
-            navigate('/admin');
-        } else {
-            navigate('/login');
-        }
+        navigate('/admin/officials'); // Navigate directly to the admin dashboard. ProtectedRoute will handle redirecting to login if needed.
+    };
+
+    const handleAdminLogin = () => {
+        navigate('/admin/AdminLayout');
     };
 
     return (
         <div className="tab-system-content" style={{ '--jumuiya-color': jumuiya.color } as React.CSSProperties}>
-            {/* Header with Login and Register buttons */}
+            {/* Header with Login button */}
             <div className="tab-header-wrap animate-fade">
-                <button
-                    className="btn-premium primary"
-                    onClick={onNavigateToRegistration}
-                >
-                    Register for {jumuiya.name}
-                </button>
+                <div /> {/* Spacer for flex-between if needed, or just let login follow flow */}
                 <button
                     className="btn-premium"
-                    onClick={handleLoginClick}
+                    onClick={handleAdminLogin}
                     style={{ background: 'var(--bg-soft)', color: 'var(--text-secondary)' }}
                 >
                     {isAuthenticated ? <><FaUserShield /> Admin Panel ({user?.username})</> : <><FaSignInAlt /> Official Login</>}

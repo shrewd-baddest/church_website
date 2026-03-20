@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Official, FormerOfficial, TermOfOffice } from '../data/jumuiyaData';
-import { FaEnvelope, FaWhatsapp, FaCalendarCheck, FaHistory } from 'react-icons/fa';
+import { FaEnvelope, FaWhatsapp, FaCalendarCheck, FaHistory, FaArrowRight } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import './TabsSystem.css';
 
 interface OfficialsTabProps {
@@ -8,6 +9,7 @@ interface OfficialsTabProps {
     termOfOffice?: TermOfOffice;
     formerOfficials?: FormerOfficial[];
     jumuiyaColor: string;
+    isAdmin?: boolean;
 }
 
 const Avatar: React.FC<{ name: string; image?: string; size?: 'xs' | 'sm' | 'md' }> = ({ name, image, size = 'md' }) => {
@@ -42,7 +44,8 @@ const Avatar: React.FC<{ name: string; image?: string; size?: 'xs' | 'sm' | 'md'
     );
 };
 
-const OfficialsTab: React.FC<OfficialsTabProps> = ({ officials, termOfOffice, formerOfficials, jumuiyaColor }) => {
+const OfficialsTab: React.FC<OfficialsTabProps> = ({ officials, termOfOffice, formerOfficials, jumuiyaColor, isAdmin }) => {
+    const navigate = useNavigate();
     return (
         <div className="tab-system-content" style={{ '--jumuiya-color': jumuiyaColor } as React.CSSProperties}>
             <div className="tab-header-wrap">
@@ -58,6 +61,22 @@ const OfficialsTab: React.FC<OfficialsTabProps> = ({ officials, termOfOffice, fo
                             <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{termOfOffice.startYear} – {termOfOffice.endYear}</span>
                         </div>
                     </div>
+                )}
+                {isAdmin && (
+                    <button
+                        className="btn-premium primary animate-fade-in"
+                        onClick={() => navigate('/admin/officials')}
+                        style={{
+                            background: 'var(--jumuiya-color)',
+                            color: 'white',
+                            gap: '12px',
+                            padding: '12px 24px',
+                            borderRadius: '16px',
+                            boxShadow: '0 10px 20px -5px var(--jumuiya-color)'
+                        }}
+                    >
+                        Go to Admin Panel <FaArrowRight />
+                    </button>
                 )}
             </div>
 

@@ -22,6 +22,14 @@ import JumuiyaLanding from "./pages/Jumuiya/JumuiyaLanding";
 import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
 import { useAuth } from "./context/AuthContext";
 import { DataProvider } from "./pages/Jumuiya/context/DataContext";
+
+import AdminLayout from "./pages/Jumuiya/admin/AdminLayout";
+import AdminOfficials from "./pages/Jumuiya/admin/AdminOfficials";
+import AdminAbout from "./pages/Jumuiya/admin/AdminAbout";
+import AdminActivities from "./pages/Jumuiya/admin/AdminActivities";
+import AdminGallery from "./pages/Jumuiya/admin/AdminGallery";
+import AdminMembers from "./pages/Jumuiya/admin/AdminMembers";
+import ProtectedRoute from "./pages/Jumuiya/components/ProtectedRoute";
 // import LoginPage from "./pages/Jumuiya/LoginPage";
 
 // Lazy-loaded component
@@ -78,10 +86,26 @@ const App: React.FC = () => {
           <Route path="otp/:reg" element={<ResetPasswordPage />} />
         </Route>
 
-        <Route path="/jumuiya" element={<DataProvider><Authorisation /></DataProvider>} >
+        <Route path="/jumuiya" element={<DataProvider><Pageoulet /></DataProvider>} >
           <Route index element={<JumuiyaLanding />} />
           <Route path=":name" element={<JumuiyaDetail />} />
           {/* <Route path="login" element={<LoginPage />} /> */}
+        </Route>
+
+        {/* Jumuiya Admin Routes */}
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <DataProvider>
+              <AdminLayout />
+            </DataProvider>
+          </ProtectedRoute>
+        }>
+          <Route index element={<AdminOfficials />} />
+          <Route path="officials" element={<AdminOfficials />} />
+          <Route path="about" element={<AdminAbout />} />
+          <Route path="activities" element={<AdminActivities />} />
+          <Route path="gallery" element={<AdminGallery />} />
+          <Route path="members" element={<AdminMembers />} />
         </Route>
 
 

@@ -76,8 +76,20 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({ jumuiyaColor }) => {
         return details[type] || { color: '#6b7280', icon: <FaCalendarAlt /> };
     };
 
-    const sortedActivities = [...allActivities].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const today = new Date().toISOString().split('T')[0];
+
+    // Logic: Sort so the nearest upcoming is first, followed by other upcoming, then past at the end.
+    const sortedActivities = [...allActivities].sort((a, b) => {
+        const isPastA = a.date < today;
+        const isPastB = b.date < today;
+
+        if (isPastA && !isPastB) return 1; // A is past, move after B
+        if (!isPastA && isPastB) return -1; // B is past, move after A
+
+        // Both are in same category (both future or both past), sort by date
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+
     const upcomingActivities = sortedActivities.filter(a => a.date >= today);
     const featuredActivity = upcomingActivities.length > 0 ? upcomingActivities[0] : null;
 

@@ -8,6 +8,18 @@
     padding-bottom: var(--space-3xl);
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* 1. Universal Layout Patterns */
 .tab-header-wrap {
     display: flex;

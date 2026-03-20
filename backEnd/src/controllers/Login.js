@@ -68,7 +68,16 @@ const Login = async (req, res) => {
       { expiresIn: "1h" },
     );
 
-    return res.json({ token, status: "success", role });
+    return res.json({
+      token,
+      status: "success",
+      role,
+      user: {
+        user_id: id,
+        username: loginIdentifier || (user.username || googleEmail),
+        role
+      }
+    });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ message: "Server error" });
