@@ -5,7 +5,6 @@ import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
 export const Reset = async (req, res) => {
-<<<<<<< HEAD
   const { email, password, purpose } = req.body;
 
   logger.debug("Received reset request for user: " + userName);
@@ -63,23 +62,6 @@ export const Reset = async (req, res) => {
         expiresAt,
         hashedPassword,
       ],
-=======
-  try {
-    const { userName, email, password } = req.body;
-
-    // ✅ Validate inputs individually
-    if (!userName || !email || !password) {
-      logger.warn("Reset attempt with missing fields");
-      return res
-        .status(400)
-        .json({ error: "userName, email, and password are required" });
-    }
-
-    // ✅ Check if user exists before updating
-    const existingUser = await testDb.query(
-      `SELECT member_id FROM members WHERE member_id = $1 AND email = $2`,
-      [userName, email],
->>>>>>> 3bb50442ea0a9be098fdf4c20257c12809c7e132
     );
 
     if (existingUser.rowCount === 0) {
@@ -87,30 +69,6 @@ export const Reset = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-<<<<<<< HEAD
-=======
-    // ✅ Hash password securely
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // ✅ Generate OTP securely
-    const OTP = crypto.randomInt(100000, 999999).toString();
-    const hashedOtp = crypto.createHash("sha256").update(OTP).digest("hex");
-
-    // ✅ Configurable expiry
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    // ✅ Update only reset fields, not email blindly
-    await testDb.query(
-      `UPDATE members 
-       SET reset_otp = $1, reset_otp_expires = $2, password = $3
-       WHERE member_id = $4 AND email = $5`,
-      [hashedOtp, expiresAt, hashedPassword, userName, email],
-    );
-
-    // ✅ Send OTP securely
-    await sendMail("Password Reset OTP", `Your OTP is: ${OTP}`, email);
-
->>>>>>> 3bb50442ea0a9be098fdf4c20257c12809c7e132
     logger.info(`Password reset OTP sent to ${email} for user: ${userName}`);
     return res
       .status(200)
@@ -183,5 +141,4 @@ export const OTPverification = async (req, res) => {
   } finally {
     client.release();
   }
-  
 };
