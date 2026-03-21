@@ -16,7 +16,7 @@ const Login = async (req, res) => {
 
   try {
     const result = await testDb.query(
-      `SELECT m.member_id,m.password, r.role_name FROM members m 
+      `SELECT m.member_id,m.password, m.email, r.role_name FROM members m 
       JOIN member_roles mr ON m.member_id = mr.member_id 
       JOIN roles r ON mr.role_id = r.role_id WHERE m.member_id =$1`,
       [userReg],
@@ -35,6 +35,11 @@ const Login = async (req, res) => {
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
+    if(!user.email) {
+      logger.warn(`Login attempt with missing email for user: ${userReg}`);
+      return res.status(401).json({ error: "User email not found" });
+    }
+
     const token = jwt.sign(
       { id: user.member_id, role: user.role_name },
       process.env.JWT_SECRET,
@@ -44,11 +49,7 @@ const Login = async (req, res) => {
     res.json({
       status: "success",
       message: "Login successful",
-      user: {
-        id: user.member_id,
-        username: user.member_id,
-        email: user.email,
-      },
+      
       token: token,
     });
   } catch (err) {

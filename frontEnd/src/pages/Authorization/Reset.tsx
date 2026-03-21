@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FaHome } from "react-icons/fa";
 
 const Reset: React.FC = () => {
   const [email, setEmail] = useState<string>("");
-  const [userReg, setUserReg] = useState<string>("");
+  // const [userReg, setUserReg] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const { state } = useLocation();
+  const purpose = state?.purpose || "";
   const navigate = useNavigate();
 
   const handleReset = async () => {
@@ -21,16 +23,31 @@ const Reset: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:3001/authorisation/reset",
-        { email, userReg }
-      );
+      let response;
+      if (purpose === "setting email") {
+        response = await axios.post(
+          "http://localhost:3001/authentication/v1/reset-email",
+          { email, password, purpose },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } else {
+        response = await axios.post(
+          "http://localhost:3001/authentication/v1/reset",
+          { email, password, purpose },
+        );
+      }
+
 
       if (response.data.status === "success") {
         setMessage("OTP sent to your email!");
-        // Navigate to OTP page with email as parameter
+        // Navigate to OTP page with userReg as parameter
         setTimeout(() => {
-          navigate(`/otp/${email}`, { state: { password } });
+          navigate(`/otp/{${email}`);
         }, 1500);
       } else {
         setError(response.data.message || "Failed to send OTP");
@@ -85,20 +102,7 @@ const Reset: React.FC = () => {
               placeholder="Enter your email"
             />
           </div>
-
-
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              user Registration
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={userReg}
-              onChange={(e) => setUserReg(e.target.value)}
-              placeholder="Enter your user registration"
-            />
-          </div>
+ 
 
 
           <div>

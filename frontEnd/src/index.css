@@ -15,18 +15,16 @@
   }
 }
 
-
 .card {
-	@apply bg-white rounded-lg shadow-md p-6;
+  @apply bg-white rounded-lg shadow-md p-6;
 }
-
 
 /* Use components layer for inputs */
 @layer components {
   input {
     @apply pl-2 font-semibold bg-slate-100 outline-none rounded-lg border-2 ml-2 mb-6;
   }
-    /* Main layout container */
+  /* Main layout container */
   .main-container {
     @apply min-h-screen bg-gray-50;
   }
@@ -52,9 +50,9 @@
   }
 
   /* Primary button styling (e.g., Log In) */
-  .btn-primary {
+  /* .btn-primary {
     @apply bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-200;
-  }
+  } */
 
   /* Content area container */
   .content-container {
@@ -70,7 +68,6 @@
   .hero-section {
     @apply relative overflow-hidden;
   }
-
 
   @keyframes scroll {
     0% {

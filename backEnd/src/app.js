@@ -30,12 +30,8 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-<<<<<<< HEAD
 // this is the best way to to get the actual ip adress of a device even if the server is behind a proxy
 //rather than getting the proxy ip adress , usefull in fare shairing of resorces
-=======
-// IP detection
->>>>>>> d6e993e5a26dbd36e92f690e2a821ffb4e548903
 app.use(requestIp.mw());
 
 app.use(cors(corsOptions));

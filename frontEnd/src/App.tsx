@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import Authorisation from "./assets/Layouts/Authorisation";
 import Reset from "./pages/Authorization/Reset";
-import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
+import ResetPasswordPage, { emailChecker } from "./pages/Authorization/ResetPasswordPage";
 import Pageoulet from "./assets/Layouts/Pageoulet";
 import Challenge from "./pages/Devotions/pages/Challenge";
 import Rosary from "./pages/Devotions/pages/Rosary";
@@ -41,7 +41,7 @@ const Home: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <main className="flex-grow">
         {/* Show landing page content when NOT logged in */}
         {!user && (
@@ -84,13 +84,13 @@ const App: React.FC = () => {
           }
         >
           <Route index element={<Login />} />
-          <Route path="reset" element={<Reset />} />
-          <Route path="otp/:reg" element={<ResetPasswordPage />} />
+          <Route path="reset" element={<Reset />} loader={emailChecker} />
+          <Route path="otp/:email" element={<ResetPasswordPage />} />
         </Route>
-        <Route path="/admin/quiz" element={<Appadmin />}/>
+        <Route path="/admin/quiz" element={<Appadmin />} />
 
         <Route path="/" element={<Pageoulet />}>
-        <Route index element={<Home />} />
+          <Route index element={<Home />} />
 
           <Route
             path="devotions"

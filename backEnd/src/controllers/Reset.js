@@ -5,45 +5,37 @@ import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
 export const Reset = async (req, res) => {
-  const { userName, email, password } = req.body;
+  const { email, password, purpose } = req.body;
 
   logger.debug("Received reset request for user: " + userName);
 
-  if (!userName || !password) {
+  if (!email || !password || !purpose) {
     logger.warn("Reset attempt with missing fields");
-    return res.status(400).send("userName and password are required");
+    return res.status(400).send("Email, password, and purpose are required");
   }
 
   try {
     //   Check if user exists
-    const userCheck = await testDb.query(
-      `SELECT * FROM members WHERE member_id = $1`,
-      [userName],
-    );
 
-    if (userCheck.rows.length === 0) {
-      logger.warn(`Reset attempt for non-existent user: ${userName}`);
-      return res.status(404).send("User not found");
-    }
+    let userName = null;
 
-    const existingUser = userCheck.rows[0];
-
-    //   If user has no email, email must be provided
-    if (!existingUser.email && !email) {
-      return res
-        .status(400)
-        .json({ error: "Email is required for this account" });
-    }
-
-    //   If email is provided, check if already used
-    if (email) {
+    if (purpose === "email") {
+      userName = req.body.userReg;
       const emailCheck = await testDb.query(
-        `SELECT 1 FROM members WHERE email = $1 AND member_id != $2`,
-        [email, userName],
+        `SELECT 1 FROM members WHERE email = $1`,
+        [email],
       );
-
       if (emailCheck.rows.length > 0) {
         return res.status(400).json({ error: "Email already in use" });
+      }
+    } else if (purpose === "password") {
+      const userCheck = await testDb.query(
+        `SELECT * FROM members WHERE email = $1`,
+        [email],
+      );
+      if (userCheck.rows.length === 0) {
+        logger.warn(`Password reset attempt for non-existent email: ${email}`);
+        return res.status(404).send("User not found");
       }
     }
 

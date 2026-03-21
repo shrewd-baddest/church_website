@@ -1,0 +1,199 @@
+[33mcommit 784b4303d7c6364d62c713a5e12883b1c72d36c5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: fb0bbf9 d6e993e
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Tue Mar 17 14:53:58 2026 +0300
+
+    new version of reset
+
+[33mcommit fb0bbf98a35ee256a9066d903e2a70681154559f[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Tue Mar 17 14:13:29 2026 +0300
+
+    new login logic
+
+[33mcommit d6e993e5a26dbd36e92f690e2a821ffb4e548903[m
+Author: aXELAxa <dexgammmer@gmail.com>
+Date:   Tue Mar 17 09:06:54 2026 +0300
+
+    front and backend chenges
+
+[33mcommit dd2b7c628848614fd727b49106b265d659c6aeaf[m
+Author: aXELAxa <dexgammmer@gmail.com>
+Date:   Tue Mar 17 09:03:29 2026 +0300
+
+    backend changes
+
+[33mcommit a8626381fa15e21dec23986fa97106cb7a457492[m
+Merge: d0f8943 403efc7
+Author: aXELAxa <dexgammmer@gmail.com>
+Date:   Tue Mar 17 07:37:22 2026 +0300
+
+    Resolved merge conflicts
+
+[33mcommit d0f8943210018162ca8ead4fdcc5e134b04bef4b[m
+Author: aXELAxa <dexgammmer@gmail.com>
+Date:   Mon Mar 16 22:30:21 2026 +0300
+
+    Initial commit
+
+[33mcommit 403efc7eced446c28ea558eef7aba0b4ce998de9[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Mon Mar 16 16:38:00 2026 +0300
+
+    changes on reset api's
+
+[33mcommit 9c406d71143e0fcf6492c48dfecabc1d2bedeb9f[m
+Merge: cc5a306 e8427bb
+Author: robert <robertmacharia094@gmail.com>
+Date:   Fri Mar 13 13:48:39 2026 +0300
+
+    fix : modification of the mentioned fiels
+
+[33mcommit cc5a306caebef0e28ea6ae70e72a0072a338a4b6[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Fri Mar 13 13:46:50 2026 +0300
+
+     fix : the question model to allow quality question , fix generate question route to fetch data from the ai  ,add utils function to util folder usefull in the question  generation rouete
+
+[33mcommit e8427bb30948d95d0e9b66b6679ccaaa440e5a26[m
+Author: Anedo_ras <johnkennedyonyango12>
+Date:   Fri Mar 13 13:28:37 2026 +0300
+
+    Integrate Community Hub with premium design, fixed gallery fallbacks, and live choir countdown
+
+[33mcommit 4b161ea66a0b348c9b1368df0ef76e88393b698d[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Fri Mar 13 08:24:45 2026 +0300
+
+    add mongodb for question related task ,feat : create a route to generate and save question to mongodb , create admin portal to generate questions
+
+[33mcommit 45040ffa7678d41e1816e59e48da0cb216390453[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Tue Mar 10 19:23:24 2026 +0300
+
+    fix : add return to api.js to make a complete request
+
+[33mcommit 005c3e206aaa58a81bc58721494e1b808761b90a[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Tue Mar 10 19:00:53 2026 +0300
+
+    feat: add rate-limiter to avoid abuse and misuse of api and services , used requestIp library to log the ip address request in case the app will be used behind a proxy in feuture
+
+[33mcommit 51432430a3d54f5722749eef370ab5927ae2c11a[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Tue Mar 10 18:17:32 2026 +0300
+
+    mod:use connectDb as the entry point for db connection , remove client as not specified from the dbconfig file
+
+[33mcommit e914abcd5888ca170f6aa207c20774fcb99cb37a[m
+Merge: be24321 e5add01
+Author: robert <robertmacharia094@gmail.com>
+Date:   Tue Mar 10 18:00:20 2026 +0300
+
+    mod : resolve conflicts and merge
+
+[33mcommit be243216ab577812d6632940038239f8775f5742[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Tue Mar 10 17:11:28 2026 +0300
+
+    feat : add logger utility , customized  responce
+
+[33mcommit e5add01f22c09238da4d708887e90f643285aa04[m
+Merge: 0a62943 02630fe
+Author: aXELAxa <dexgammmer@gmail.com>
+Date:   Tue Mar 10 14:00:39 2026 +0300
+
+    Merge origin/main - resolved conflicts keeping local files
+
+[33mcommit 0a629431779f556fe64566e9ec5960b9756f7bde[m
+Author: aXELAxa <dexgammmer@gmail.com>
+Date:   Tue Mar 10 13:36:50 2026 +0300
+
+    Initial commit - Church Website
+
+[33mcommit 02630fef20b4ce44b2155951c8123617d428d8fd[m
+Merge: b4283e8 5ba5ad5
+Author: robert <robertmacharia094@gmail.com>
+Date:   Fri Mar 6 16:39:53 2026 +0300
+
+    ...fix login.tsx
+
+[33mcommit b4283e8048e5d1fb46cdba30189787b29b179a5f[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Fri Mar 6 14:37:06 2026 +0300
+
+    MOD: changed login.tsx file
+
+[33mcommit 7e3cee315589e97c136b29c1395f8e4ab9007518[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Fri Mar 6 14:28:25 2026 +0300
+
+    FEAT: add Landing folder contains main Navigation , Footer e.t.c , modify context folder add Authcontext custom hook
+
+[33mcommit 5ba5ad55107dc80941864ee1f6492aafb2a7cc2b[m
+Merge: 6728b44 d83bec6
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Wed Mar 4 18:37:46 2026 +0300
+
+    replace true prevents the user from going back after loging in
+    succesfully
+
+[33mcommit 6728b4462407ffc90506e02462e94327e48f1269[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Wed Mar 4 18:32:45 2026 +0300
+
+    added a replace navigate
+
+[33mcommit d83bec61a1ef209c6b8b37793ecda3f11bd42776[m
+Author: robert <robertmacharia094@gmail.com>
+Date:   Tue Mar 3 14:09:17 2026 +0300
+
+    fEAT : add devotion folder - includes routes to  daily readings , rosary prayers , litergy questions , order of the mass
+
+[33mcommit 1e3a4d6e2d1f69a6962a4451817041f51f09e9bc[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Sat Feb 28 13:52:56 2026 +0300
+
+    general  login styling
+
+[33mcommit d2425e7ddded436960182bed0dc1fa4c3782d3e1[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Fri Feb 27 16:57:31 2026 +0300
+
+    fotters added
+
+[33mcommit ea8271bfd809caebcad69783b0f4fd8faa8304d0[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Fri Feb 27 15:07:41 2026 +0300
+
+    Add .env file to .gitIgnore
+
+[33mcommit f51bf2e9a635ce082bd42636d768cc5d5627cffe[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Fri Feb 20 12:57:13 2026 +0300
+
+    new file structure
+
+[33mcommit 4d57348ad994ba18cb8d5121ab13bc734ad451b6[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Thu Feb 19 15:58:58 2026 +0300
+
+    added readME file
+
+[33mcommit eeac9ec623d69f811a75c3ee889edd5f99430a8e[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Wed Feb 18 15:33:51 2026 +0300
+
+    fix on otp api
+
+[33mcommit c554c9d9ac48cd61e2f0fbf94fd9aafb9a725d5e[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Tue Feb 17 19:37:54 2026 +0300
+
+    fixes on smtp
+
+[33mcommit 625f45407f2b46cf8f96d84645156209e45bfd7d[m
+Author: Paul Onsongo <paulonsongo365@gmail.com>
+Date:   Thu Feb 12 17:51:19 2026 +0300
+
+    church login page
