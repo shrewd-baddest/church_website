@@ -1,6 +1,6 @@
 import { serverConfig } from "./Configs/serverConfigs.js";
 import { app } from "./app.js";
-import { connectDb, connectToMongoDb } from "./configs/dbConfig.js";
+import { connectDb, connectToMongoDb } from "./Configs/dbConfig.js";
 import logger from "./logger/winston.js";
 
 
