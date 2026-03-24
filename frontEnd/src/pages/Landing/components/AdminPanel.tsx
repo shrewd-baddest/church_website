@@ -164,7 +164,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:3001/authentication/register', {
+      const response = await fetch('/authentication/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

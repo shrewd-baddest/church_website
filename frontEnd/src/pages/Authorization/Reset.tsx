@@ -22,7 +22,7 @@ const Reset: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3001/authorisation/reset",
+        "/authorisation/reset",
         { email, userReg }
       );
 

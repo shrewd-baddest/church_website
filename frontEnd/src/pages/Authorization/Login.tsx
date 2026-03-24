@@ -18,7 +18,7 @@ const Login: React.FC = () => {
     console.log("Submitting login with:", { username, password });
     try {
       const response = await axios.post(
-        "http://localhost:3001/authentication/v1/login",
+        "/authentication/v1/login",
         {
           user: username,
           passWord: password,

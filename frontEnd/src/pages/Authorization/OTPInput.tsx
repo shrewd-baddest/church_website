@@ -16,7 +16,7 @@ const OTPInput: React.FC = () => {
   const handleVerify = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:3001/authorisation/otp/${reg}`,
+        `/authorisation/otp/${reg}`,
         { otp, passWord: passwordFromReset }
       );
 

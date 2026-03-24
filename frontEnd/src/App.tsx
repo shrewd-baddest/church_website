@@ -5,9 +5,9 @@ import {
   RouterProvider,
   Route,
 } from "react-router-dom";
-import Authorisation from "./assets/Layouts/Authorisation";
-import Reset from "./pages/Authorization/Reset";
-import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
+// import Authorisation from "./assets/Layouts/Authorisation";
+// import Reset from "./pages/Authorization/Reset";
+// import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
 import Pageoulet from "./assets/Layouts/Pageoulet";
 import Challenge from "./pages/Devotions/pages/Challenge";
 import Rosary from "./pages/Devotions/pages/Rosary";
@@ -32,8 +32,10 @@ import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
 import ImageSlider from "./pages/Landing/components/ImageSlider";
 import JumuiyaLanding from "./pages/Jumuiya/JumuiyaLanding";
 import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
-import { DataProvider } from "./pages/Jumuiya/context/DataContext";
 import CommunityHub from "./pages/sacramental/CommunityHub";
+import { DataProvider } from "./pages/Jumuiya/context/DataContext";
+
+
 
 
 import { useAuth } from "./context/AuthContext";
@@ -84,7 +86,7 @@ const App: React.FC = () => {
     createRoutesFromElements(
       <>
         <Route element={<Pageoulet />}>
-          <Route
+          {/* <Route
             path="/login"
             element={
               <PublicRoute>
@@ -95,7 +97,7 @@ const App: React.FC = () => {
             <Route index element={<Login />} />
             <Route path="reset" element={<Reset />} />
             <Route path="otp/:reg" element={<ResetPasswordPage />} />
-          </Route>
+          </Route> */}
 
           <Route index element={<Home />} />
           <Route path="/officials" element={<PublicView />} />
@@ -104,6 +106,8 @@ const App: React.FC = () => {
             <Route path=":name" element={<DataProvider><JumuiyaDetail /></DataProvider>} />
           </Route>
           <Route path="/community-hub" element={<CommunityHub />} />
+          <Route path="/activities" element={<ActivitiesSection />} />
+
 
 
           <Route path="/admin/quiz" element={<Appadmin />} />

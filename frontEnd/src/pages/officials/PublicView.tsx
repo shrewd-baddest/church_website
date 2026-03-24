@@ -1,4 +1,6 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 const API_BASE = '/api/officials/list'
 const UPLOAD_BASE = '' // Photos are served relatively from /api or static routes
@@ -22,6 +24,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 export default function PublicView(){
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [data,setData] = React.useState<any[]>([])
   const [loading,setLoading] = React.useState(true)
   const [fetchError, setFetchError] = React.useState('')
@@ -52,7 +56,15 @@ export default function PublicView(){
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-16 text-center">
+        <div className="mb-16 text-center relative">
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin/officials')}
+              className="absolute top-0 right-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition-all active:scale-95 text-sm sm:text-base"
+            >
+              Manage Officials
+            </button>
+          )}
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Our CSA Officials</h1>
           <p className="text-gray-600">Meet our dedicated team members</p>
         </div>
