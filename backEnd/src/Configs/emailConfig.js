@@ -3,36 +3,42 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-const user = process.env.MAIL_USER;
-const pass = process.env.MAIL_PASSWORD;
-const x = nodemailer.createTransport({
-  service: process.env.MAIL_SERVICE,
+if (!process.env.MAIL_USER || !process.env.MAIL_PASSWORD) {
+  throw new Error("Email credentials are missing in .env");
+}
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASSWORD,
   },
 });
+
 export const sendEmail = async (subject, text, to) => {
   const mailOptions = {
-    from: process.env.FROM_EMAIL,
+    from: process.env.MAIL_USER,
     to,
     subject,
     text,
   };
 
   try {
-    await x.sendMail(mailOptions);
-    console.log("Email sent successfully");
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully:", info.response);
+    return info;
   } catch (error) {
     console.error("Error sending email:", error.message);
+    throw error;
   }
 };
-
-// import path from 'path';
-// import { fileURLToPath } from 'url';
+// import path from "path";
+// import { fileURLToPath } from "url";
 
 // const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
+// dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
 // const TOKEN = process.env.MAILTRAP_TOKEN;
 // console.log(TOKEN);
@@ -61,9 +67,8 @@ export const sendEmail = async (subject, text, to) => {
 //       text,
 //       category: "test ",
 //     });
-//     logger.info(`Email sent successfully to ${recipient} with subject: "${subject}"`);
 //   } catch (error) {
-//     logger.error(`Failed to send email to ${recipient} with subject: "${subject}" - ${error?.message}`);
+//     console.error("Error sending email:", error.message);
 //   }
 // };
 

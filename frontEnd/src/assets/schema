@@ -12,7 +12,7 @@ CREATE TABLE members (
     join_date DATE DEFAULT CURRENT_DATE
 );
 CREATE TABLE password_resets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid() UNIQUE,
     member_id VARCHAR(30) REFERENCES members(member_id) ON DELETE CASCADE,
     email VARCHAR(100),
     otp TEXT NOT NULL,

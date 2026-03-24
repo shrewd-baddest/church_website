@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import cors from "cors";
-import multer from 'multer';
+import multer from "multer";
 import apiRoutes from "./routers/index.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
@@ -15,6 +15,7 @@ import { rateLimit } from "express-rate-limit";
 import requestIp from "request-ip";
 import corsOptions from "./Configs/corsConfigs.js";
 import upload from "./Configs/multerStorageConfig.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -47,8 +48,9 @@ const limiter = rateLimit({
   },
   handler: (_, __, ___, options) => {
     res.status(options.statusCode || 429).json({
-      error: `There are too many requests. You are only allowed ${options.max
-        } requests per ${options.windowMs / 60000} minutes`,
+      error: `There are too many requests. You are only allowed ${
+        options.max
+      } requests per ${options.windowMs / 60000} minutes`,
     });
   },
 });
@@ -56,31 +58,41 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(morganMiddleware);
 
-
 // Static Files
 app.use(express.static(path.join(__dirname, "../../frontEnd/public")));
-app.use(express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/public")));
-app.use("/community-assets/backend",express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/dist/backend"),),);
-app.use("/community-assets", express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),);
-app.use("/localFileUploads", express.static(path.join(process.cwd(), "localFileUploads")));
-app.use("/uploads", express.static(path.join(process.cwd(), "localFileUploads")));
-
+app.use(
+  express.static(
+    path.join(__dirname, "../../frontEnd/src/pages/sacramental/public"),
+  ),
+);
+app.use(
+  "/community-assets/backend",
+  express.static(
+    path.join(__dirname, "../../frontEnd/src/pages/sacramental/dist/backend"),
+  ),
+);
+app.use(
+  "/community-assets",
+  express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),
+);
+app.use(
+  "/localFileUploads",
+  express.static(path.join(process.cwd(), "localFileUploads")),
+);
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "localFileUploads")),
+);
 
 // Routes
-app.get('/', (_req, res) => res.redirect('/community-hub'));
+app.get("/", (_req, res) => res.redirect("/community-hub"));
 app.use("/authentication", apiRoutes);
 app.use("/api/officials", officialsRouter);
 app.use("/api/jumuiya-officials", jumuiyaOfficialsRouter);
 app.use("/api", api);
 app.use("/community-hub", hubRouter);
 app.use("/questions", apiRoutes);
-app.use("/files" , apiRoutes)
-
-
-
-
-
-
+app.use("/files", apiRoutes);
 
 // Gallery APIs
 app.get("/api/choir/gallery", (_req, res) => {
@@ -102,10 +114,5 @@ app.post("/api/choir/gallery", upload.single("file"), (req, res) => {
   BackendDataService.save("choir_gallery.json", gallery);
   res.status(201).json(newPhoto);
 });
-
-
-
-
-
 
 export { app };
