@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const OTPInput: React.FC = () => {
   const [otp, setOtp] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const { reg } = useParams<{ reg: string }>();
+  const { state } = useLocation();
+
+  const passwordFromReset = state?.password || "";
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -14,7 +17,7 @@ const OTPInput: React.FC = () => {
     try {
       const response = await axios.post(
         `http://localhost:3001/authorisation/otp/${reg}`,
-        { otp, passWord: newPassword }
+        { otp, passWord: passwordFromReset }
       );
 
       if (response.data.status === "success") {
@@ -34,15 +37,15 @@ const OTPInput: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        <h2 className="mb-6 text-2xl font-bold text-center text-gray-800">
           Verify OTP
         </h2>
-        
+
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               Enter OTP
             </label>
             <input
@@ -56,7 +59,7 @@ const OTPInput: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               New Password
             </label>
             <input
@@ -70,12 +73,12 @@ const OTPInput: React.FC = () => {
 
           <button
             onClick={handleVerify}
-            className="w-full bg-blue-700 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors"
+            className="w-full px-4 py-2 text-white transition-colors bg-blue-700 rounded-md hover:bg-blue-800"
           >
             Verify & Reset Password
           </button>
 
-          <div className="text-center mt-4">
+          <div className="mt-4 text-center">
             <button
               onClick={() => navigate('/login')}
               className="text-sm text-blue-600 hover:underline"
