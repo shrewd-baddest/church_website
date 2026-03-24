@@ -32,6 +32,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/css': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+
 
 
     },
