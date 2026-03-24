@@ -27,7 +27,7 @@ const modulesMeta = [
         id: 'choir',
         title: 'Choir',
         description: 'Join our heavenly voices in praise and worship.',
-        path: '/community-hub/choir',
+        path: '/hub-view/choir',
         color: '#ffffff',
         iconColor: 'var(--theme-primary)',
         icon: 'fas fa-music'
@@ -36,7 +36,7 @@ const modulesMeta = [
         id: 'dancers',
         title: 'Liturgical Dancers',
         description: 'Expressing faith through rhythmic movement and grace.',
-        path: '/community-hub/dancers',
+        path: '/hub-view/dancers',
         color: '#e67e22',
         icon: 'fas fa-person-praying',
         scheduleLabel: 'Training Schedule',
@@ -55,7 +55,7 @@ const modulesMeta = [
         id: 'charismatic',
         title: 'Charismatic Prayer Group',
         description: 'A community of faith, healing, and spiritual growth.',
-        path: '/community-hub/charismatic-prayer-group',
+        path: '/hub-view/charismatic-prayer-group',
         color: '#2ecc71',
         icon: 'fas fa-fire-alt',
         scheduleLabel: 'Meeting Schedule',
@@ -79,7 +79,7 @@ const modulesMeta = [
         id: 'st-francis',
         title: 'St. Francis of Assisi',
         description: 'Building bonds of love and support in our parish family.',
-        path: '/community-hub/st-francis',
+        path: '/hub-view/st-francis',
         color: '#2980b9',
         icon: 'fas fa-dove',
         scheduleLabel: 'Prayer Schedule',
@@ -102,7 +102,7 @@ export const getIndex = (_req, res) => {
 };
 
 export const getModule = (req, res) => {
-    const meta = modulesMeta.find(m => m.path === `/community-hub${req.path}`);
+    const meta = modulesMeta.find(m => m.path === `/hub-view${req.path}`);
 
     if (!meta) {
         return res.status(404).render('module', {

@@ -68,12 +68,14 @@ app.use("/uploads", express.static(path.join(process.cwd(), "localFileUploads"))
 
 
 // Routes
-app.get('/', (_req, res) => res.redirect('/community-hub'));
+app.get('/', (_req, res) => res.redirect('/hub-view'));
+
 app.use("/authentication", apiRoutes);
 app.use("/api/officials", officialsRouter);
 app.use("/api/jumuiya-officials", jumuiyaOfficialsRouter);
 app.use("/api", api);
-app.use("/community-hub", hubRouter);
+app.use("/hub-view", hubRouter);
+
 app.use("/questions", apiRoutes);
 app.use("/files" , apiRoutes)
 
