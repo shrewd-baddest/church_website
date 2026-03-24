@@ -60,9 +60,11 @@ app.use(morganMiddleware);
 
 // Static Files
 app.use(express.static(path.join(__dirname, "../../frontEnd/public")));
-app.use(express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/public")));
-app.use("/community-assets/backend",express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/dist/backend"),),);
+app.use(express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")));
+app.use("/community-assets/backend", express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/dist/backend")));
+
 app.use("/community-assets", express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),);
+
 app.use("/localFileUploads", express.static(path.join(process.cwd(), "localFileUploads")));
 app.use("/uploads", express.static(path.join(process.cwd(), "localFileUploads")));
 
