@@ -4,12 +4,7 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import cors from "cors";
 import multer from 'multer';
-<<<<<<< HEAD
-import fs from 'fs';
-import authRoute from "./routers/index.js";
-import { auth } from "./routers/v1/Authorization.js";
-=======
->>>>>>> c925d363b1da429cc647a6cfdbbe965f888552b1
+
 import apiRoutes from "./routers/index.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
