@@ -140,7 +140,7 @@ function ImageSlider() {
         <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-3 md:mb-6 drop-shadow-xl tracking-tight">
           St Thomas Aquinas - CSA
         </h1>
-        <p className="text-sm md:text-xl lg:text-2xl italic font-light max-w-xs md:max-w-2xl lg:max-w-3xl leading-relaxed">
+        <p className="text-sm md:text-xl lg:text-2xl italic font-normal max-w-xs md:max-w-2xl lg:max-w-3xl leading-relaxed text-white/90 drop-shadow-lg">
           "To one who has faith, no explanation is necessary. To one without faith, no explanation is possible."
         </p>
       </div>

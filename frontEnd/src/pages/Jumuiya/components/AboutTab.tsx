@@ -11,7 +11,7 @@ interface AboutTabProps {
 }
 
 const AboutTab: React.FC<AboutTabProps> = ({ jumuiya }) => {
-    const { isAuthenticated, user } = useAuth();
+    // const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
 
     const handleLoginClick = () => {
@@ -24,17 +24,6 @@ const AboutTab: React.FC<AboutTabProps> = ({ jumuiya }) => {
 
     return (
         <div className="tab-system-content" style={{ '--jumuiya-color': jumuiya.color } as React.CSSProperties}>
-            {/* Header with Login button */}
-            <div className="tab-header-wrap animate-fade">
-                <div /> {/* Spacer for flex-between if needed, or just let login follow flow */}
-                <button
-                    className="btn-premium"
-                    onClick={handleAdminLogin}
-                    style={{ background: 'var(--bg-soft)', color: 'var(--text-secondary)' }}
-                >
-                    {isAuthenticated ? <><FaUserShield /> Admin Panel ({user?.username})</> : <><FaSignInAlt /> Official Login</>}
-                </button>
-            </div>
 
             {/* Main Content */}
             <div className="animate-fade">

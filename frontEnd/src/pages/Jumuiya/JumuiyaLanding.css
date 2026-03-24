@@ -1,6 +1,5 @@
 .landing-page {
     min-height: 100vh;
-    padding: var(--space-3xl) 0;
     max-width: 1280px;
     margin: 0 auto;
     padding-left: var(--space-lg);

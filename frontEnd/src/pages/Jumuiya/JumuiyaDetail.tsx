@@ -13,8 +13,9 @@ import { FaInfoCircle, FaUserTie, FaUsers, FaCalendarAlt, FaUserPlus, FaShareAlt
 import { useAuth } from '../../context/AuthContext';
 import './JumuiyaDetail.css';
 import AdminPanelEmbed from './admin/AdminPanelEmbed';
+import { FaTimes } from 'react-icons/fa';
 
-type TabType = 'about' | 'officials' | 'registration' | 'channels' | 'members' | 'activities' | 'notifications' | 'tshirts' | 'admin';
+type TabType = 'about' | 'officials' | 'registration' | 'channels' | 'members' | 'activities' | 'tshirts' | 'admin';
 
 const JumuiyaDetail: React.FC = () => {
     const { name } = useParams<{ name: string }>();
@@ -23,6 +24,8 @@ const JumuiyaDetail: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { getJumuiyaById } = useData();
     const { } = useAuth();
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [hasNewNotif, setHasNewNotif] = useState(true); // Initial state for demo
     const isAdmin = true; // Hardcoded to true for development purposes as requested
 
     // The ID in the data is 'st-anthony', but the URL might be /jumuiya/st-anthony
@@ -59,7 +62,6 @@ const JumuiyaDetail: React.FC = () => {
         { id: 'registration' as TabType, label: 'Registration', icon: <FaUserPlus /> },
         { id: 'activities' as TabType, label: 'Activities', icon: <FaCalendarAlt /> },
         { id: 'channels' as TabType, label: 'Channels', icon: <FaShareAlt /> },
-        { id: 'notifications' as TabType, label: 'Notifications', icon: <FaBell /> },
         { id: 'tshirts' as TabType, label: 'T-Shirts', icon: <FaTshirt /> },
         ...(isAdmin ? [{ id: 'admin' as TabType, label: 'Admin', icon: <FaCog className="animate-spin-slow" /> }] : []),
     ];
@@ -84,8 +86,6 @@ const JumuiyaDetail: React.FC = () => {
                 return <ActivitiesTab jumuiyaColor={jumuiya.color} />;
             case 'channels':
                 return <ChannelsTab socialMedia={jumuiya.socialMedia} gallery={jumuiya.gallery} />;
-            case 'notifications':
-                return <NotificationsTab notifications={jumuiya.notifications || []} jumuiyaColor={jumuiya.color} />;
             case 'tshirts':
                 return <TshirtsTab jumuiyaId={jumuiya.id} jumuiyaColor={jumuiya.color} orders={jumuiya.tshirtOrders || []} />;
             case 'admin':
@@ -170,11 +170,44 @@ const JumuiyaDetail: React.FC = () => {
                 </div>
             </main>
 
+            {/* Notification FAB */}
+            <div className="notif-fab-container">
+                <button 
+                    className={`notif-fab ${isNotifOpen ? 'active' : ''}`}
+                    onClick={() => {
+                        setIsNotifOpen(!isNotifOpen);
+                        setHasNewNotif(false);
+                    }}
+                    style={{ backgroundColor: jumuiya.color }}
+                    aria-label="Notifications"
+                >
+                    {isNotifOpen ? <FaTimes /> : <FaBell />}
+                    {!isNotifOpen && hasNewNotif && <span className="notif-badge-pulsing" />}
+                </button>
+
+                {isNotifOpen && (
+                    <div className="notif-panel-floating animate-slide-up">
+                        <div className="notif-panel-header" style={{ borderBottomColor: jumuiya.color }}>
+                            <h3>Community Updates</h3>
+                            <button className="close-panel" onClick={() => setIsNotifOpen(false)}>
+                                <FaTimes />
+                            </button>
+                        </div>
+                        <div className="notif-panel-content">
+                            <NotificationsTab notifications={jumuiya.notifications || []} jumuiyaColor={jumuiya.color} />
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Overlay for mobile */}
-            {isSidebarOpen && (
+            {(isSidebarOpen || (isNotifOpen && window.innerWidth < 768)) && (
                 <div
                     className="sidebar-overlay"
-                    onClick={() => setIsSidebarOpen(false)}
+                    onClick={() => {
+                        setIsSidebarOpen(false);
+                        setIsNotifOpen(false);
+                    }}
                 />
             )}
         </div>
