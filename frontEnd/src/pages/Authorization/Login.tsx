@@ -27,7 +27,7 @@ const Login: React.FC = () => {
 
       if (response.data.status === "success") {
         localStorage.setItem("token", response.data.token);
-        navigate("/", { Response: true });
+        navigate("/", { state: { response: true } });
       }
       else if (response.data.error == "User email not found") {
         alert("Login User email not found. Please enter your email and change your password.");

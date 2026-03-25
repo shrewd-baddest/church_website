@@ -9,10 +9,9 @@ function AdminPanel({ onClose }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('members')
   const [data, setData] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
-
   const [showAddUser, setShowAddUser] = useState(false)
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'user' })
-  
+
   // Gallery upload state
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [uploadData, setUploadData] = useState({
@@ -42,7 +41,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
           return [] // Return empty array on failure
         }
       })
-      
+
       const results = await Promise.all(promises)
       const dataObj: Record<string, any[]> = {}
       tables.forEach((table, index) => {
@@ -389,11 +388,10 @@ function AdminPanel({ onClose }: AdminPanelProps) {
                   <li key={table}>
                     <button
                       onClick={() => setActiveTab(table)}
-                      className={`w-full text-left px-3 py-2 rounded ${
-                        activeTab === table
-                          ? 'bg-blue-500 text-white'
-                          : 'hover:bg-gray-200 text-gray-700'
-                      }`}
+                      className={`w-full text-left px-3 py-2 rounded ${activeTab === table
+                        ? 'bg-blue-500 text-white'
+                        : 'hover:bg-gray-200 text-gray-700'
+                        }`}
                     >
                       {table.replace(/_/g, ' ').toUpperCase()}
                     </button>

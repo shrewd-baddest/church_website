@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 
 const Navbar = () => {
@@ -11,8 +12,8 @@ const Navbar = () => {
           {user ? (
             <>
               {/* Logged-in user navigation */}
-              <li><a href="#jumuia" className="text-gray-600 hover:text-blue-700">Jumuiya</a></li>
-              <li><a href="#officials" className="text-gray-600 hover:text-blue-700">Officials</a></li>
+              <li><Link to="/jumuiya" className="text-gray-600 hover:text-blue-700">Jumuiya</Link></li>
+              <li><Link to="/officials" className="text-gray-600 hover:text-blue-700">Officials</Link></li>
               <li><a href="#projects" className="text-gray-600 hover:text-blue-700">Projects</a></li>
               <li><a href="#activities" className="text-gray-600 hover:text-blue-700">Activities</a></li>
               <li><a href="#gallery" className="text-gray-600 hover:text-blue-700">Gallery</a></li>
@@ -23,8 +24,9 @@ const Navbar = () => {
               </li>
             </>
           ) : (
-            <li><a href="#login" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Login</a></li>
+            <li><Link to="/login" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Login</Link></li>
           )}
+
         </ul>
       </nav>
     </header>

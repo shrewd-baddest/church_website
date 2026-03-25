@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import Authorisation from "./assets/Layouts/Authorisation";
 import Reset from "./pages/Authorization/Reset";
-import ResetPasswordPage, { emailChecker } from "./pages/Authorization/ResetPasswordPage";
+import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
 import Pageoulet from "./assets/Layouts/Pageoulet";
 import Challenge from "./pages/Devotions/pages/Challenge";
 import Rosary from "./pages/Devotions/pages/Rosary";
@@ -30,6 +30,10 @@ import ProjectsSection from "./pages/Landing/components/sections/projects";
 import OfficialsSection from "./pages/Landing/components/sections/officials";
 import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
 import ImageSlider from "./pages/Landing/components/ImageSlider";
+import JumuiyaLanding from "./pages/Jumuiya/JumuiyaLanding";
+import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
+import { DataProvider } from "./pages/Jumuiya/context/DataContext";
+
 import { useAuth } from "./context/AuthContext";
 import { PublicRoute, ProtectedRoute } from "./Regulator";
 
@@ -86,22 +90,18 @@ const App: React.FC = () => {
           }
         >
           <Route index element={<Login />} />
-          <Route path="reset" element={<Reset />} loader={emailChecker} />
-          <Route path="otp/:email" element={<ResetPasswordPage />} />
+          <Route path="reset" element={<Reset />} />
+          <Route path="otp/:reg" element={<ResetPasswordPage />} />
         </Route>
-<<<<<<< HEAD
         <Route path="/admin/quiz" element={<Appadmin />} />
-=======
-        <Route path="/admin/quiz" element={<Appadmin />}/>
-        <Route path="/admin/officials" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>}/>
+        <Route path="/admin/officials" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
         <Route path="/officials" element={<PublicView />} />
->>>>>>> 3bb50442ea0a9be098fdf4c20257c12809c7e132
 
         <Route path="/" element={<Pageoulet />}>
           <Route index element={<Home />} />
 
           <Route
-            path="devotions"
+            path="/devotions"
             element={
               <ProtectedRoute>
                 <Layout />
@@ -116,6 +116,7 @@ const App: React.FC = () => {
             <Route path="challenge" element={<Challenge />} />
           </Route>
         </Route>
+
       </>,
     ),
   );

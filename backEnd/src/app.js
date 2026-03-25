@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import cors from "cors";
 import multer from "multer";
+
 import apiRoutes from "./routers/index.js";
 import { api } from "./routers/api.js";
 import { hubRouter } from "./routers/hubRouter.js";
@@ -46,7 +47,7 @@ const limiter = rateLimit({
   keyGenerator: (req, res) => {
     return req.clientIp;
   },
-  handler: (_, __, ___, options) => {
+  handler: (req, res, next, options) => {
     res.status(options.statusCode || 429).json({
       error: `There are too many requests. You are only allowed ${
         options.max

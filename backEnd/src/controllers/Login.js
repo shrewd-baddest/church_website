@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 import jwt from "jsonwebtoken";
-import { token } from "morgan";
 dotenv.config();
 
 const Login = async (req, res) => {
@@ -23,7 +22,7 @@ const Login = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      logger.warn(`Login attempt with invalid username: ${userReg}`);
+      logger.warn("Login attempt with invalid username: ${userReg}");
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
@@ -31,12 +30,12 @@ const Login = async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
-      logger.warn(`Login attempt with invalid password for user: ${userReg}`);
+      logger.warn("Login attempt with invalid password for user: ${userReg}");
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
-    if(!user.email) {
-      logger.warn(`Login attempt with missing email for user: ${userReg}`);
+    if (!user.email) {
+      logger.warn("Login attempt with missing email for user: ${userReg}");
       return res.status(401).json({ error: "User email not found" });
     }
 
@@ -49,7 +48,7 @@ const Login = async (req, res) => {
     res.json({
       status: "success",
       message: "Login successful",
-      
+
       token: token,
     });
   } catch (err) {

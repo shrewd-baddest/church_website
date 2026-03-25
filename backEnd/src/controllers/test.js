@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { testDb } from "./Configs/dbConfig.js";
+import { testDb } from "../Configs/dbConfig.js";
 import verifyToken from "../middleWares/Tokens.js";
 import logger from "../logger/winston.js";
 

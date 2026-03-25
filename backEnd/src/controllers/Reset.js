@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import sendMail from "../Configs/emailConfig.js";
 import bcrypt from "bcrypt";
-import { testDb } from "../Configs/dbConfig.js";
+import { db, testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
 export const Reset = async (req, res) => {
@@ -91,7 +91,7 @@ export const OTPverification = async (req, res) => {
 
   const hashedInputOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-  const client = await testDb.connect();
+  const client = await db.connect();
 
   try {
     await client.query("BEGIN");

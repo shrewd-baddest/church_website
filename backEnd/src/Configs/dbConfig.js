@@ -13,6 +13,7 @@ const pool = new Pool({
   ssl: process.env.DB_HOST === "localhost" ? false : { rejectUnauthorized: false },
 });
 
+export const db = pool; // Alias for backward compatibility
 export const testDb = { query: (text, params) => pool.query(text, params),};
 
 export const connectDb = async () => {
@@ -49,6 +50,7 @@ export let dbInstance = undefined;
     // process.exit(1) removed - server continues
   }
 };
+
 
 
 
