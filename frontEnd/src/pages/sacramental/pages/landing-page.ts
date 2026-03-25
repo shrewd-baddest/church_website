@@ -67,49 +67,50 @@ export class ChoirLandingPage {
                 );
             }
 
-            const hero = new HeroSection('choir-hero', config);
-            hero.render();
-            this.components.push(hero);
+            const heroEl = document.getElementById('choir-hero');
+            if (heroEl) {
+                const hero = new HeroSection('choir-hero', config);
+                hero.render();
+                this.components.push(hero);
+            }
 
-            if (schedules.length > 0) {
+            if (schedules.length > 0 && document.getElementById('choir-next-practice')) {
                 const countdown = new NextPracticeCountdown('choir-next-practice', schedules);
                 countdown.render();
                 this.components.push(countdown);
             }
 
-            if (announcements.length > 0) {
+            if (announcements.length > 0 && document.getElementById('choir-announcements')) {
                 const announcementsComponent = new Announcements('choir-announcements', announcements);
                 announcementsComponent.render();
                 this.components.push(announcementsComponent);
             }
 
-
-
-            if (schedules.length > 0) {
+            if (schedules.length > 0 && document.getElementById('choir-schedule')) {
                 const schedule = new PracticeScheduleList('choir-schedule', schedules);
                 schedule.render();
                 this.components.push(schedule);
             }
 
-            if (officials.length > 0) {
+            if (officials.length > 0 && document.getElementById('choir-officials')) {
                 const officialsComponent = new ChoirOfficials('choir-officials', officials);
                 officialsComponent.render();
                 this.components.push(officialsComponent);
             }
 
-            if (classes.length > 0) {
+            if (classes.length > 0 && document.getElementById('choir-music-classes')) {
                 const musicClasses = new MusicClasses('choir-music-classes', classes);
                 musicClasses.render();
                 this.components.push(musicClasses);
             }
 
-            if (activities.length > 0) {
+            if (activities.length > 0 && document.getElementById('choir-activities')) {
                 const semesterActivities = new SemesterActivities('choir-activities', activities);
                 semesterActivities.render();
                 this.components.push(semesterActivities);
             }
 
-            if (socialMediaLinks.length > 0) {
+            if (socialMediaLinks.length > 0 && document.getElementById('choir-social')) {
                 const socialMedia = new SocialMediaLinks('choir-social', socialMediaLinks);
                 socialMedia.render();
                 this.components.push(socialMedia);

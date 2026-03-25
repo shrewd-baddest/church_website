@@ -124,9 +124,8 @@ export const getModule = (req, res) => {
         if (meta.id === 'choir') {
             return res.sendFile(path.join(__dirname, '../../../frontEnd/src/pages/sacramental/pages/choir.html'));
         }
-        // Fallback or other modules can use a shared module.html if it exists
-        // Since we only have choir.html, we'll serve it as the standard TS view for now
-        return res.sendFile(path.join(__dirname, '../../../frontEnd/src/pages/sacramental/pages/choir.html'));
+        // Other modules use the generic module.html which excludes choir-specific UI like registration
+        return res.sendFile(path.join(__dirname, '../../../frontEnd/src/pages/sacramental/pages/module.html'));
     }
 
     const fallback = FALLBACKS[meta.id] || {};
