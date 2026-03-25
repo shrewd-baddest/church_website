@@ -3,8 +3,8 @@
  * Displays choir leadership team
  */
 
-import { DOMHelpers } from '../../backend/utils/dom-helpers';
-import { ChoirOfficial } from '../../types';
+import { DOMHelpers } from '../../backend/utils/dom-helpers.js';
+import { ChoirOfficial } from '../../types.js';
 
 export class ChoirOfficials {
     private container: HTMLElement;

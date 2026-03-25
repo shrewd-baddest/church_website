@@ -5,8 +5,8 @@
  * Schedule: Tuesday 6pm–8pm, Saturday 1pm–4pm
  */
 
-import { DOMHelpers } from '../../backend/utils/dom-helpers';
-import { PracticeSchedule } from '../../types';
+import { DOMHelpers } from '../../backend/utils/dom-helpers.js';
+import { PracticeSchedule } from '../../types.js';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 

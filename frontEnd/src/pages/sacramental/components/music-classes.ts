@@ -3,9 +3,9 @@
  * Displays available music classes with enrollment
  */
 
-import { DOMHelpers } from '../../backend/utils/dom-helpers';
-import { ChoirApiService } from '../services/choir-api';
-import { MusicClass } from '../../types';
+import { DOMHelpers } from '../../backend/utils/dom-helpers.js';
+import { ChoirApiService } from '../services/choir-api.js';
+import { MusicClass } from '../../types.js';
 
 export class MusicClasses {
     private container: HTMLElement;

@@ -13,13 +13,13 @@ import {
     Announcement,
     ApiResponse,
     ChoirConfig
-} from '../../types';
+} from '../../types.js';
 
 import {
     choirConfig,
     practiceSchedules,
     musicClasses
-} from '../../backend/community-hub/data/mock-data';
+} from '../../backend/community-hub/data/mock-data.js';
 
 export class ChoirApiService {
     private static baseUrl = '/api';

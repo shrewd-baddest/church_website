@@ -3,9 +3,9 @@
  * Displays all active practice schedules
  */
 
-import { DOMHelpers } from '../../backend/utils/dom-helpers';
-import { DateHelpers } from '../../backend/utils/date-helpers';
-import { PracticeSchedule } from '../../types';
+import { DOMHelpers } from '../../backend/utils/dom-helpers.js';
+import { DateHelpers } from '../../backend/utils/date-helpers.js';
+import { PracticeSchedule } from '../../types.js';
 
 export class PracticeScheduleList {
     private container: HTMLElement;

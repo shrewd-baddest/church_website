@@ -3,7 +3,7 @@
  * TypeScript component implementing the ministry grid
  */
 
-import { ApiResponse } from '../../types';
+import { ApiResponse } from '../../types.js';
 
 interface HubModule {
     id: string;

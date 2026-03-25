@@ -3,10 +3,10 @@
  * Handles registration with validation and submission
  */
 
-import { DOMHelpers } from '../../backend/utils/dom-helpers';
-import { Validators } from '../../backend/utils/validators';
-import { ChoirApiService } from '../services/choir-api';
-import { ChoirRegistration, VoiceType, SkillLevel, RegistrationFormState } from '../../types';
+import { DOMHelpers } from '../../backend/utils/dom-helpers.js';
+import { Validators } from '../../backend/utils/validators.js';
+import { ChoirApiService } from '../services/choir-api.js';
+import { ChoirRegistration, VoiceType, SkillLevel, RegistrationFormState } from '../../types.js';
 
 export class RegistrationForm {
   private container: HTMLElement;

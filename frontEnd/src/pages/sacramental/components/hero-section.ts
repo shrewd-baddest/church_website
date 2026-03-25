@@ -3,8 +3,8 @@
  * Main landing section with choir description and CTA
  */
 
-import { DOMHelpers } from '../../backend/utils/dom-helpers';
-import { ChoirConfig } from '../../types';
+import { DOMHelpers } from '../../backend/utils/dom-helpers.js';
+import { ChoirConfig } from '../../types.js';
 
 export class HeroSection {
     private container: HTMLElement;

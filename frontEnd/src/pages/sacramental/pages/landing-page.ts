@@ -3,15 +3,15 @@
  * Main page assembling all choir module components
  */
 
-import { HeroSection } from '../components/hero-section';
-import { NextPracticeCountdown } from '../components/next-practice-countdown';
-import { Announcements } from '../components/announcements';
-import { PracticeScheduleList } from '../components/practice-schedule';
-import { ChoirOfficials } from '../components/choir-officials';
-import { MusicClasses } from '../components/music-classes';
-import { SemesterActivities } from '../components/semester-activities';
-import { SocialMediaLinks } from '../components/social-media';
-import { ChoirApiService } from '../services/choir-api';
+import { HeroSection } from '../components/hero-section.js';
+import { NextPracticeCountdown } from '../components/next-practice-countdown.js';
+import { Announcements } from '../components/announcements.js';
+import { PracticeScheduleList } from '../components/practice-schedule.js';
+import { ChoirOfficials } from '../components/choir-officials.js';
+import { MusicClasses } from '../components/music-classes.js';
+import { SemesterActivities } from '../components/semester-activities.js';
+import { SocialMediaLinks } from '../components/social-media.js';
+import { ChoirApiService } from '../services/choir-api.js';
 
 export class ChoirLandingPage {
     private components: Array<{ destroy: () => void }> = [];
