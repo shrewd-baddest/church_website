@@ -8,18 +8,18 @@ interface ErrorResponse {
 }
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState<string>("");
+  const [userReg, setUserReg] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   // const { login } = useAuth();
   const navigate = useNavigate();
 
   const submit = async () => {
-    console.log("Submitting login with:", { username, password });
+    console.log("Submitting login with:", { userReg, password });
     try {
       const response = await axios.post(
-        "/authentication/v1/login",
+        "http://localhost:3001/authentication/v1/login",
         {
-          username,
+          userReg,
           password,
         }
       );
@@ -66,14 +66,14 @@ const Login: React.FC = () => {
         <div className="space-y-4">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">
-              Username
+              User Name
             </label>
             <input
               type="text"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              value={userReg}
+              onChange={(e) => setUserReg(e.target.value)}
+              placeholder="Enter your userReg"
             />
           </div>
 
