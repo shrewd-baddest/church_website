@@ -9,6 +9,7 @@ export interface ChoirConfig {
     description: string;
     themeColor: string;
     logoUrl?: string;
+    socials?: Record<string, string>;
 }
 
 export interface ChoirOfficial {

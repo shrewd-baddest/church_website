@@ -33,9 +33,9 @@ export class HeroSection {
 
         const ctaButton = DOMHelpers.createElement('a', 'csa-choir-btn csa-choir-btn--accent csa-choir-hero__cta', {
             href: '#registration',
-            'aria-label': 'Join the choir'
+            'aria-label': `Join ${this.config.name}`
         });
-        ctaButton.textContent = 'Join Choir';
+        ctaButton.textContent = 'Join Us';
 
         DOMHelpers.appendChildren(heroContent, [heading, description, ctaButton]);
         this.container.appendChild(heroContent);

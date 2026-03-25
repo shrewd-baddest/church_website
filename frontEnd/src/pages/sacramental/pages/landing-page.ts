@@ -45,11 +45,27 @@ export class ChoirLandingPage {
             const classes = classesResponse.data || [];
             const announcements = announcementsResponse.data || [];
 
-            const socialMediaLinks = [
-                { platform: 'YouTube' as const, url: 'https://youtube.com/@st.thomasaquinaschoir-kiri3835?si=uyVSSCfg9fMYvAKi', iconClass: 'csa-choir-icon--youtube' },
-                { platform: 'TikTok' as const, url: 'https://www.tiktok.com/@stthomasaquinaskyu?_r=1&_t=ZS-93ke5caJ979', iconClass: 'csa-choir-icon--tiktok' },
-                { platform: 'WhatsApp' as const, url: 'https://chat.whatsapp.com/LocdRbR6Huo0QiXy9MYalD?mode=gi_t', iconClass: 'csa-choir-icon--whatsapp' }
-            ];
+            // Update page title and sidebar dynamically
+            document.title = `${config.name} - Catholic Student Association`;
+            const sidebarLogo = document.querySelector('.csa-choir-sidebar__logo-text');
+            if (sidebarLogo) {
+                sidebarLogo.textContent = config.name;
+            }
+
+            // Generate social media links dynamically from config
+            const socialMediaLinks = [];
+            if (config.socials) {
+                if (config.socials.youtube) socialMediaLinks.push({ platform: 'YouTube' as const, url: config.socials.youtube, iconClass: 'csa-choir-icon--youtube' });
+                if (config.socials.tiktok) socialMediaLinks.push({ platform: 'TikTok' as const, url: config.socials.tiktok, iconClass: 'csa-choir-icon--tiktok' });
+                if (config.socials.whatsapp) socialMediaLinks.push({ platform: 'WhatsApp' as const, url: config.socials.whatsapp, iconClass: 'csa-choir-icon--whatsapp' });
+            } else if (config.name.includes("Choir")) {
+                // Fallback for choir
+                socialMediaLinks.push(
+                    { platform: 'YouTube' as const, url: 'https://youtube.com/@st.thomasaquinaschoir-kiri3835?si=uyVSSCfg9fMYvAKi', iconClass: 'csa-choir-icon--youtube' },
+                    { platform: 'TikTok' as const, url: 'https://www.tiktok.com/@stthomasaquinaskyu?_r=1&_t=ZS-93ke5caJ979', iconClass: 'csa-choir-icon--tiktok' },
+                    { platform: 'WhatsApp' as const, url: 'https://chat.whatsapp.com/LocdRbR6Huo0QiXy9MYalD?mode=gi_t', iconClass: 'csa-choir-icon--whatsapp' }
+                );
+            }
 
             const hero = new HeroSection('choir-hero', config);
             hero.render();
@@ -93,9 +109,11 @@ export class ChoirLandingPage {
                 this.components.push(semesterActivities);
             }
 
-            const socialMedia = new SocialMediaLinks('choir-social', socialMediaLinks);
-            socialMedia.render();
-            this.components.push(socialMedia);
+            if (socialMediaLinks.length > 0) {
+                const socialMedia = new SocialMediaLinks('choir-social', socialMediaLinks);
+                socialMedia.render();
+                this.components.push(socialMedia);
+            }
 
         } catch (error) {
             console.error('Failed to initialize choir landing page:', error);

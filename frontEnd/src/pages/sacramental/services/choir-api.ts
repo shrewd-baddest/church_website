@@ -23,7 +23,10 @@ import {
 
 export class ChoirApiService {
     private static baseUrl = '/api';
-    private static hubUrl = '/hub-view/choir';
+    private static get hubUrl() {
+        return window.location.pathname;
+    }
+
     private static cachedData: any = null;
 
     /**
@@ -32,6 +35,7 @@ export class ChoirApiService {
     private static async fetchHubData() {
         if (!this.cachedData) {
             try {
+                // Ensure Accept header asks for JSON
                 const response = await fetch(this.hubUrl, { headers: { 'Accept': 'application/json' } });
                 if (response.ok) {
                     this.cachedData = await response.json();
@@ -56,7 +60,8 @@ export class ChoirApiService {
             data: {
                 name: data.title || choirConfig.name,
                 description: data.description || choirConfig.description,
-                themeColor: data.color || choirConfig.themeColor
+                themeColor: data.color || choirConfig.themeColor,
+                socials: data.socials
             }
         };
     }
@@ -90,11 +95,14 @@ export class ChoirApiService {
      * Get practice schedules
      */
     static async getSchedules(): Promise<ApiResponse<PracticeSchedule[]>> {
-        // Fallback to mock data for schedules currently
-        return {
-            success: true,
-            data: practiceSchedules.filter(s => s.isActive)
-        };
+        const data = await this.fetchHubData();
+        // Return schedules if backend provides it, else fallback for Choir only
+        if (data.schedules) return { success: true, data: data.schedules };
+        
+        if (data.title && data.title.includes('Choir')) {
+            return { success: true, data: practiceSchedules.filter(s => s.isActive) };
+        }
+        return { success: true, data: [] };
     }
 
     /**
@@ -114,11 +122,13 @@ export class ChoirApiService {
      * Get music classes
      */
     static async getMusicClasses(): Promise<ApiResponse<MusicClass[]>> {
-        // Fallback to mock data for classes currently
-        return {
-            success: true,
-            data: musicClasses
-        };
+        const data = await this.fetchHubData();
+        if (data.classes) return { success: true, data: data.classes };
+        
+        if (data.title && data.title.includes('Choir')) {
+            return { success: true, data: musicClasses };
+        }
+        return { success: true, data: [] };
     }
 
     /**
