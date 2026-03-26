@@ -11,38 +11,23 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   ssl: process.env.DB_HOST === "localhost" ? false : { rejectUnauthorized: false },
-  max: 10,                      // max connections in pool
-  idleTimeoutMillis: 30000,     // close idle connections after 30s
-  connectionTimeoutMillis: 10000, // fail if can't connect within 10s
 });
 
-// Prevent pool errors from crashing the server
-pool.on('error', (err) => {
-  logger.error('Unexpected PostgreSQL pool error:', err.message);
-});
+export const db = pool;
 
-export const db = pool; // Alias for backward compatibility
-export const testDb = {
-  query: (text, params) => pool.query(text, params),
-  connect: () => pool.connect(),  // needed by controllers for transactions
-};
-
+let client = undefined
 export const connectDb = async () => {
-  let client;
   try {
     client = await pool.connect();
     logger.info("Connected to postgree database successfully!");
   } catch (error) {
-    logger.error("Failed to connect postgree database:", error.message, {
-      stack: error.stack,
-    });
-    throw error;
-  } finally {
-    if (client) {
-      client.release();
-    }
+    logger.error("Failed to connect postgree database:", error.message, { stack: error.stack });
+    process.exit(1)
   }
 };
+
+// this function should use the client not the pool , singleton desing pattern one instance alone
+export const testDb = { query: (text, params) => client.query(text, params) };
 
 // momgodb connection this will be used for storing questions
 // this is the reason for this
@@ -51,14 +36,14 @@ export const connectDb = async () => {
 // Questions can vary in structure (some may have 4 answers, others 5, some with longer explanations). MongoDB's document model makes it easy to store these without rigid table definitions.
 export let dbInstance = undefined;
 
-  export  const connectToMongoDb = async () => {
+export const connectToMongoDb = async () => {
   try {
     const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URI}`);
     dbInstance = connectionInstance;
     logger.info(`☘️  MongoDB Connected! Db host: ${connectionInstance.connection.host}`);
   } catch (error) {
     logger.error("MongoDB connection error: ", error);
-    // process.exit(1) removed - server continues
+    process.exit(1)
   }
 };
 
