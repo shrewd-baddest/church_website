@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build:hub": "tsc -p src/pages/sacramental/tsconfig.json",
+    "dev": "npm run build:hub && vite",
+    "build": "npm run build:hub && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
