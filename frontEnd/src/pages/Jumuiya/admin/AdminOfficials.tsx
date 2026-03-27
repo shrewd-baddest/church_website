@@ -12,13 +12,13 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
     const { jumuiyaList } = useData();
     const [selectedJumuiyaId, setSelectedJumuiyaId] = useState(selectedId || jumuiyaList[0]?.id || '');
 
-    const selectedJumuiya = useMemo(() => 
+    const selectedJumuiya = useMemo(() =>
         jumuiyaList.find((j: any) => j.id === selectedJumuiyaId),
-    [jumuiyaList, selectedJumuiyaId]);
+        [jumuiyaList, selectedJumuiyaId]);
 
     // Fetch dynamic officials from backend
-    const { officials: dynamicOfficials, addOfficial, updateOfficial, deleteOfficial, isAdding, isUpdating, isDeleting } = useJumuiyaOfficials({ 
-        category: selectedJumuiya?.name 
+    const { officials: dynamicOfficials, addOfficial, updateOfficial, deleteOfficial, isAdding, isUpdating, isDeleting } = useJumuiyaOfficials({
+        category: selectedJumuiya?.name
     });
 
     // Edit Modal State
@@ -32,7 +32,7 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
             ...official,
             // Map backend 'contact' to frontend 'phone' for the form if needed, 
             // but let's just use what's consistent
-            phone: official.contact || ''
+            phone: official.contact || official.phone || ''
         });
         setPreviewUrl(official.photo ? (official.photo.startsWith('http') ? official.photo : `/${official.photo}`) : null);
         setSelectedFile(null);
@@ -78,6 +78,7 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
             fd.append('category', selectedJumuiya.name);
             fd.append('position', currentOfficial.position);
             if (currentOfficial.phone) fd.append('contact', currentOfficial.phone);
+            if (currentOfficial.email) fd.append('email', currentOfficial.email);
             if (currentOfficial.term_of_service) fd.append('term_of_service', currentOfficial.term_of_service);
 
             if (selectedFile) {
@@ -133,34 +134,14 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
                             {(dynamicOfficials || []).map(official => (
                                 <tr key={official.id}>
                                     <td>
-                                        <img 
-                                            src={official.photo ? (official.photo.startsWith('http') ? official.photo : `/${official.photo}`) : 'https://via.placeholder.com/40'} 
-                                            alt={official.name} 
+                                        <img
+                                            src={official.photo ? (official.photo.startsWith('http') ? official.photo : `/${official.photo}`) : 'https://via.placeholder.com/40'}
+                                            alt={official.name}
                                             style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                                         />
                                     </td>
                                     <td>{official.name}</td>
                                     <td>{official.position}</td>
-<<<<<<< HEAD
-                                    <td>{official.phone}</td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button
-                                                onClick={() => handleEdit(official)}
-                                                className="action-btn edit-btn"
-                                                title="Edit"
-                                            >
-                                                <FaEdit />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(official.id)}
-                                                className="action-btn delete-btn-icon"
-                                                title="Delete"
-                                            >
-                                                <FaTrash />
-                                            </button>
-                                        </div>
-=======
                                     <td>{official.contact}</td>
                                     <td style={{ display: 'flex', gap: '8px' }}>
                                         <button
@@ -179,7 +160,6 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
                                         >
                                             <FaTrash />
                                         </button>
->>>>>>> cb20466854b1ca624ae0d1895bc78baacc4512dd
                                     </td>
                                 </tr>
                             ))}
@@ -206,23 +186,17 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
 
             {/* Edit/Add Modal */}
             {isEditing && (
-<<<<<<< HEAD
-                <div className="modal-overlay">
-                    <div className="modal-content animate-slide-up">
-                        <h3>{currentOfficial.id ? 'Edit Official' : 'Add Official'}</h3>
-=======
                 <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div className="modal-content" style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)' }}>
+                    <div className="modal-content animate-slide-up" style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)' }}>
                         <h3 style={{ marginTop: 0, marginBottom: '24px', fontSize: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
                             {currentOfficial.id ? 'Edit Official' : 'Add Official'}
                         </h3>
->>>>>>> cb20466854b1ca624ae0d1895bc78baacc4512dd
                         <form onSubmit={handleSave}>
                             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
                                 <div style={{ position: 'relative' }}>
-                                    <img 
-                                        src={previewUrl || 'https://via.placeholder.com/100'} 
-                                        alt="Preview" 
+                                    <img
+                                        src={previewUrl || 'https://via.placeholder.com/100'}
+                                        alt="Preview"
                                         style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--jumuiya-color)' }}
                                     />
                                     <label style={{ position: 'absolute', bottom: 0, right: 0, background: 'var(--jumuiya-color)', color: 'white', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-md)' }}>
@@ -246,8 +220,7 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
                                     value={currentOfficial.position || ''}
                                     onChange={(e) => setCurrentOfficial({ ...currentOfficial, position: e.target.value })}
                                     required
-<<<<<<< HEAD
-                                    placeholder="e.g., Chairperson"
+                                    placeholder="e.g. Chairperson"
                                 />
                             </div>
                             <div className="form-group">
@@ -257,9 +230,6 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
                                     value={currentOfficial.email || ''}
                                     onChange={(e) => setCurrentOfficial({ ...currentOfficial, email: e.target.value })}
                                     placeholder="email@example.com"
-=======
-                                    placeholder="e.g. Chairperson"
->>>>>>> cb20466854b1ca624ae0d1895bc78baacc4512dd
                                 />
                             </div>
                             <div className="form-group">
@@ -267,11 +237,7 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
                                 <input
                                     value={currentOfficial.phone || ''}
                                     onChange={(e) => setCurrentOfficial({ ...currentOfficial, phone: e.target.value })}
-<<<<<<< HEAD
-                                    placeholder="+254..."
-=======
                                     placeholder="e.g. 0712345678"
->>>>>>> cb20466854b1ca624ae0d1895bc78baacc4512dd
                                 />
                             </div>
                             <div className="form-group">
@@ -282,11 +248,7 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
                                     placeholder="e.g. 2024-2026"
                                 />
                             </div>
-<<<<<<< HEAD
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }}>
-=======
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
->>>>>>> cb20466854b1ca624ae0d1895bc78baacc4512dd
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
@@ -295,17 +257,13 @@ const AdminOfficials: React.FC<AdminOfficialsProps> = ({ selectedId }) => {
                                 >
                                     Cancel
                                 </button>
-<<<<<<< HEAD
-                                <button type="submit" className="btn-primary">Save Official</button>
-=======
-                                <button 
-                                    type="submit" 
+                                <button
+                                    type="submit"
                                     className="btn-primary"
                                     disabled={isAdding || isUpdating}
                                 >
                                     {isAdding || isUpdating ? 'Saving...' : 'Save Official'}
                                 </button>
->>>>>>> cb20466854b1ca624ae0d1895bc78baacc4512dd
                             </div>
                         </form>
                     </div>
