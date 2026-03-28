@@ -20,14 +20,18 @@ export class Validators {
         return regex.test(value);
     }
 
-    static validateRegistrationForm(formData: any) {
+    static validateRegistrationForm(formData: any, isChoir: boolean = true) {
         const errors: Array<{ field: string, message: string }> = [];
         if (!this.isRequired(formData.fullName)) errors.push({ field: 'fullName', message: 'Full name is required' });
         if (!this.isRequired(formData.registrationNumber)) errors.push({ field: 'registrationNumber', message: 'Registration number is required' });
         if (!this.isEmail(formData.email)) errors.push({ field: 'email', message: 'Valid email is required' });
         if (!this.isPhone(formData.phoneNumber)) errors.push({ field: 'phoneNumber', message: 'Valid phone is required' });
-        if (!this.isRequired(formData.voiceType)) errors.push({ field: 'voiceType', message: 'Voice type is required' });
-        if (!this.isRequired(formData.skillLevel)) errors.push({ field: 'skillLevel', message: 'Skill level is required' });
+        
+        if (isChoir) {
+            if (!this.isRequired(formData.voiceType)) errors.push({ field: 'voiceType', message: 'Voice type is required' });
+            if (!this.isRequired(formData.skillLevel)) errors.push({ field: 'skillLevel', message: 'Skill level is required' });
+        }
+        
         if (!formData.hasAgreed) errors.push({ field: 'hasAgreed', message: 'You must agree to the terms' });
         return errors;
     }

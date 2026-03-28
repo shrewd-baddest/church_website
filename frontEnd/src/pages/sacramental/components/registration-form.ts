@@ -15,12 +15,14 @@ export class RegistrationForm {
   private membershipFee: number;
   private currency: string;
   private checkoutID: string | null = null;
+  private isChoir: boolean;
 
   constructor(
     containerId: string,
     membershipFee: number = 20,
     currency: string = 'Ksh',
-    onSuccess?: (registrationId: string) => void
+    onSuccess?: (registrationId: string) => void,
+    private moduleName: string = 'Choir'
   ) {
     const element = document.getElementById(containerId);
     if (!element) {
@@ -30,6 +32,7 @@ export class RegistrationForm {
     this.membershipFee = membershipFee;
     this.currency = currency;
     this.onSuccess = onSuccess;
+    this.isChoir = this.moduleName.toLowerCase().includes('choir');
     this.formState = {
       data: {},
       errors: [],
@@ -45,7 +48,7 @@ export class RegistrationForm {
     const card = DOMHelpers.createElement('div', 'csa-choir-card csa-choir-registration__card');
 
     const title = DOMHelpers.createElement('h2', 'csa-choir-registration__title');
-    title.textContent = 'Join Our Choir';
+    title.textContent = `Join ${this.moduleName}`;
 
     const subtitle = DOMHelpers.createElement('p', 'csa-choir-registration__subtitle');
     subtitle.textContent = `Membership Fee: ${this.currency} ${this.membershipFee}`;
@@ -116,6 +119,7 @@ export class RegistrationForm {
         <span class="csa-choir-error-message" role="alert"></span>
       </div>
 
+      ${this.isChoir ? `
       <div class="csa-choir-form-group">
         <label class="csa-choir-label csa-choir-label--required" for="choir-voiceType">Voice Type</label>
         <select 
@@ -148,7 +152,7 @@ export class RegistrationForm {
           <option value="Advanced">Advanced</option>
         </select>
         <span class="csa-choir-error-message" role="alert"></span>
-      </div>
+      </div>` : ''}
 
       <div class="csa-choir-payment-info">
         <div class="csa-choir-payment-info__header">
@@ -171,7 +175,7 @@ export class RegistrationForm {
             aria-required="true"
           />
           <label class="csa-choir-label" for="choir-hasAgreed">
-            I agree to the choir terms and conditions, and commit to attending regular practices
+            I agree to the ${this.moduleName} terms and conditions, and commit to attending regular practices
           </label>
         </div>
         <span class="csa-choir-error-message" role="alert"></span>
@@ -218,7 +222,7 @@ export class RegistrationForm {
       hasAgreed: formData.get('hasAgreed') === 'on'
     };
 
-    const errors = Validators.validateRegistrationForm(data);
+    const errors = Validators.validateRegistrationForm(data, this.isChoir);
 
     if (errors.length > 0) {
       this.displayErrors(errors);

@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="/hub-view/components/social-media.css">
   <link rel="stylesheet" href="/hub-view/components/gallery.css">
   <link rel="stylesheet" href="/hub-view/components/module-info.css">
+  <link rel="stylesheet" href="/hub-view/components/registration-form.css">
 </head>
 
 <body class="csa-choir-module">
@@ -35,6 +36,9 @@
   <section class="csa-choir-container">
     <div id="choir-announcements"></div>
   </section>
+
+  <!-- Registration Form -->
+  <section id="registration"></section>
 
   <!-- Semester Activities -->
   <section id="choir-activities"></section>
@@ -54,6 +58,7 @@
     import { Sidebar } from '/hub-view/dist/sacramental/components/Sidebar.js';
     import { Gallery } from '/hub-view/dist/sacramental/components/gallery.js';
     import { HubMessenger } from '/hub-view/dist/sacramental/services/HubMessenger.js';
+    import { RegistrationForm } from '/hub-view/dist/sacramental/components/registration-form.js';
 
     // Initialize sidebar only if not in an iframe
     if (window.self === window.top) {
@@ -84,8 +89,28 @@
           // Notify parent that this module is loaded
           HubMessenger.notifyModuleLoaded(data.id);
 
+          if (data.color) {
+            document.documentElement.style.setProperty('--csa-choir-primary', data.color);
+            // Also apply a slightly darker shade if we want for gradients, but CSS will fallback to primary-dark or we can override it too.
+            // A simple hack: set primary-dark to the same color but maybe keep the original dark blending, or just set both.
+            document.documentElement.style.setProperty('--csa-choir-primary-dark', data.color);
+          }
+
           const moduleInfo = new ModuleInfo('module-info', data);
           moduleInfo.render();
+
+          // Initialize registration form with dynamic module name
+          const registrationForm = new RegistrationForm(
+            'registration',
+            20, 
+            'Ksh',
+            (registrationId) => {
+              console.log('Registration successful:', registrationId);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+            data.title || 'Module'
+          );
+          registrationForm.render();
         }
       } catch (e) {
         console.error('Failed to load module info:', e);

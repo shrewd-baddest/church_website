@@ -73,6 +73,25 @@
 
 .csa-choir-registration__submit {
     margin-top: var(--csa-choir-spacing-lg);
+    padding: var(--csa-choir-spacing-md) var(--csa-choir-spacing-xl);
+    font-size: var(--csa-choir-font-size-lg);
+    font-weight: var(--csa-choir-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, var(--csa-choir-primary) 0%, var(--csa-choir-primary-dark) 100%);
+    box-shadow: var(--csa-choir-shadow-lg);
+    transition: all 0.3s ease;
+}
+
+.csa-choir-registration__submit:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--csa-choir-shadow-xl);
+    background: linear-gradient(135deg, var(--csa-choir-primary-light) 0%, var(--csa-choir-primary) 100%);
+}
+
+.csa-choir-registration__submit:active {
+    transform: translateY(1px);
+    box-shadow: var(--csa-choir-shadow-md);
 }
 
 /* Success Message Refinement */
