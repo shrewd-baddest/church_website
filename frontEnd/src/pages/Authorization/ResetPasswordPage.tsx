@@ -54,3 +54,6 @@ export default ResetPasswordPage;
 
 
 
+export const emailChecker=()=>{
+
+}

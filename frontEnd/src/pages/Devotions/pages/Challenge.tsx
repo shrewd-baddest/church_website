@@ -89,7 +89,6 @@ export default function Challenge() {
 
         <div className="text-center">
           <div className="mb-2">
-            <FaQuestionCircle className="text-3xl text-pink-500 mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Liturgical Questions Challenge
             </h1>

@@ -32,6 +32,8 @@ import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
 import ImageSlider from "./pages/Landing/components/ImageSlider";
 import { useAuth } from "./context/AuthContext";
 import { PublicRoute, ProtectedRoute } from "./Regulator";
+import NotificationPage from "./pages/Devotions/pages/NotificationPage";
+import JumuiyaDashboard from "./pages/Devotions/jumuiyaStatus/JumuiyaDashboard";
 
 // Lazy-loaded component
 const Login = lazy(() => import("./pages/Authorization/Login"));
@@ -92,6 +94,8 @@ const App: React.FC = () => {
         <Route path="/admin/quiz" element={<Appadmin />}/>
         <Route path="/admin/officials" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>}/>
         <Route path="/officials" element={<PublicView />} />
+        <Route path="/notification" element={<NotificationPage  />} />
+        <Route path="/jumuiyaStatus" element={<JumuiyaDashboard  jumuiyaId= "20" />} />
 
         <Route path="/" element={<Pageoulet />}>
           <Route index element={<Home />} />

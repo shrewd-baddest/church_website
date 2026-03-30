@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 
 // Define the shape of the context data
 interface AuthContextType {
-  user: { user_id: number; username: string; role: string } | null;
+  user: { user_id: number; username: string; role: string; jumuiya_id:number} | null;
   token: string | null;
-  login: (userData: { user_id: number; username: string; role: string }, token: string) => void;
+  login: (userData: { user_id: number; username: string; role: string; jumuiya_id:number}, token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
   getAuthToken: () => string | null;
@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Create the provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<{ user_id: number; username: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ user_id: number; username: string; role: string; jumuiya_id:number } | null>(null); 
   const [token, setToken] = useState<string | null>(null);
 
   // Check for stored user/token on initial load
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const login = (userData: { user_id: number; username: string; role: string }, authToken: string) => {
+  const login = (userData: { user_id: number; username: string; role: string ;  jumuiya_id:number}, authToken: string) => {
     console.log("AuthContext login called with:", userData, authToken);
     setUser(userData);
     setToken(authToken);

@@ -12,13 +12,17 @@ export const ChatEventEnum = Object.freeze({//where .freeze is used for predicta
   // ?  when user joins respective jumuia
   JOIN_INDIVIDUAL_JUMUIA_EVENT:"joinIndividualJumuia",
   //? event to notify user on csa notification
-  NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT:"notifyCsa",
+  NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT:"csaNotification",
   //? event to notify user on specific Jumui notification
-  NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT:"notifyJumuia",
+  NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT:"jumuiyaNotification",
   // ? when new Notification is received, 
   NOTIFICATION_RECEIVED_EVENT: "notificationReceived",
+// when a notification is being updated due to uncertainities
+  NOTIFICATION_UPDATED_EVENT :"notificationUpdated",
   // ? when there is an error in socket
   SOCKET_ERROR_EVENT: "socketError",
+
+  QUESTION_ATTEMPT_EVENT:"attemptRecorded",
   // ? when Notification is deleted
   NOTIFICATION_DELETE_EVENT: "notificationDeleted",
 });

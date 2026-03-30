@@ -4,13 +4,10 @@ import { ChatEventEnum } from "../constant.js";
 import { ApiError } from "../utils/ApiError.js";
 import { testDb } from "../Configs/dbConfig.js";
 
-
-
-// handle join to specific jumuia based on the users jumuia  
+// handle join to specific jumuia based on the users jumuia
 const HandleOnSpecificJumuiJoin = (socket, user) => {
   socket.on(ChatEventEnum.JOIN_INDIVIDUAL_JUMUIA_EVENT, (jumuiaName) => {
-    // Optional: validate that the jumuiaName matches the user’s actual jumuia
-    if (user?.jumuia_name !== jumuiaName) {
+    if (user?.jumuiya_name !== jumuiaName) {
       console.warn(`Unauthorized join attempt by ${socket.id} for ${jumuiaName}`);
       return;
     }
@@ -21,21 +18,22 @@ const HandleOnSpecificJumuiJoin = (socket, user) => {
 
 // Handle CSA notifications
 const handleNotifyCSA = (socket, io) => {
-  socket.on(ChatEventEnum, (message) => {
-    io.to('CSA').emit('notification', { group: 'CSA', message });
+  socket.on(ChatEventEnum.NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT, (message) => {
+    io.to("CSA_NOTIFICATIONS").emit("notification", { group: "CSA", message });
     console.log(`CSA notification sent: ${message}`);
   });
 };
 
 // Handle Jumuia notifications
 const handleNotifyJumuia = (socket, io) => {
-  socket.on('notifyJumuia', ({ jumuiaName, message }) => {
-    io.to(jumuiaName).emit('notification', { group: jumuiaName, message });
-    console.log(`Notification sent to Jumuia ${jumuiaName}: ${message}`);
-  });
+  socket.on(
+    ChatEventEnum.NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT,
+    ({ jumuiaName, message }) => {
+      io.to(jumuiaName).emit("notification", { group: jumuiaName, message });
+      console.log(`Notification sent to Jumuia ${jumuiaName}: ${message}`);
+    },
+  );
 };
-
-
 
 const initializeSocketIO = (io) => {
   return io.on("connection", async (socket) => {
@@ -51,29 +49,31 @@ const initializeSocketIO = (io) => {
         throw new ApiError(401, "Un-authorized handshake. Token is missing");
       }
 
-      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); // decode the token
+      const {member_id , jumuia_id} = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); // decode the token
 
-      const query = ` SELECT m.first_name , m.last_name , m. year_of_study , m.course , sg.name FROM members  AS m
-                           JOIN sub_groups AS sg ON m.jumuia_id = sg.group_id WHERE m.member_id =$1`;
+      const query = ` SELECT member_id FROM members WHERE member_id =$1 AND jumuia_id =$2` ;
 
-      const result = await testDb.query(query, [decodedToken?.member_id]);
+      const result = await testDb.query(query, [member_id , jumuia_id  ]);
 
       if (result.rows.length === 0) {
         throw new ApiError(401, "Un-authorized handshake. Token is invalid");
       }
 
-      // retrieve the user
-      const user=result.rows.length[0];
-      // We are creating a room called " CSA_NOTIFICATIONS ", by default we are joining any connected user to the csa notification
-      socket.join("CSA_NOTIFICATIONS");
+      socket.user = result.rows.length[0];
+
+      // We are creating a room called " CSA_NOTIFICATIONS ", by default we are joining any authenticated user
+      //  to it , this will handle or csa based notifications
+      socket.join("CSA_NOTIFICATIONS"); //join the socket object to the above mentioned room by default
       socket.emit(ChatEventEnum.CONNECTED_EVENT); // emit the connected event so that client is aware
 
-      HandleOnSpecificJumuiJoin(socket , user );
+      // function to handle specific jumia notifications
+      HandleOnSpecificJumuiJoin(socket, user);
 
-    // Attach notification handlers
+      // Attach notification handlers
       handleNotifyCSA(socket, io);
       handleNotifyJumuia(socket, io);
 
+      // ?this handle disconnection , incase of wifi disconnects , or the serve is unhealthy , thus not reachable this will definetly run 
       socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
         console.log(
           "user has disconnected 🚫. userId: " + socket.user?.member_id,
@@ -100,6 +100,7 @@ const initializeSocketIO = (io) => {
  * @param {any} payload - Data that should be sent when emitting the event
  * @description Utility function responsible to abstract the logic of socket emission via the io instance
  */
+
 const emitSocketEvent = (req, roomId, event, payload) => {
   req.app.get("io").in(roomId).emit(event, payload);
 };
