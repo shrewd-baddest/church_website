@@ -2,7 +2,6 @@
 
 import axios from "axios";
 import { LocalStorage } from "../utils";
-import { error } from "console";
 
 // Create an Axios instance for API requests
 const apiClient = axios.create({
