@@ -26,26 +26,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
-<<<<<<< HEAD
-app.use(requestIp.mw());
-app.use(morganMiddleware);
-
-// 1. Hub Router (High priority for dynamic routes)
-app.use("/hub-view", hubRouter);
-
-// 2. Static Files (Cleanup for files that router didn't catch)
-app.use('/hub-view', express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")));
-app.use(express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")));
-
-app.use("/community-assets", express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),);
-
-app.use("/localFileUploads", express.static(path.join(process.cwd(), "localFileUploads")));
-app.use("/uploads", express.static(path.join(process.cwd(), "localFileUploads")));
-
-// Routes
-app.get('/', (_req, res) => res.redirect('/hub-view'));
-
-=======
 
 // Rate limiter
 const limiter = rateLimit({
@@ -96,18 +76,13 @@ app.use(
 
 // Routes
 app.get("/", (_req, res) => res.redirect("/community-hub"));
->>>>>>> login_features
 app.use("/authentication", apiRoutes);
 app.use("/api/officials", officialsRouter);
 app.use("/api/jumuiya-officials", jumuiyaOfficialsRouter);
 app.use("/api", api);
 
 app.use("/questions", apiRoutes);
-<<<<<<< HEAD
-app.use("/files" , apiRoutes)
-=======
 app.use("/files", apiRoutes);
->>>>>>> login_features
 
 // Gallery APIs
 app.get("/api/choir/gallery", (_req, res) => {
@@ -131,19 +106,4 @@ app.post("/api/choir/gallery", upload.single("file"), (req, res) => {
   res.status(201).json(newPhoto);
 });
 
-<<<<<<< HEAD
-// Error Handler
-app.use((err, req, res, next) => {
-  if (err.stack) console.error(err.stack);
-  
-  const status = err.status || 500;
-  res.status(status).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-    error: process.env.NODE_ENV === "development" ? err.stack : undefined
-  });
-});
-
-=======
->>>>>>> login_features
 export { app };
