@@ -81,5 +81,7 @@ export const individualJumuiAttemptsData =( jumuiyaId : string)=>{
   return apiClient.get(`/attempts/jumuiya/${jumuiyaId}`)
 }
 
-
-
+// Api for fetching notification data either at csa or jumuiya level
+export const fetchNotifications = (jumuiyaId: number) =>{
+  return apiClient.get( `/api/notifications?jumuiyaId=${jumuiyaId}`)
+} 

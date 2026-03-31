@@ -49,17 +49,23 @@ const initializeSocketIO = (io) => {
         throw new ApiError(401, "Un-authorized handshake. Token is missing");
       }
 
-      const {member_id , jumuia_id} = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); // decode the token
+      const { member_id, jumuia_id } = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); // decode the token
 
-      const query = ` SELECT member_id FROM members WHERE member_id =$1 AND jumuia_id =$2` ;
 
-      const result = await testDb.query(query, [member_id , jumuia_id  ]);
+      // reason why we are checking the database is to really indentify 
+      // the user and also to make sure that the token is not tampered with , because if the token is tampered with it will be decoded but the user will not be found in the database thus we can reject the connection  
+      // and be able to remove the disconnected socket from the room from the disconect event handler
+      // we are only checking the member_id and jumuia_id because those are the only two things we need to identify the user and also to make sure that the token is not tampered with 
+      // because if the token is tampered with it will be decoded but the user will not be found in the database thus we can reject the connection
+      const query = ` SELECT member_id FROM members WHERE member_id =$1 AND jumuia_id =$2`;
+
+      const result = await testDb.query(query, [member_id, jumuia_id]);
 
       if (result.rows.length === 0) {
         throw new ApiError(401, "Un-authorized handshake. Token is invalid");
       }
 
-      socket.user = result.rows.length[0];
+      socket.user = result.rows[0];
 
       // We are creating a room called " CSA_NOTIFICATIONS ", by default we are joining any authenticated user
       //  to it , this will handle or csa based notifications
@@ -67,26 +73,23 @@ const initializeSocketIO = (io) => {
       socket.emit(ChatEventEnum.CONNECTED_EVENT); // emit the connected event so that client is aware
 
       // function to handle specific jumia notifications
-      HandleOnSpecificJumuiJoin(socket, user);
+      HandleOnSpecificJumuiJoin(socket, socket.user);
 
       // Attach notification handlers
       handleNotifyCSA(socket, io);
       handleNotifyJumuia(socket, io);
 
-      // ?this handle disconnection , incase of wifi disconnects , or the serve is unhealthy , thus not reachable this will definetly run 
+      // ?this handle disconnection , incase of wifi disconnects , or the serve is unhealthy/crushes or close the browser , thus not reachable this will definetly run 
       socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
-        console.log(
-          "user has disconnected 🚫. userId: " + socket.user?.member_id,
-        );
-        if (socket.user?.member_id) {
-          socket.leave(socket.user.member_id);
-        }
+        console.log( "user has disconnected 🚫. userId: " + socket.user?.member_id);
+        // we can also do some clean up here if we have any resources that we need to clean up when the user disconnects like removing the socket from the room or 
+        // something like that but in our case we are not doing anything because socket.io will automatically remove the socket from the room when it disconnects so we don't have to worry about that
       });
     } catch (error) {
       socket.emit(
         ChatEventEnum.SOCKET_ERROR_EVENT,
         error?.message ||
-          "Something went wrong while connecting to the socket.",
+        "Something went wrong while connecting to the socket.",
       );
     }
   });
@@ -101,8 +104,19 @@ const initializeSocketIO = (io) => {
  * @description Utility function responsible to abstract the logic of socket emission via the io instance
  */
 
-const emitSocketEvent = (req, roomId, event, payload) => {
-  req.app.get("io").in(roomId).emit(event, payload);
+let ioInstance;
+
+const setSocketInstance = (io) => {
+  ioInstance = io;
 };
 
-export { initializeSocketIO, emitSocketEvent };
+const emitSocketEvent = (roomId, event, payload) => {
+  if (!ioInstance) {
+    console.error("Socket.io not initialized");
+    return;
+  }
+
+  ioInstance.to(roomId).emit(event, payload);
+};
+
+export { initializeSocketIO, emitSocketEvent  , setSocketInstance };

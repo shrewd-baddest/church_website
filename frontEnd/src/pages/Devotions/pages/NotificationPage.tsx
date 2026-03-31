@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FaBell, FaPlus } from "react-icons/fa";
 import { MdEvent } from "react-icons/md";
-import { AiOutlineClose } from "react-icons/ai";
-import type { Event } from "../../../interface/api";
+import type { Event, fileUpload, SocketError } from "../../../interface/api";
 import { useSocket } from "../../../context/SocketContext";
 import { useAuth } from "../../../context/AuthContext";
-
-
+import { fetchNotifications } from "../../../api/axiosInstace";
+import NotificationModal from "../components/NotificationModal";
 
 const jumuiyaColors = [
   "bg-green-100 border-green-500",
@@ -19,158 +18,201 @@ const jumuiyaColors = [
 ];
 
 const Notifications: React.FC = () => {
+  // we will fetch from useauth to determine if user is admin  and has permission or not and show add button accordingly
   const isAdmin = true;
-  const initialEvents: Event[] = [];
 
-  const [events, setEvents] = useState(initialEvents);
-  const [activeCategory, setActiveCategory] = useState<"csa" | "jumuiya" | null>(null);
+  const [activeCategory, setActiveCategory] = useState<
+    "csa" | "jumuiya" | null
+  >(null);
   const [showModal, setShowModal] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [notifications, setNotifications] = useState<Event[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [socketError, setSocketError] = useState<any>(null);
+  const [isReadyForNotifications, setIsReadyForNotifications] = useState(false);
 
-const [isConnected, setIsConnected] = useState(false);
-const [notifications, setNotifications] = useState<Event[]>([]);
-const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const { socket } = useSocket(); //help us connect to the socket server and listen for events
+  const { user } = useAuth(); //help us get the user info and determine which jumuiya they belong to and join the correct room for notifications
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const [socketError, setSocketError] = useState<any>(null);
-const [isReadyForNotifications, setIsReadyForNotifications] = useState(false);
-
- const {socket} = useSocket();
- const {user } = useAuth();
-
-
-
-//  Example events
-const CONNECTED_EVENT = "connect";
-const DISCONNECT_EVENT = "disconnect";
-const NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT = "notifyCsa";
-const NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT = "notifyJumuiya";
-const NOTIFICATION_RECEIVED_EVENT = "notificationReceived";
-const NOTIFICATION_DELETE_EVENT = "notificationDelete";
+  //  Event constants (MUST match backend exactly)
+  const CONNECTED_EVENT = "connected";
+  const DISCONNECT_EVENT = "disconnect";
+  const JOIN_INDIVIDUAL_JUMUIA_EVENT = "joinJumuiya";
+  const NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT = "notifyCsa";
+  const NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT = "notifyJumuiya";
+  const NOTIFICATION_UPDATED_EVENT = "notificationUpdated";
+  const NOTIFICATION_DELETE_EVENT = "notificationDelete";
+  const SOCKET_ERROR_EVENT = "socketError";
 
 
-
-// Function 1: onConnect
-const onConnect = () => {
-  setIsConnected(true);
-  if (socket && user?.jumuiya_id) {
-    socket.emit(NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT, { jumuiyaId: user.jumuiya_id });
-  }
-  console.log("Connected to server and joined CSA + Jumuiya rooms");
-};
-
-//  Function 2: onDisconnect
-const onDisconnect = () => {
-  setIsConnected(false);
-  console.log("Disconnected from server");
-};
-
-//  Unified notification handler
-const handleNotification = (msg: Notification) => {
-  setNotifications((prev) => [msg, ...prev]);
-  console.log(`${msg.category} notification received:`, msg);
-};
-
-// // // Unified delete handler
-const removeNotification = (id: string, emitToServer = false) => {
-  if (emitToServer && socket && isConnected) {
-    socket.emit(NOTIFICATION_DELETE_EVENT, id);
-  }
-  setNotifications((prev) => prev.filter((n) => n.id !== id));
-  console.log("Notification removed:", id);
-};
-
-// // // Function: sendNotification
-const sendNotification = (msg: Notification) => {
-  if (!socket || !isConnected) return;
-  socket.emit(NOTIFICATION_RECEIVED_EVENT, msg);
-  setNotifications((prev) => [msg, ...prev]);
-  console.log("Notification sent:", msg);
-};
-
-// // // Function: getNotifications
-const getNotifications = async () => {
-  try {
-    setLoadingNotifications(true);
-    const res = await axios.get(`/api/notifications?jumuiyaId=${user.jumuiya_id}`);
-    setNotifications(res.data);
-    setIsReadyForNotifications(true);
-    console.log("User is ready to receive live notifications");
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-  } finally {
-    setLoadingNotifications(false);
-  }
-};
-
-// // // Unified update handler
-const updateNotification = (updatedMsg?: Notification, deletedId?: string) => {
-  setNotifications((prev) => {
-    if (deletedId) {
-      return prev.filter((n) => n.id !== deletedId);
+  // 1. onConnect
+  const onConnect = useCallback(() => {
+    setIsConnected(true);
+    if (socket && user?.jumuiya_id) {
+      socket.emit(JOIN_INDIVIDUAL_JUMUIA_EVENT, user.jumuiya_id);
     }
-    if (updatedMsg) {
-      const withoutUpdated = prev.filter((n) => n.id !== updatedMsg.id);
-      return [updatedMsg, ...withoutUpdated];
+  }, [socket, user?.jumuiya_id]);
+
+  // 2. onDisconnect
+  const onDisconnect = useCallback(() => {
+    setIsConnected(false);
+  }, []);
+
+  // 3. handleNewNotification
+  const handleNewNotification = useCallback((msg: Event) => {
+    const normalizedEvent: Event = {
+      id: msg.id,
+      text: msg.text || "New notification",
+      category: msg.category === "csa" ? "csa" : "jumuiya",
+      posted_by: msg.posted_by || "system",
+      createdAt: msg.createdAt || new Date().toISOString(),
+      read: false,
+      images: Array.isArray(msg.images) ? msg.images : [],
+    };
+    setNotifications((prev) => [normalizedEvent, ...prev]);
+  }, []);
+
+  // 4. handleUpdateNotification
+  const handleUpdateNotification = useCallback((updatedMsg: Event): void => {
+    setNotifications((prev: Event[]) => {
+      const filtered = prev.filter((n) => n.id !== updatedMsg.id);
+      return [updatedMsg, ...filtered];
+    });
+  }, []);
+
+  // 5. handleDeleteNotification
+  const handleDeleteNotification = useCallback(
+    (payload: { id: string }): void => {
+      const { id } = payload;
+      setNotifications((prev: Event[]) => prev.filter((n) => n.id !== id));
+    },
+    [],
+  );
+
+  // 6. onErrorHandler
+  const onErrorHandler = useCallback((error: SocketError) => {
+    console.error("Socket error occurred:", error);
+    setSocketError(error);
+  }, []);
+
+const createNotification = useCallback(
+    async ({ title, message, images }: { title: string; message: string; images?: fileUpload[] }) => {
+      if (!user || !socket) return;
+
+      const payload = {
+        title,
+        message,
+        posted_by: user.username,
+        member_id: user.user_id,
+        status: "active",
+        images,
+      };
+
+      if (user.role === "csa_admin") {
+        socket.emit(NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT, {...payload, posted_to: "csa",});
+      } else {
+        socket.emit(NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT, {
+          jumuiaName: user.jumuiya_id,
+          message: {
+            ...payload,
+            posted_to: user.jumuiya_id,
+          },
+        });
+      }
+    },
+    [user, socket],
+  );
+
+  //  Function: getNotifications
+  useEffect(() => {
+    if (user) {
+      const getNotifications = async () => {
+        try {
+          setLoadingNotifications(true);
+          const res = await fetchNotifications(user.jumuiya_id);
+          setNotifications(res.data);
+          setIsReadyForNotifications(true);
+          console.log("User is ready to receive live notifications");
+        } catch (error) {
+          console.error("Error fetching notifications:", error);
+        } finally {
+          setLoadingNotifications(false);
+        }
+      };
+      getNotifications();
+    } else {
+      // Reset on logout
+      setIsReadyForNotifications(false);
+      setNotifications([]);
     }
-    return prev;
-  });
-};
+  }, [user]);
 
-// // // Function: onErrorHandler
-const onErrorHandler = (error: any) => {
-  console.error("Socket error occurred:", error);
-  setSocketError(error);
-};
+  //  Attach socket listeners only when ready
+  useEffect(() => {
+    if (!socket || !isReadyForNotifications) return;
 
-// // // Fetch notifications on login
-useEffect(() => {
-  if (user) {
-    getNotifications();
-  } else {
-    // Reset on logout
-    setIsReadyForNotifications(false);
-    setNotifications([]);
-  }
-}, [user]);
+    // listen for Connection
+    socket.on(CONNECTED_EVENT, onConnect);
+    socket.on(DISCONNECT_EVENT, onDisconnect);
 
-//  Attach socket listeners only when ready
-useEffect(() => {
-  if (!socket || !isReadyForNotifications) return;
+    // listen for New notifications
+    socket.on(NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT, handleNewNotification);
+    socket.on(
+      NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT,
+      handleNewNotification,
+    );
+    //  listen for Updates event from the server
+    socket.on(NOTIFICATION_UPDATED_EVENT, handleUpdateNotification);
+    // listen for delete event from the server
+    socket.on(NOTIFICATION_DELETE_EVENT, handleDeleteNotification);
+    //  Errors
+    socket.on(SOCKET_ERROR_EVENT, onErrorHandler);
 
-  socket.on(CONNECTED_EVENT, onConnect);
-  socket.on(DISCONNECT_EVENT, onDisconnect);
-  socket.on(NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT, handleNotification);
-  socket.on(NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT, handleNotification);
-  socket.on(NOTIFICATION_RECEIVED_EVENT, handleNotification);
-  socket.on(NOTIFICATION_DELETE_EVENT, (id: string) => removeNotification(id));
-  socket.on("socketError", onErrorHandler);
+    return () => {
+      socket.off(CONNECTED_EVENT, onConnect);
+      socket.off(DISCONNECT_EVENT, onDisconnect);
 
-  return () => {
-    socket.off(CONNECTED_EVENT, onConnect);
-    socket.off(DISCONNECT_EVENT, onDisconnect);
-    socket.off(NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT, handleNotification);
-    socket.off(NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT, handleNotification);
-    socket.off(NOTIFICATION_RECEIVED_EVENT, handleNotification);
-    socket.off(NOTIFICATION_DELETE_EVENT, (id: string) => removeNotification(id));
-    socket.off("socketError", onErrorHandler);
-  };
-}, [socket, isReadyForNotifications]);
+      socket.off(NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT, handleNewNotification);
+      socket.off(
+        NOTIFY_SPECIFIC_JUMUIA_ON_NEW_NOTIFICATION_EVENT,
+        handleNewNotification,
+      );
 
+      socket.off(NOTIFICATION_UPDATED_EVENT, handleUpdateNotification);
+      socket.off(NOTIFICATION_DELETE_EVENT, handleDeleteNotification);
 
-  const unreadCSA = events.filter((e) => e.category === "csa" && !e.read).length;
-  const unreadJumuiya = events.filter((e) => e.category === "jumuiya" && !e.read).length;
+      socket.off(SOCKET_ERROR_EVENT, onErrorHandler);
+    };
+  }, [
+    socket,
+    isReadyForNotifications,
+    onConnect,
+    onDisconnect,
+    handleNewNotification,
+    handleUpdateNotification,
+    handleDeleteNotification,
+    onErrorHandler,
+  ]);
+
+  const unreadCSA = notifications.filter(
+    (e) => e.category === "csa" && !e.read,
+  ).length;
+  const unreadJumuiya = notifications.filter(
+    (e) => e.category === "jumuiya" && !e.read,
+  ).length;
   const totalUnread = unreadCSA + unreadJumuiya;
-
-
 
   const openCategory = (cat: "csa" | "jumuiya") => {
     setActiveCategory(cat);
-    setEvents((prev) =>
+    setNotifications((prev) =>
       prev.map((e) => (e.category === cat ? { ...e, read: true } : e)),
     );
   };
 
-  const filteredEvents = activeCategory ? events.filter((e) => e.category === activeCategory): [];
+  const filteredEvents = activeCategory
+    ? notifications.filter((e) => e.category === activeCategory)
+    : [];
 
   return (
     <div className="p-6 max-w-3xl mx-auto ">
@@ -187,8 +229,69 @@ useEffect(() => {
         </h1>
       </div>
 
+      {/* this shows the connection status to the serve for receiving notification */}
+      <div className="mb-4">
+        {isConnected ? (
+          <div className="flex items-center gap-2 bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded-lg shadow-sm">
+            <span className="text-lg">✅</span>
+            <span className="font-medium">
+              Connected to notification server
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg shadow-sm">
+            <span className="text-lg">⚠️</span>
+            <span className="font-medium">Disconnected from server</span>
+          </div>
+        )}
+      </div>
+
       {/* Category Counters */}
       <div className="flex gap-6 mb-6">
+        {loadingNotifications && (
+          <div className="flex items-center justify-center gap-3 bg-blue-50 border border-blue-300 text-blue-700 px-4 py-3 rounded-lg shadow-sm mb-4 animate-pulse">
+            <svg
+              className="w-5 h-5 animate-spin text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+              ></path>
+            </svg>
+            <span className="font-medium">
+              Loading notifications, please wait...
+            </span>
+          </div>
+        )}
+
+        {/* indicate if there was an error when getting the notification , error such as no socket connection */}
+        {socketError && (
+          <div className="flex items-center gap-3 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg shadow-sm mb-4">
+            <span className="text-xl">🚫</span>
+            <div>
+              <p className="font-semibold">
+                We’re having trouble connecting to the notification server.
+              </p>
+              <p className="text-sm">
+                {socketError.message ||
+                  "Please check your internet connection or try again shortly."}
+              </p>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={() => openCategory("csa")}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
@@ -285,77 +388,7 @@ useEffect(() => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-xl w-[28rem] relative shadow-2xl">
-            {/* Close button */}
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-black"
-            >
-              <AiOutlineClose size={20} />
-            </button>
-
-            {/* Title */}
-            <h2 className="text-2xl font-bold mb-6 text-green-700 text-center">
-              Create New Event
-            </h2>
-
-            {/* Form */}
-            <form className="space-y-4">
-              <input
-                type="text"
-                placeholder="Event Title"
-                className="w-full border border-green-300 p-2 rounded-lg focus:ring-2 focus:ring-green-400"
-              />
-              <input
-                type="date"
-                className="w-full border border-green-300 p-2 rounded-lg focus:ring-2 focus:ring-green-400"
-              />
-              <textarea
-                placeholder="Description"
-                className="w-full border border-green-300 p-2 rounded-lg focus:ring-2 focus:ring-green-400"
-              />
-
-              {/* Image upload */}
-              <div>
-                <label className="block text-sm font-semibold text-green-700 mb-2">
-                  Attach Images maximum allowed 3 only
-                </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="w-full border border-green-300 p-2 rounded-lg focus:ring-2 focus:ring-green-400"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    if (files.length > 3) {
-                      alert("You can only upload up to 3 images.");
-                      e.target.value = ""; // reset
-                    }
-                  }}
-                />
-              </div>
-
-              {/* Category select */}
-              <select className="w-full border border-green-300 p-2 rounded-lg focus:ring-2 focus:ring-green-400">
-                <option value="jumuiya">Jumuiya</option>
-                <option value="csa">CSA</option>
-              </select>
-
-
-              {/* Submit button */}
-              <button
-                type="submit"
-                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 shadow-md font-semibold"
-              >
-                Save Event
-              </button>
-
-
-            </form>
-
-          </div>
-        </div>
+        <NotificationModal createNotification={createNotification} onClose={() => setShowModal(false)} />    
       )}
     </div>
   );

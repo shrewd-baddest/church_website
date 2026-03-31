@@ -9,8 +9,8 @@ import logger from "./logger/winston.js";
 // function that initiate express server , it waits for postgres db then attempts mongo
 const initServer = async () => {
   try {
-  //   await connectDb();
-    //  await connectToMongoDb();
+    await connectDb();
+     await connectToMongoDb();
 
     app.listen(serverConfig.PORT, () => {
       logger.info(`⚙️  Server is running on http://localhost:${serverConfig.PORT}`);

@@ -15,9 +15,10 @@ import requestIp from "request-ip";
 import corsOptions from "./Configs/corsConfigs.js";
 import upload from "./Configs/multerStorageConfig.js";
 import { Server } from "socket.io";
-// import cookieParser from "cookieParser"
+import cookieParser from "cookie-Parser"
 import { errorHandler } from "./middleWares/error.middlewares.js";
-import { initializeSocketIO } from "./socket/index.js";
+import { initializeSocketIO, setSocketInstance } from "./socket/index.js";
+import { requestLogger } from "./middleWares/requestLogger.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,7 +29,7 @@ const app = express();
 // app midlewares
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-// app.use(cookieParser());
+app.use(cookieParser());
 
 // create app using httserver so we can add a socket on top of the serve , unlike the http server
 const httpServer = createServer(app);
@@ -121,6 +122,8 @@ BackendDataService.init();
 
 
 initializeSocketIO(io)
+setSocketInstance(io);
+app.use(requestLogger);
 app.use(errorHandler)
 
 export { app };
