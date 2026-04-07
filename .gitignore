@@ -30,3 +30,5 @@ Thumbs.db
 # Uploads and temporary files
 backEnd/tmp/
 backEnd/localFileUploads/
+backEnd/list_tables.js
+git_status_output.txt

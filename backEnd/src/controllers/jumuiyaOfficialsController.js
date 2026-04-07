@@ -6,6 +6,7 @@ import {
   normalizePhone, 
   isValidPhone, 
   deleteFile, 
+  deleteFromCloudinary,
   formatPhotoUrl, 
   syncCurrentTerm,
   formatPhoneForExcel 
@@ -211,6 +212,7 @@ export const createJumuiyaOfficial = async (req, res) => {
 
     let photoUrl = req.file ? formatPhotoUrl(req.file) : null;
 
+
     const currentTerm = await pool.query("SELECT id FROM election_terms WHERE is_current = TRUE");
     const termId = currentTerm.rows.length > 0 ? currentTerm.rows[0].id : null;
 
@@ -282,11 +284,16 @@ export const updateJumuiyaOfficial = async (req, res) => {
     let photoUrl = existing.rows[0].photo;
     if (req.file) {
       if (existing.rows[0].photo) {
-        const oldFilePath = path.join(process.cwd(), 'localFileUploads', path.basename(existing.rows[0].photo));
-        deleteFile(oldFilePath);
+        if (existing.rows[0].photo.startsWith('http')) {
+          await deleteFromCloudinary(existing.rows[0].photo);
+        } else {
+          const oldFilePath = path.join(process.cwd(), 'localFileUploads', path.basename(existing.rows[0].photo));
+          deleteFile(oldFilePath);
+        }
       }
       photoUrl = formatPhotoUrl(req.file);
     }
+
 
     const result = await pool.query(
       `UPDATE jumuiya_officials SET name = COALESCE($1, name), category = COALESCE($2, category),
@@ -320,9 +327,14 @@ export const deleteJumuiyaOfficial = async (req, res) => {
     const official = result.rows[0];
 
     if (official.photo) {
-      const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
-      deleteFile(filePath);
+      if (official.photo.startsWith('http')) {
+        await deleteFromCloudinary(official.photo);
+      } else {
+        const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
+        deleteFile(filePath);
+      }
     }
+
 
     await pool.query('DELETE FROM jumuiya_officials WHERE id = $1', [id]);
     res.json({ success: true, message: 'Official deleted successfully' });
@@ -693,9 +705,14 @@ export const deleteArchivedJumuiyaOfficial = async (req, res) => {
     }
 
     if (result.rows[0].photo) {
-        const oldFilePath = path.join(process.cwd(), 'localFileUploads', path.basename(result.rows[0].photo));
-        deleteFile(oldFilePath);
+        if (result.rows[0].photo.startsWith('http')) {
+            await deleteFromCloudinary(result.rows[0].photo);
+        } else {
+            const oldFilePath = path.join(process.cwd(), 'localFileUploads', path.basename(result.rows[0].photo));
+            deleteFile(oldFilePath);
+        }
     }
+
 
     res.json({ success: true, message: 'Archived official deleted successfully' });
   } catch (error) {
@@ -726,10 +743,15 @@ export const bulkDeleteArchivedJumuiyaOfficials = async (req, res) => {
     // Clean up photos
     for (const row of snapshot.rows) {
       if (row.photo) {
-        const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(row.photo));
-        deleteFile(filePath);
+        if (row.photo.startsWith('http')) {
+          await deleteFromCloudinary(row.photo);
+        } else {
+          const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(row.photo));
+          deleteFile(filePath);
+        }
       }
     }
+
 
     res.json({ 
       success: true, 
