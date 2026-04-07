@@ -2,6 +2,7 @@ import { serverConfig } from "./Configs/serverConfigs.js";
 import { httpServer } from "./app.js";
 import { connectDb, connectToMongoDb } from "./Configs/dbConfig.js";
 import logger from "./logger/winston.js";
+import { runMigration } from "./migrations/scripts/index.js";
 
 
 
@@ -9,8 +10,9 @@ import logger from "./logger/winston.js";
 // function that initiate express server , it waits for postgres db then attempts mongo
 const initServer = async () => {
   try {
-    // await connectDb();
+    await connectDb();
     //  await connectToMongoDb();
+    await runMigration();
 
     httpServer.listen(serverConfig.PORT, () => {
       logger.info(`⚙️  Server is running on http://localhost:${serverConfig.PORT}`);

@@ -18,17 +18,42 @@ CREATE TABLE  IF NOT EXISTS roles (
     role_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     role_name VARCHAR(50) NOT NULL
 );
+
 CREATE TABLE  IF NOT EXISTS member_roles (
     member_id VARCHAR(30) REFERENCES members(member_id),
     role_id uuid REFERENCES roles(role_id),
     PRIMARY KEY(member_id, role_id)
 );
 
-CREATE TABLE  IF NOT EXISTS permissions (
-    permission_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    resource VARCHAR(50) NOT NULL,   -- e.g. "members", "products"
-    action VARCHAR(50) NOT NULL      -- e.g. "create", "delete", "update"
+//although resource and action are solid we need to add more meta-data to the permission for acountability purposes ,
+// we need also to ensure no duplicate entry for the same hence we are going to use a unique constrint for the same
+//sometimes we can try to keep the history of permissions without deleting them hece we deplicate the permission , same to we can suspend a permission  and finally the permision can be active
+//we need Enums to avoid typos and ensure consistency , where we are going to create Types for actions and resources , later we can add them 
+
+-- Define the resource_type enum
+CREATE TYPE resource_type AS ENUM (
+  'members',  'roles', 'permissions', 'events', 'contributions', 'notifications', 'uploads', 'audit', 'attendance'
 );
+
+-- Define the action_type enum
+-- Each value represents an operation that can be performed on a resource
+CREATE TYPE action_type AS ENUM (
+  'create',  'update', 'delete', 'view', 'assign', 'record',
+);
+
+
+CREATE TABLE  IF NOT EXISTS permissions (
+   permission_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    resource resource_type NOT NULL, 
+    action action_type NOT NULL,     
+    description TEXT,           
+    created_by VARCHAR(30),  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active','deprecated','disabled')),
+    CONSTRAINT unique_resource_action UNIQUE (resource, action)
+);
+
+
 
 CREATE TABLE  IF NOT EXISTS role_permissions (
     role_id UUID REFERENCES roles(role_id),

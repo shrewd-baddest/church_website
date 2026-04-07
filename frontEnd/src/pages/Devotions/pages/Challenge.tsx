@@ -3,13 +3,15 @@ import { FaQuestionCircle,FaMedal, FaBookOpen,FaStar,FaLock,FaTrophy,FaHome} fro
 import { getQuestionsForToday, clearQuestionsFromStorage} from "../data/questions";
 import type { Question } from "../data/questions";
 import { CompletionContainer } from "../components/CompletionContainer";
+import { LocalStorage } from "../../../utils";
 
 export default function Challenge() {
   const today = new Date().toDateString();
 
   const [portalStatus, setPortalStatus] = useState< "welcome" | "portal" | "closed" | "completed" >("welcome");
+
   const [questions, setQuestions] = useState<Question[]>(() => {
-    const cached = localStorage.getItem(`questions_${today}`);
+    const cached = LocalStorage.get(`questions_${today}`);
     if (cached) {
       return JSON.parse(cached);
     } else {
