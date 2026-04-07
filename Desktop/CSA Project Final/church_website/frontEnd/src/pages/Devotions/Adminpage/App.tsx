@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FaUserCircle, FaCheckCircle , FaUsers } from "react-icons/fa";
-import { generateAndSaveQuestions } from "../../../api/axiosInstace";
+import { generateAndSaveQuestions } from "../../../api/axiosInstance";
 
 const members = [
   { id: 1, jumuiaName: "St. Augustin" },

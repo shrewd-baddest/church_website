@@ -20,9 +20,9 @@ let client;
 export const connectDb = async () => {
   try {
     client = await pool.connect();
-    logger.info("Connected to postgree database successfully!");
+    logger.info("Connected to PostgreSQL database successfully!");
   } catch (error) {
-    logger.error("Failed to connect postgree database:", error.message, {
+    logger.error("Failed to connect PostgreSQL database:", error.message, {
       stack: error.stack,
     });
     process.exit(1)

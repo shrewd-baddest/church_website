@@ -5,10 +5,11 @@ import {
   RouterProvider,
   Route,
 } from "react-router-dom";
-import Authorisation from "./assets/Layouts/Authorisation";
+import Authorisation from "./layOuts/Authorisation";
 import Reset from "./pages/Authorization/Reset";
 import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
 import Pageoulet from "./assets/Layouts/Pageoulet";
+import SemesterAdmin from "./pages/admin/SemesterAdmin";
 import Challenge from "./pages/Devotions/pages/Challenge";
 import Rosary from "./pages/Devotions/pages/Rosary";
 import Liturgy from "./pages/Devotions/pages/Liturgy";
