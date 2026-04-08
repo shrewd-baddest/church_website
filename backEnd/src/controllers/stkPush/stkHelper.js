@@ -1,4 +1,4 @@
-import { initiateSTK, waitForPaymentResult } from "./stkController";
+import { initiateSTK, waitForPaymentResult } from "./stkController.js";
 
 export const payAndWait = async (userId, phoneNumber, amount) => {
   try {

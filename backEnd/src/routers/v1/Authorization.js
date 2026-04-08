@@ -3,6 +3,7 @@ import { Login, refreshAccessToken } from "../../controllers/Login.js";
 import { OTPverification, Reset } from "../../controllers/Reset.js";
 import verifyToken, { logOut } from "../../middleWares/Tokens.js";
 import sendEmail from "../../Configs/emailConfig.js";
+import { stkCalls } from "../../controllers/stkPush/stkCall.js";
 
 // authRoutes
 // description on login the complete uri will be /authentication/v1/login
@@ -14,5 +15,6 @@ route.post("/reset-email", verifyToken, Reset);
 route.post("/otp/:regNo", OTPverification);
 route.post("/log-out", verifyToken, logOut);
 route.post("/refresh", refreshAccessToken);
+route.post("/stk-push", verifyToken, stkCalls);
 
 export default route;

@@ -1,4 +1,4 @@
-import { testDb } from "../Configs/dbConfig";
+import { testDb } from "../../Configs/dbConfig.js";
 import axios from "axios";
 
 const db = testDb;
