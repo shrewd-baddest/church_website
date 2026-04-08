@@ -80,18 +80,7 @@ export class RegistrationForm {
         <span class="csa-choir-error-message" role="alert"></span>
       </div>
 
-      <div class="csa-choir-form-group">
-        <label class="csa-choir-label csa-choir-label--required" for="choir-registrationNumber">Registration Number / Student ID</label>
-        <input 
-          type="text" 
-          id="choir-registrationNumber" 
-          name="registrationNumber"
-          class="csa-choir-input"
-          placeholder="e.g., CSA/2024/001"
-          aria-required="true"
-        />
-        <span class="csa-choir-error-message" role="alert"></span>
-      </div>
+
 
       <div class="csa-choir-form-group">
         <label class="csa-choir-label csa-choir-label--required" for="choir-phoneNumber">Phone Number</label>
@@ -106,18 +95,7 @@ export class RegistrationForm {
         <span class="csa-choir-error-message" role="alert"></span>
       </div>
 
-      <div class="csa-choir-form-group">
-        <label class="csa-choir-label csa-choir-label--required" for="choir-email">Email</label>
-        <input 
-          type="email" 
-          id="choir-email" 
-          name="email"
-          class="csa-choir-input"
-          placeholder="you@example.com"
-          aria-required="true"
-        />
-        <span class="csa-choir-error-message" role="alert"></span>
-      </div>
+
 
       ${this.isChoir ? `
       <div class="csa-choir-form-group">
@@ -214,9 +192,7 @@ export class RegistrationForm {
 
     const data: Record<string, unknown> = {
       fullName: formData.get('fullName'),
-      registrationNumber: formData.get('registrationNumber'),
       phoneNumber: formData.get('phoneNumber'),
-      email: formData.get('email'),
       voiceType: formData.get('voiceType'),
       skillLevel: formData.get('skillLevel'),
       hasAgreed: formData.get('hasAgreed') === 'on'
@@ -259,9 +235,7 @@ export class RegistrationForm {
     // --- STEP 3: Submit Registration ---
     const registration: ChoirRegistration = {
       fullName: data.fullName as string,
-      registrationNumber: data.registrationNumber as string,
       phoneNumber: data.phoneNumber as string,
-      email: data.email as string,
       voiceType: data.voiceType as VoiceType,
       skillLevel: data.skillLevel as SkillLevel,
       hasAgreed: data.hasAgreed as boolean,

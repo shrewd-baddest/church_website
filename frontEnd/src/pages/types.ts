@@ -83,7 +83,7 @@ export interface Announcement {
 export interface ChoirRegistration {
     firstName?: string;
     lastName?: string;
-    email: string;
+    email?: string;
     phone?: string;
     phoneNumber?: string;
     voiceType?: VoiceType;

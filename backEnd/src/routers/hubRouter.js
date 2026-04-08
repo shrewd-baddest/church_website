@@ -12,4 +12,4 @@ router.get('/st-francis', hubController.getModule);
 router.get('/charismatic', hubController.getModule);
 router.get('/charismatic-prayer-group', hubController.getModule);
 
-export const hubRouter = router;
+export default router;

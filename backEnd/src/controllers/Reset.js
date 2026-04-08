@@ -1,63 +1,52 @@
 import crypto from "crypto";
 import sendMail from "../Configs/emailConfig.js";
 import bcrypt from "bcrypt";
-import { db, testDb } from "../Configs/dbConfig.js";
+// import { db, testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
 export const Reset = async (req, res) => {
   const { email, password, purpose } = req.body;
 
+  logger.debug("Received reset request for user: " + userName);
+
   if (!email || !password || !purpose) {
     logger.warn("Reset attempt with missing fields");
-    return res.status(400).json({
-      error: "Email, password, and purpose are required",
-    });
+    return res.status(400).send("Email, password, and purpose are required");
   }
 
   try {
-    let memberId;
+    //   Check if user exists
+
+    let userName = null;
 
     if (purpose === "email") {
-      // Get user from token (middleware must set req.user)
-      if (!req.user || !req.user.member_id) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      memberId = req.user.member_id;
-
-      // Check if new email already exists
+      userName = req.body.userReg;
       const emailCheck = await testDb.query(
         `SELECT 1 FROM members WHERE email = $1`,
         [email],
       );
-
       if (emailCheck.rows.length > 0) {
         return res.status(400).json({ error: "Email already in use" });
       }
     } else if (purpose === "password") {
       const userCheck = await testDb.query(
-        `SELECT member_id FROM members WHERE email = $1`,
+        `SELECT * FROM members WHERE email = $1`,
         [email],
       );
-
       if (userCheck.rows.length === 0) {
         logger.warn(`Password reset attempt for non-existent email: ${email}`);
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).send("User not found");
       }
-
-      memberId = userCheck.rows[0].member_id;
-    } else {
-      return res.status(400).json({ error: "Invalid purpose" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const OTP = Math.floor(100000 + Math.random() * 900000).toString();
-
     const hashedOtp = crypto.createHash("sha256").update(OTP).digest("hex");
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
+    //   Insert or update password_resets
     await testDb.query(
       `INSERT INTO password_resets (member_id, email, otp, otp_expires, temp_password)
        VALUES ($1, $2, $3, $4, $5)
@@ -66,25 +55,31 @@ export const Reset = async (req, res) => {
            otp = EXCLUDED.otp,
            otp_expires = EXCLUDED.otp_expires,
            temp_password = EXCLUDED.temp_password`,
-      [memberId, email, hashedOtp, expiresAt, hashedPassword],
+      [
+        userName,
+        email || existingUser.email,
+        hashedOtp,
+        expiresAt,
+        hashedPassword,
+      ],
     );
 
     await sendMail(
+      email,
       "Reset OTP",
       `Your OTP is ${OTP}. It expires in 10 minutes.`,
-      email,
     );
 
-    logger.info(`OTP sent to ${email}`);
-
-    return res.status(200).json({
-      message: "OTP sent successfully",
-    });
+    logger.info(`Password reset OTP sent to ${email} for user: ${userName}`);
+    return res
+      .status(200)
+      .json({ message: "Password reset initiated successfully" });
   } catch (error) {
-    logger.error("Error during reset process:", error);
-    return res.status(500).json({ error: error.message });
+    logger.error("Error during password reset: ", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
+
 export const OTPverification = async (req, res) => {
   const reg = decodeURIComponent(req.params.regNo);
   const { otp } = req.body;

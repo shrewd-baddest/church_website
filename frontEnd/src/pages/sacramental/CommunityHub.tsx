@@ -8,10 +8,11 @@ const CommunityHub: React.FC = () => {
   // Listen for navigation messages from the Hub iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      console.log(event.data);
       // Hub messenger signals a user clicked a module card
       if (event.data?.type === 'HUB_NAVIGATE') {
         const slug = event.data.slug;
-        navigate(`/community-hub/${slug}`);
+        navigate(`/community/${slug}`);
       }
       // Hub messenger signals a specific module page was loaded (e.g. choir)
       if (event.data?.type === 'HUB_MODULE_LOADED') {
@@ -28,7 +29,8 @@ const CommunityHub: React.FC = () => {
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [navigate]);
-  const iframeSrc = moduleSlug ? `/hub-view/${moduleSlug}` : '/hub-view/';
+  console.log(moduleSlug);
+  const iframeSrc = moduleSlug ? `/community-view/${moduleSlug}` : '/community-view/';
 
   return (
     <div className="w-full min-h-screen bg-gray-50 pt-20">
@@ -37,7 +39,7 @@ const CommunityHub: React.FC = () => {
           <iframe 
             src={iframeSrc}
             className="w-full h-full border-none"
-            title="Community Hub"
+            title="Community"
           />
         </div>
       </div>

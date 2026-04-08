@@ -26,7 +26,7 @@ export class HubMessenger {
             }, '*');
         } else {
             // If not in iframe, just use normal window location
-            window.location.href = `/hub-view/${slug}`;
+            window.location.href = `/community-view/${slug}`;
         }
     }
 }

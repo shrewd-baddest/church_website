@@ -1,4 +1,6 @@
 import { testDb } from "../Configs/dbConfig.js";
+import logger from "../logger/winston.js";
+
 
 // Get all records from a table
 export const getTableData = async (tableName) => {

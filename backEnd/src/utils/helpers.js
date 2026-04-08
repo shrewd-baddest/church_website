@@ -1,6 +1,10 @@
-import fs from 'fs';
-import { parsePhoneNumberFromString } from 'libphonenumber-js';
-import { testDb as pool } from '../Configs/dbConfig.js';
+ import fs from 'fs';
+ import { parsePhoneNumberFromString } from 'libphonenumber-js';
+ import { testDb as pool } from '../Configs/dbConfig.js';
+ import cloudinary from '../Configs/cloudinaryConfigs.js';
+ import logger from '../logger/winston.js';
+
+
 
 /**
  * Normalizes a phone number to E.164 format.
@@ -30,25 +34,58 @@ export const isValidPhone = (phone) => {
  * Deletes a file from the filesystem safely.
  */
 export const deleteFile = (filePath) => {
-  if (filePath && fs.existsSync(filePath)) {
-    try {
-      fs.unlinkSync(filePath);
-    } catch (err) {
-      console.error(`Failed to delete file: ${err.message}`);
+  if (filePath && typeof filePath === 'string' && !filePath.startsWith('http')) {
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (err) {
+        console.error(`Failed to delete local file: ${err.message}`);
+      }
     }
   }
 };
+
+
+/**
+ * Deletes a file from Cloudinary using its public ID.
+ */
+export const deleteFromCloudinary = async (photoUrl) => {
+  if (!photoUrl || !photoUrl.includes('cloudinary.com')) return;
+  
+  try {
+    // Extract public_id from URL: .../upload/v1234567/folder/public_id.jpg
+    const parts = photoUrl.split('/');
+    const lastPart = parts[parts.length - 1];
+    const publicIdWithFolder = parts.slice(parts.indexOf('upload') + 2).join('/').split('.')[0];
+    
+    // publicIdWithFolder usually looks like "church_officials/filename"
+    const result = await cloudinary.uploader.destroy(publicIdWithFolder);
+    if (result.result !== 'ok') {
+      logger.warn(`Cloudinary delete result for ${publicIdWithFolder}: ${result.result}`);
+    } else {
+      logger.info(`Successfully deleted ${publicIdWithFolder} from Cloudinary`);
+    }
+  } catch (err) {
+    logger.error(`Failed to delete from Cloudinary: ${err.message}`);
+  }
+};
+
 
 /**
  * Formats a filesystem path into a browser-friendly URL.
  */
 export const formatPhotoUrl = (reqFile) => {
   if (reqFile) {
-    // Return path with 'uploads/' prefix for consistent serving via the static route
+    // If uploaded to Cloudinary, reqFile.path will be the secure_url
+    if (reqFile.path && reqFile.path.startsWith('http')) {
+      return reqFile.path;
+    }
+    // Fallback for local uploads (if any still use this)
     return `uploads/${reqFile.filename}`;
   }
   return null;
 };
+
 
 /**
  * Synchronizes the global "Active Term" in the DB based on the most recently added official's term.

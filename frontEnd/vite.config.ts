@@ -52,9 +52,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-
-
-
+      '/community-view': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })

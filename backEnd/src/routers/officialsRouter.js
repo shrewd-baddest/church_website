@@ -18,7 +18,8 @@ import {
   deleteArchivedOfficial,
   bulkDeleteArchivedOfficials
 } from '../controllers/officialsController.js';
-import upload from '../Configs/multerStorageConfig.js';
+import upload from '../Configs/multerCloudinaryConfig.js';
+
 
 const router = express.Router();
 

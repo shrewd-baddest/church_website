@@ -23,8 +23,6 @@ export class Validators {
     static validateRegistrationForm(formData: any, isChoir: boolean = true) {
         const errors: Array<{ field: string, message: string }> = [];
         if (!this.isRequired(formData.fullName)) errors.push({ field: 'fullName', message: 'Full name is required' });
-        if (!this.isRequired(formData.registrationNumber)) errors.push({ field: 'registrationNumber', message: 'Registration number is required' });
-        if (!this.isEmail(formData.email)) errors.push({ field: 'email', message: 'Valid email is required' });
         if (!this.isPhone(formData.phoneNumber)) errors.push({ field: 'phoneNumber', message: 'Valid phone is required' });
         
         if (isChoir) {

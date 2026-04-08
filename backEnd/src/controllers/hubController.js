@@ -6,42 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ─── Hardcoded fallback data (shown if DB/JSON files are empty/missing) ───────────
-const modulesMeta = [
-    {
-        id: 'choir',
-        title: 'Choir',
-        description: 'Join our heavenly voices in praise and worship.',
-        path: '/hub-view/choir',
-        color: '#ffffff',
-        iconColor: 'var(--theme-primary)',
-        icon: 'fas fa-music'
-    },
-    {
-        id: 'dancers',
-        title: 'Liturgical Dancers',
-        description: 'Expressing faith through rhythmic movement and grace.',
-        path: '/hub-view/dancers',
-        color: '#e67e22',
-        icon: 'fas fa-person-praying'
-    },
-    {
-        id: 'charismatic',
-        title: 'Charismatic Prayer Group',
-        description: 'A community of faith, healing, and spiritual growth.',
-        path: '/hub-view/charismatic-prayer-group',
-        color: '#2ecc71',
-        icon: 'fas fa-fire-alt'
-    },
-    {
-        id: 'st-francis',
-        title: 'St. Francis of Assisi',
-        description: 'Building bonds of love and support in our parish family.',
-        path: '/hub-view/st-francis',
-        color: '#2980b9',
-        icon: 'fas fa-dove'
-    }
-];
+// ─── Data fetched exclusively from PostgreSQL ───────────
+
 
 export const getIndex = (_req, res) => {
     res.sendFile(path.join(__dirname, '../../../frontEnd/src/pages/sacramental/pages/index.html'));
@@ -50,22 +16,21 @@ export const getIndex = (_req, res) => {
 export const getHubData = async (_req, res) => {
     try {
         const result = await db.query('SELECT * FROM hub_modules');
-        if (result.rows.length > 0) {
-            // Map DB columns back to frontend camelCase keys if necessary, 
-            // but for simplicity we return as is or map them.
-            const modules = result.rows.map(m => ({
-                ...m,
-                path: m.path || `/hub-view/${m.id}`,
-                color: m.theme_color,
-                iconColor: m.icon_class === 'fas fa-music' ? 'var(--theme-primary)' : undefined,
-                icon: m.icon_class
-            }));
-            return res.json(modules);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'No ministry modules found in database.' });
         }
-        res.json(modulesMeta);
+
+        const modules = result.rows.map(m => ({
+            ...m,
+            path: m.path || `/hub-view/${m.id}`,
+            color: m.theme_color,
+            iconColor: m.icon_class === 'fas fa-music' ? 'var(--theme-primary)' : undefined,
+            icon: m.icon_class
+        }));
+        res.json(modules);
     } catch (err) {
         console.error('[HubController] DB Fetch Error:', err.message);
-        res.json(modulesMeta);
+        res.status(500).json({ error: 'Database connection error while fetching hub data.' });
     }
 };
 
@@ -130,19 +95,7 @@ export const getModule = async (req, res) => {
         res.json(moduleInfo);
     } catch (err) {
         console.error(`[HubController] DB Error for module ${id}:`, err.message);
-        
-        // Final fallback to JSON if DB fails
-        const meta = modulesMeta.find(m => m.id === id);
-        if (!meta) return res.status(404).json({ error: "Module not found" });
-
-        const moduleInfo = {
-            ...meta,
-            officials:     BackendDataService.load(`${id}_officials.json`, []),
-            activities:    BackendDataService.load(`${id}_activities.json`, []),
-            announcements: BackendDataService.load(`${id}_announcements.json`, []),
-            gallery:       BackendDataService.load(`${id}_gallery.json`, [])
-        };
-        res.json(moduleInfo);
+        res.status(500).json({ error: `Database error while loading module "${id}".` });
     }
 };
 

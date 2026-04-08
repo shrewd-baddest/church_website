@@ -113,15 +113,21 @@
 
 /* Hub Back Button (for embedded view) */
 .csa-hub-back-btn {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
+    position: sticky; /* Use sticky instead of fixed to avoid overlapping scrolled content in some contexts */
+    top: 0;
+    left: 0;
     z-index: 1000;
-    opacity: 0.8;
+    opacity: 0.9;
+    margin: 1rem !important;
+    display: inline-flex !important;
 }
 
-.csa-hub-back-btn:hover {
-    opacity: 1;
+@media (max-width: 768px) {
+    .csa-hub-back-btn {
+        position: relative;
+        margin: 0.5rem !important;
+        width: fit-content;
+    }
 }
 
 /* Badge */
@@ -225,6 +231,8 @@
     display: flex;
     align-items: flex-start;
     gap: var(--csa-choir-spacing-sm);
+    margin-bottom: var(--csa-choir-spacing-md);
+    text-align: left;
 }
 
 .csa-choir-checkbox {

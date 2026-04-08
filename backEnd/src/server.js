@@ -16,7 +16,7 @@ const initServer = async () => {
   // Start DB connections in parallel without blocking the app server
   try {
     connectDb().catch(err => logger.error("Postgres connection failed (continuing anyway):", err.message));
-    connectToMongoDb().catch(err => logger.error("MongoDB connection failed (continuing anyway):", err.message));
+    // connectToMongoDb().catch(err => logger.error("MongoDB connection failed (continuing anyway):", err.message));
 
     app.listen(serverConfig.PORT, () => {
       logger.info(`⚙️  Server is running on http://localhost:${serverConfig.PORT}`);

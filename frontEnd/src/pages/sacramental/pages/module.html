@@ -8,18 +8,18 @@
   <title>CSA Module - Catholic Student Association</title>
 
   <!-- Module Styles -->
-  <link rel="stylesheet" href="/hub-view/styles/variables.css">
-  <link rel="stylesheet" href="/hub-view/styles/reset.css">
-  <link rel="stylesheet" href="/hub-view/styles/components.css">
-  <link rel="stylesheet" href="/hub-view/components/sidebar.css">
-  <link rel="stylesheet" href="/hub-view/components/hero-section.css">
-  <link rel="stylesheet" href="/hub-view/components/announcements.css">
-  <link rel="stylesheet" href="/hub-view/components/choir-officials.css">
-  <link rel="stylesheet" href="/hub-view/components/semester-activities.css">
-  <link rel="stylesheet" href="/hub-view/components/social-media.css">
-  <link rel="stylesheet" href="/hub-view/components/gallery.css">
-  <link rel="stylesheet" href="/hub-view/components/module-info.css">
-  <link rel="stylesheet" href="/hub-view/components/registration-form.css">
+  <link rel="stylesheet" href="/community-view/styles/variables.css">
+  <link rel="stylesheet" href="/community-view/styles/reset.css">
+  <link rel="stylesheet" href="/community-view/styles/components.css">
+  <link rel="stylesheet" href="/community-view/components/sidebar.css">
+  <link rel="stylesheet" href="/community-view/components/hero-section.css">
+  <link rel="stylesheet" href="/community-view/components/announcements.css">
+  <link rel="stylesheet" href="/community-view/components/choir-officials.css">
+  <link rel="stylesheet" href="/community-view/components/semester-activities.css">
+  <link rel="stylesheet" href="/community-view/components/social-media.css">
+  <link rel="stylesheet" href="/community-view/components/gallery.css">
+  <link rel="stylesheet" href="/community-view/components/module-info.css">
+  <link rel="stylesheet" href="/community-view/components/registration-form.css">
 </head>
 
 <body class="csa-choir-module">
@@ -53,12 +53,12 @@
   <section id="choir-social"></section>
 
   <script type="module">
-    import { ChoirLandingPage } from '/hub-view/dist/sacramental/pages/landing-page.js';
-    import { ModuleInfo } from '/hub-view/dist/sacramental/components/module-info.js';
-    import { Sidebar } from '/hub-view/dist/sacramental/components/Sidebar.js';
-    import { Gallery } from '/hub-view/dist/sacramental/components/gallery.js';
-    import { HubMessenger } from '/hub-view/dist/sacramental/services/HubMessenger.js';
-    import { RegistrationForm } from '/hub-view/dist/sacramental/components/registration-form.js';
+    import { ChoirLandingPage } from '/community-view/dist/sacramental/pages/landing-page.js';
+    import { ModuleInfo } from '/community-view/dist/sacramental/components/module-info.js';
+    import { Sidebar } from '/community-view/dist/sacramental/components/Sidebar.js';
+    import { Gallery } from '/community-view/dist/sacramental/components/gallery.js';
+    import { HubMessenger } from '/community-view/dist/sacramental/services/HubMessenger.js';
+    import { RegistrationForm } from '/community-view/dist/sacramental/components/registration-form.js';
 
     // Initialize sidebar only if not in an iframe
     if (window.self === window.top) {
@@ -68,10 +68,10 @@
       document.getElementById('choir-sidebar-container').style.display = 'none';
       document.body.classList.add('is-embedded');
       
-      // Add a Back to Hub button for iframe view
+      // Add a Back button for iframe view
       const backBtn = document.createElement('a');
       backBtn.className = 'csa-choir-btn csa-choir-btn--secondary csa-hub-back-btn';
-      backBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Back to Hub';
+      backBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Back';
       backBtn.style.margin = '1rem';
       backBtn.onclick = () => HubMessenger.requestParentNavigate('');
       document.body.prepend(backBtn);

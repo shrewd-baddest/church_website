@@ -16,7 +16,7 @@ function Navigation() {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Community Hub", path: "/community-hub" },
+    { name: "Community", path: "/community" },
     { name: "Jumuiya", path: "/jumuiya" },
     { name: "Officials", path: "/officials" },
     ...(user ? [

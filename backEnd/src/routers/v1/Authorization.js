@@ -13,7 +13,7 @@ route.post("/login", Login);
 route.post("/reset", Reset);
 route.post("/reset-email", verifyToken, Reset);
 route.post("/otp/:regNo", OTPverification);
-route.post("/log-out", verifyToken, logOut);
+route.post("/log-out", verifyToken);
 route.post("/refresh", refreshAccessToken);
 route.post("/stk-push", verifyToken, stkCalls);
 

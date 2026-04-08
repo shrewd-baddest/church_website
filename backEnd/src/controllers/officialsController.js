@@ -5,6 +5,7 @@ import {
   normalizePhone, 
   isValidPhone, 
   deleteFile, 
+  deleteFromCloudinary,
   formatPhotoUrl, 
   syncCurrentTerm,
   formatPhoneForExcel 
@@ -151,11 +152,15 @@ export const deleteElectionTerm = async (req, res) => {
     // Delete photo files
     for (const official of archivedOfficials.rows) {
       if (official.photo) {
-        // Correctly handle the 'uploads/' prefix
-        const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
-        deleteFile(filePath);
+        if (official.photo.startsWith('http')) {
+          await deleteFromCloudinary(official.photo);
+        } else {
+          const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
+          deleteFile(filePath);
+        }
       }
     }
+
 
     // Delete all archived officials for this term
     await client.query(
@@ -600,11 +605,16 @@ export const updateOfficial = async (req, res) => {
     let photoUrl = existing.rows[0].photo;
     if (req.file) {
       if (existing.rows[0].photo) {
-        const oldFilePath = path.join(process.cwd(), 'localFileUploads', path.basename(existing.rows[0].photo));
-        deleteFile(oldFilePath);
+        if (existing.rows[0].photo.startsWith('http')) {
+          await deleteFromCloudinary(existing.rows[0].photo);
+        } else {
+          const oldFilePath = path.join(process.cwd(), 'localFileUploads', path.basename(existing.rows[0].photo));
+          deleteFile(oldFilePath);
+        }
       }
       photoUrl = formatPhotoUrl(req.file);
     }
+
 
     const result = await pool.query(
       `UPDATE officials SET name = COALESCE($1, name), category = COALESCE($2, category),
@@ -638,9 +648,14 @@ export const deleteOfficial = async (req, res) => {
     const official = result.rows[0];
 
     if (official.photo) {
-      const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
-      deleteFile(filePath);
+      if (official.photo.startsWith('http')) {
+        await deleteFromCloudinary(official.photo);
+      } else {
+        const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
+        deleteFile(filePath);
+      }
     }
+
 
     await pool.query('DELETE FROM officials WHERE id = $1', [id]);
     res.json({ success: true, message: 'Official deleted successfully' });
@@ -791,9 +806,14 @@ export const deleteArchivedOfficial = async (req, res) => {
     const official = result.rows[0];
 
     if (official.photo) {
-      const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
-      deleteFile(filePath);
+      if (official.photo.startsWith('http')) {
+        await deleteFromCloudinary(official.photo);
+      } else {
+        const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
+        deleteFile(filePath);
+      }
     }
+
 
     await pool.query('DELETE FROM officials WHERE id = $1', [officialId]);
     res.json({ success: true, message: 'Archived official deleted successfully' });

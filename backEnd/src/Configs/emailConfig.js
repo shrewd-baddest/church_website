@@ -3,9 +3,9 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-if (!process.env.MAIL_USER || !process.env.MAIL_PASSWORD) {
-  throw new Error("Email credentials are missing in .env");
-}
+// if (!process.env.MAIL_USER || !process.env.MAIL_PASSWORD) {
+//   throw new Error("Email credentials are missing in .env");
+// }
 
 const transporter = nodemailer.createTransport({
   // host: "smtp.gmail.com",

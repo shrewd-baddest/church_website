@@ -1,8 +1,3 @@
-/**
- * Hub Landing Page
- * TypeScript component implementing the ministry grid
- */
-
 import { HubMessenger } from '../services/HubMessenger.js';
 
 interface HubModule {
@@ -17,33 +12,143 @@ interface HubModule {
 
 export class HubLandingPage {
     private containerId: string;
-    private baseUrl = '/hub-view/data';
+    private baseUrl = '/community-view/data';
+    private CACHE_KEY = 'csa_hub_modules_cache';
+    
+    // Default fallback content to ensure UI is never blank
+    private mockModules: HubModule[] = [
+        {
+            id: 'choir',
+            title: 'St. Cecilia Choir',
+            description: 'Join our liturgical choir and lead the congregation in sacred worship through music.',
+            path: '/community-view/choir',
+            color: '#2c3e50',
+            icon: 'fas fa-music'
+        },
+        {
+            id: 'dancers',
+            title: 'Liturgical Dancers',
+            description: 'Express faith through graceful movements and traditional praise dances during Mass.',
+            path: '/community-view/dancers',
+            color: '#e67e22',
+            icon: 'fas fa-child'
+        },
+        {
+            id: 'charismatic',
+            title: 'Charismatic Group',
+            description: 'Deepen your spiritual life through exuberant prayer, worship, and fellowship.',
+            path: '/community-view/charismatic',
+            color: '#c0392b',
+            icon: 'fas fa-fire'
+        }
+    ];
 
     constructor(containerId: string) {
         this.containerId = containerId;
     }
 
     async init(): Promise<void> {
+        // 1. Instantly show loading state or cached content
+        const cached = this.getCachedData();
+        if (cached) {
+            this.render(cached, true); // Render cached but keep loading in background
+        } else {
+            this.showLoading();
+        }
+
+        // 2. Fetch fresh data
         try {
-            // Notify parent that we are in the main hub grid
             HubMessenger.notifyModuleLoaded(null);
 
             const response = await fetch(this.baseUrl);
-            if (!response.ok) throw new Error('Failed to fetch hub data');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
             const modules: HubModule[] = await response.json();
-            this.render(modules);
+            
+            if (modules && modules.length > 0) {
+                this.saveToCache(modules);
+                this.render(modules);
+            } else {
+                this.showEmpty();
+            }
         } catch (error) {
-            console.error('Failed to initialize community hub:', error);
-            this.showError();
+            console.error('Community Hub Fetch Error:', error);
+            
+            // 3. Fallback logic: Use cache -> Use Mock -> Show Error
+            if (cached) {
+                console.info('Using cached data after fetch failure');
+                this.render(cached);
+            } else {
+                console.info('Using mock fallback data');
+                this.render(this.mockModules, false, true); // Show mocks with a warning
+            }
         }
     }
 
-    private render(modules: HubModule[]): void {
+    private showLoading(): void {
         const container = document.getElementById(this.containerId);
         if (!container) return;
 
-        container.innerHTML = ''; // Clear loading
+        container.innerHTML = `
+            <div class="csa-choir-text-center w-full py-20">
+                <div class="csa-choir-loading"></div>
+                <p class="csa-choir-mt-md csa-choir-text-muted">Loading sacred ministries...</p>
+            </div>
+        `;
+    }
+
+    private showEmpty(): void {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="csa-choir-text-center w-full py-20 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
+                <i class="fas fa-folder-open text-gray-300 text-5xl mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-500">No ministries found</h3>
+                <p class="text-gray-400">We couldn't find any active ministry modules at the moment.</p>
+                <button onclick="window.location.reload()" class="csa-choir-btn csa-choir-btn--primary csa-choir-mt-md">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh
+                </button>
+            </div>
+        `;
+    }
+
+    private showError(): void {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="csa-choir-alert csa-choir-alert--error csa-choir-text-center py-10">
+                <p class="font-bold mb-2">Connection Issue</p>
+                <p>We are having trouble reaching the sacred archives.</p>
+                <button onclick="window.location.reload()" class="csa-choir-btn csa-choir-btn--accent csa-choir-mt-sm">
+                    <i class="fas fa-redo mr-2"></i> Retry Connection
+                </button>
+            </div>
+        `;
+    }
+
+    private render(modules: HubModule[], isCached = false, isMock = false): void {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        container.innerHTML = ''; 
+
+        // Add a small indicator if data is not fresh
+        if (isMock || isCached) {
+            const status = document.createElement('div');
+            status.className = 'w-full mb-6 py-2 px-4 rounded-lg text-sm flex items-center gap-2 ' + 
+                              (isMock ? 'bg-orange-50 text-orange-700 border border-orange-200' : 'bg-blue-50 text-blue-700 border border-blue-200');
+            status.innerHTML = `
+                <i class="fas ${isMock ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+                <span>${isMock ? 'Offline Mode: Showing default ministries.' : 'Showing previously saved content.'}</span>
+                <button onclick="window.location.reload()" class="ml-auto underline font-bold">Try Refresh</button>
+            `;
+            container.appendChild(status);
+        }
 
         modules.forEach(mod => {
             const card = this.createModuleCard(mod);
@@ -54,14 +159,11 @@ export class HubLandingPage {
     private createModuleCard(mod: HubModule): HTMLElement {
         const a = document.createElement('a');
         a.className = 'csa-hub-card csa-hub-card--glow';
-        
-        // Instead of immediate navigation in iframe, request the parent to update URL
         a.href = 'javascript:void(0)';
         a.onclick = (e) => {
             e.preventDefault();
             HubMessenger.requestParentNavigate(mod.id);
         };
-
 
         a.style.setProperty('--card-icon-color', mod.color);
 
@@ -83,14 +185,29 @@ export class HubLandingPage {
         return a;
     }
 
-    private showError(): void {
-        const container = document.getElementById(this.containerId);
-        if (container) {
-            container.innerHTML = `
-                <div class="csa-choir-alert csa-choir-alert--error">
-                    <strong>Error:</strong> Failed to load the Sacred Ministries. Please refresh the page.
-                </div>
-            `;
+    private saveToCache(data: HubModule[]): void {
+        try {
+            localStorage.setItem(this.CACHE_KEY, JSON.stringify({
+                timestamp: Date.now(),
+                data: data
+            }));
+        } catch (e) {
+            console.error('Failed to save hub cache', e);
         }
     }
+
+    private getCachedData(): HubModule[] | null {
+        try {
+            const cached = localStorage.getItem(this.CACHE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                // Optional: Check if cache is too old (e.g., 24 hours)
+                return parsed.data;
+            }
+        } catch (e) {
+            console.error('Failed to parse hub cache', e);
+        }
+        return null;
+    }
 }
+

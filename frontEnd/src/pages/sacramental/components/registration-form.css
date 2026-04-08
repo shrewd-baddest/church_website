@@ -72,26 +72,48 @@
 }
 
 .csa-choir-registration__submit {
-    margin-top: var(--csa-choir-spacing-lg);
-    padding: var(--csa-choir-spacing-md) var(--csa-choir-spacing-xl);
-    font-size: var(--csa-choir-font-size-lg);
-    font-weight: var(--csa-choir-font-weight-bold);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: linear-gradient(135deg, var(--csa-choir-primary) 0%, var(--csa-choir-primary-dark) 100%);
-    box-shadow: var(--csa-choir-shadow-lg);
-    transition: all 0.3s ease;
+    margin-top: 2rem !important;
+    padding: 1.25rem 2rem !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    background-color: #1e3a8a !important; /* Deep Royal Blue */
+    color: #ffffff !important; /* Pure White */
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2) !important;
+    transition: all 0.2s ease-in-out !important;
+    width: 100% !important;
+    cursor: pointer !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    text-align: center !important;
+}
+
+@media (max-width: 768px) {
+    .csa-choir-registration__submit {
+        width: auto !important;
+        min-width: 250px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding: 0.8rem 1.5rem !important;
+        font-size: 1rem !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
 }
 
 .csa-choir-registration__submit:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--csa-choir-shadow-xl);
-    background: linear-gradient(135deg, var(--csa-choir-primary-light) 0%, var(--csa-choir-primary) 100%);
+    background-color: #172554 !important; /* Darker Navy on hover */
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3) !important;
 }
 
 .csa-choir-registration__submit:active {
-    transform: translateY(1px);
-    box-shadow: var(--csa-choir-shadow-md);
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2) !important;
 }
 
 /* Success Message Refinement */

@@ -144,7 +144,7 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/community-hub/:moduleSlug?"
+            path="/community/:moduleSlug?"
             element={<CommunityHub />}
           />
         </Route>

@@ -74,9 +74,9 @@ const Headers: React.FC = () => {
             <li>Home</li>
           </Link>
 
-          <Link to="/community-hub" className="flex items-center gap-1">
+          <Link to="/community" className="flex items-center gap-1">
             <FaInfoCircle />
-            <li>Community Hub</li>
+            <li>Community</li>
           </Link>
 
           <Link to="/jumuiya" className="flex items-center gap-1">
@@ -122,7 +122,7 @@ const Headers: React.FC = () => {
         {isMenuOpen && (
           <ul className="absolute left-0 flex flex-col items-center w-full gap-4 py-4 bg-white shadow-md top-16">
             <Link to="/">Home</Link>
-            <Link to="/community-hub">Community Hub</Link>
+            <Link to="/community">Community</Link>
             <Link to="/jumuiya">Jumuiya</Link>
             <Link to="/officials">Officials</Link>
             <Link to="/activities">Activities</Link>
