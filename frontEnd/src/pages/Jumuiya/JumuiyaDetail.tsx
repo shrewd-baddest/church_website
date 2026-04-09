@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from './context/DataContext';
 import AboutTab from './components/AboutTab';
@@ -70,6 +70,48 @@ const JumuiyaDetail: React.FC = () => {
         return jumuiya?.termOfOffice;
     })();
 
+    // officials to display
+    const displayedOfficials = useMemo(() => {
+        if (dynamicOfficials && dynamicOfficials.length > 0) {
+            return dynamicOfficials.map(doff => ({
+                id: String(doff.id),
+                name: doff.name,
+                position: doff.position,
+                email: '',
+                phone: doff.contact || '',
+                image: doff.photo ? (doff.photo.startsWith('http') ? doff.photo : `${window.location.origin}/${doff.photo}`) : undefined
+            }));
+        }
+
+        // Generate placeholders using Patron Saint image
+        return [
+            {
+                id: 'p1',
+                name: 'Pending Election',
+                position: 'Chairperson',
+                email: '',
+                phone: '',
+                image: jumuiya?.saintImage
+            },
+            {
+                id: 'p2',
+                name: 'Pending Election',
+                position: 'Secretary',
+                email: '',
+                phone: '',
+                image: jumuiya?.saintImage
+            },
+            {
+                id: 'p3',
+                name: 'Pending Election',
+                position: 'Treasurer',
+                email: '',
+                phone: '',
+                image: jumuiya?.saintImage
+            }
+        ];
+    }, [dynamicOfficials, jumuiya?.saintImage]);
+
     if (!jumuiya) {
         return (
             <div className="error-page">
@@ -100,46 +142,6 @@ const JumuiyaDetail: React.FC = () => {
             case 'about':
                 return <AboutTab jumuiya={jumuiya} onNavigateBack={() => navigate('/')} />;
             case 'officials':
-                const displayedOfficials = useMemo(() => {
-                    if (dynamicOfficials && dynamicOfficials.length > 0) {
-                        return dynamicOfficials.map(doff => ({
-                            id: String(doff.id),
-                            name: doff.name,
-                            position: doff.position,
-                            email: '',
-                            phone: doff.contact || '',
-                            image: doff.photo ? (doff.photo.startsWith('http') ? doff.photo : `${window.location.origin}/${doff.photo}`) : undefined
-                        }));
-                    }
-
-                    // Generate placeholders using Patron Saint image
-                    return [
-                        {
-                            id: 'p1',
-                            name: 'Pending Election',
-                            position: 'Chairperson',
-                            email: '',
-                            phone: '',
-                            image: jumuiya?.saintImage
-                        },
-                        {
-                            id: 'p2',
-                            name: 'Pending Election',
-                            position: 'Secretary',
-                            email: '',
-                            phone: '',
-                            image: jumuiya?.saintImage
-                        },
-                        {
-                            id: 'p3',
-                            name: 'Pending Election',
-                            position: 'Treasurer',
-                            email: '',
-                            phone: '',
-                            image: jumuiya?.saintImage
-                        }
-                    ];
-                }, [dynamicOfficials, jumuiya?.saintImage]);
 
                 return <OfficialsTab
                     officials={displayedOfficials}
