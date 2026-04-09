@@ -22,6 +22,7 @@ import Layout from "./pages/Devotions/components/Layout";
 import Appadmin from "./pages/Devotions/Adminpage/App"
 import AdminPanel from "./pages/officials/AdminPanel";
 import PublicView from "./pages/officials/PublicView";
+import OfficialProfile from "./pages/officials/OfficialProfile";
 import PublicHistoryView from "./pages/officials/PublicHistoryView";
 import {
   AboutSection,
@@ -124,6 +125,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Pageoulet />}>
           <Route index element={<Home />} />
           <Route path="officials" element={<PublicView />} />
+          <Route path="officials/:id" element={<OfficialProfile />} />
           <Route path="officials/history" element={<PublicHistoryView />} />
 
           <Route
