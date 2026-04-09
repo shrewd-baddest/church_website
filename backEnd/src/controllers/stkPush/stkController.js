@@ -1,4 +1,4 @@
-import { testDb, client } from "../../Configs/dbConfig.js";
+import { testDb, db } from "../../Configs/dbConfig.js";
 import axios from "axios";
 
 export const initiateSTK = async (userId, phoneNumber, amount) => {
@@ -51,8 +51,8 @@ export const initiateSTK = async (userId, phoneNumber, amount) => {
       PartyB: shortcode,
       PhoneNumber: phoneNumber,
       CallBackURL: process.env.CALLBACK_URL,
-      AccountReference: "YogurtBlast",
-      TransactionDesc: "Payment",
+      AccountReference: "Donation",
+      TransactionDesc: "Church Donation",
     },
     {
       headers: {
@@ -74,7 +74,7 @@ export const initiateSTK = async (userId, phoneNumber, amount) => {
 };
 
 export const callback = async (req, res) => {
-  // const client = await db.connect();
+  const client = await db.connect();
 
   try {
     await client.query("BEGIN");
@@ -101,7 +101,7 @@ export const callback = async (req, res) => {
 
       //  If payment failed
       if (ResultCode !== 0) {
-        await testDb.query(
+        await client.query(
           `UPDATE mpesa_request SET status='failed' WHERE checkout_id=$1`,
           [CheckoutRequestID],
         );
@@ -125,7 +125,7 @@ export const callback = async (req, res) => {
       };
 
       //  Find matching request
-      const results = await testDb.query(
+      const results = await client.query(
         `SELECT user_id, amount, checkout_id , status FROM mpesa_request WHERE checkout_id = $1`,
         [CheckoutRequestID],
       );
@@ -152,6 +152,7 @@ export const callback = async (req, res) => {
 
       return checkout_id;
     } else if (req.method === "GET") {
+      client.release();
       res.status(200).json({ message: "MPESA Callback endpoint is live" });
       return;
     }
@@ -162,13 +163,13 @@ export const callback = async (req, res) => {
   } catch (error) {
     console.error(" Error processing callback:", error);
 
-    await client.query("ROLLBACK");
+    if (client) await client.query("ROLLBACK");
     return res.status(500).json({
       success: false,
       message: "Internal server error",
     });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 };
 

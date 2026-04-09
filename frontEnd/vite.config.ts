@@ -57,6 +57,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/authentication': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/questions': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })

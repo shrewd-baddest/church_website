@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FaUserCircle, FaCheckCircle , FaUsers } from "react-icons/fa";
-import { generateAndSaveQuestions } from "../../../api/axiosInstace";
+import { generateAndSaveQuestions } from "../../../api/axiosInstance";
 
 const members = [
   { id: 1, jumuiaName: "St. Augustin" },
@@ -84,8 +84,8 @@ function AIEngine() {
     setLoading(true);
 
     try {
-      const responce = await generateAndSaveQuestions({ topic });
-      if (responce.status === 201) {
+      const response = await generateAndSaveQuestions({ topic });
+      if (response.status === 201) {
         setSuccess(true);
       } else {
         setErrorMessage("Unexpected response . Please try again. or find attachment ");

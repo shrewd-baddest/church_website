@@ -23,7 +23,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
   })
   const [uploading, setUploading] = useState(false)
 
-  const tables = ['members', 'events', 'contributions', 'officials', 'projects', 'activities', 'gallery', 'jumuiya', 'users']
+  const tables = ['members', 'events', 'contributions', 'officials', 'projects', 'activities', 'gallery', 'jumuiya', 'users', 'mpesa_request']
 
   useEffect(() => {
     loadData()
@@ -393,7 +393,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
                         : 'hover:bg-gray-200 text-gray-700'
                         }`}
                     >
-                      {table.replace(/_/g, ' ').toUpperCase()}
+                      {table === 'mpesa_request' ? 'DONATION MONITOR' : table.replace(/_/g, ' ').toUpperCase()}
                     </button>
                   </li>
                 ))}

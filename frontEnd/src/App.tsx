@@ -37,6 +37,10 @@ import ImageSlider from "./pages/Landing/components/ImageSlider";
 import JumuiyaLanding from "./pages/Jumuiya/JumuiyaLanding";
 import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
 import CommunityHub from "./pages/sacramental/CommunityHub";
+import UniversalAdmin from "./pages/Admin/UniversalAdmin";
+import AdminDashboard from "./pages/Admin/pages/AdminDashboard";
+import RecordsExplorer from "./pages/Admin/pages/RecordsExplorer";
+import DonationMonitor from "./pages/Admin/pages/DonationMonitor";
 import { DataProvider } from "./pages/Jumuiya/context/DataContext";
 
 
@@ -78,8 +82,8 @@ const Home: React.FC = () => {
           </>
         )}
 
-        {/* Show Support section when NOT logged in */}
-        {!user && <SupportSection />}
+        {/* Show Support section to everyone */}
+        <SupportSection />
       </main>
     </div>
   );
@@ -101,8 +105,22 @@ const App: React.FC = () => {
           <Route path="reset" element={<Reset />} />
           <Route path="otp/:reg" element={<ResetPasswordPage />} />
         </Route>
-        <Route path="/admin/quiz" element={<Appadmin />} />
-        <Route path="/admin/officials" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <UniversalAdmin />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="officials-hub" element={<AdminPanel />} />
+          <Route path="devotions-hub" element={<Appadmin />} />
+          <Route path="records" element={<RecordsExplorer />} />
+          <Route path="donations" element={<DonationMonitor />} />
+          <Route path="settings" element={<div className="p-8 bg-white rounded-2xl shadow-sm border border-slate-200">Settings Page Coming Soon</div>} />
+        </Route>
+
         <Route path="/" element={<Pageoulet />}>
           <Route index element={<Home />} />
           <Route path="officials" element={<PublicView />} />

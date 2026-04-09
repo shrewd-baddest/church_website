@@ -75,19 +75,11 @@
   }
 
   p {
-    @apply m-0 text-sm text-teal-950;
-  }
-}
-
-<<<<<<< HEAD
-=======
-{
     @apply m-0 text-base;
     color: var(--text-secondary);
   }
+}
 
-
->>>>>>> login_features
 /* Animations */
 @keyframes fadeIn {
   from {

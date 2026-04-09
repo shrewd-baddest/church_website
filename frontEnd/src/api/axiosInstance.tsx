@@ -66,3 +66,15 @@ apiClient.interceptors.response.use(
 export const generateAndSaveQuestions = (data: { topic: string }) => {
   return apiClient.post("/questions/v1", data);
 };
+
+export const initiateSTKPush = (data: { amount: number; phoneNumber: string }) => {
+  return apiClient.post("/authentication/v1/stk-push", data);
+};
+
+export const initiateGuestSTKPush = (data: { amount: number; phoneNumber: string }) => {
+  return apiClient.post("/authentication/v1/stk-push-guest", data);
+};
+
+export const getSTKPushStatus = (checkoutId: string) => {
+  return apiClient.get(`/authentication/v1/stk-push-status/${checkoutId}`);
+};

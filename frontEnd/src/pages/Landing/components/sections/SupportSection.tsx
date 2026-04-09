@@ -1,4 +1,8 @@
+import { useState } from 'react';
+import DonationModal from '../DonationModal';
+
 function SupportSection() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <section id="support" className='py-8 md:py-16 bg-blue-700 text-white'>
       <div className='max-w-4xl mx-auto px-3 md:px-4 text-center'>
@@ -7,11 +11,15 @@ function SupportSection() {
 
         {/* Donate button */}
         <div>
-          <button className='bg-white text-blue-700 hover:bg-gray-100 px-6 md:px-8 py-2 md:py-3 rounded-full font-bold shadow-lg transition-colors text-sm md:text-base'>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className='bg-white text-blue-700 hover:bg-gray-100 px-6 md:px-8 py-2 md:py-3 rounded-full font-bold shadow-lg transition-colors text-sm md:text-base'
+          >
             Donate Now
           </button>
         </div>
       </div>
+      <DonationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   )
 }

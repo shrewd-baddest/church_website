@@ -20,6 +20,7 @@ const allowedTables = [
   "gallery",
   "jumuiya",
   "users",
+  "mpesa_request",
 ];
 
 // Middleware to validate table name

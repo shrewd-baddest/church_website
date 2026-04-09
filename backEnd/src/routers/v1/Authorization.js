@@ -3,7 +3,7 @@ import { Login, refreshAccessToken } from "../../controllers/Login.js";
 import { OTPverification, Reset } from "../../controllers/Reset.js";
 import verifyToken, { logOut } from "../../middleWares/Tokens.js";
 import sendEmail from "../../Configs/emailConfig.js";
-import { stkCalls } from "../../controllers/stkPush/stkCall.js";
+import { stkCalls, stkGuestCalls, checkStatus } from "../../controllers/stkPush/stkCall.js";
 import { callback } from "../../controllers/stkPush/stkController.js";
 
 // authRoutes
@@ -17,6 +17,8 @@ route.post("/otp/:regNo", OTPverification);
 route.post("/log-out", verifyToken);
 route.post("/refresh", refreshAccessToken);
 route.post("/stk-push", verifyToken, stkCalls);
+route.post("/stk-push-guest", stkGuestCalls);
+route.get("/stk-push-status/:checkoutId", checkStatus);
 route.post("/mpesa/callback", callback);
 route.get("/mpesa/callback", callback);
 
