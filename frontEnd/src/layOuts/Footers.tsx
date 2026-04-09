@@ -30,7 +30,7 @@ const Footers = () => {
           <h2 className="text-xl text-blue-500 font-semi-bold">Resources</h2>
           <ul>
             <Link to="/resources" ><li className="hover:font-semibold">View Resources</li></Link>
-            <Link to="/events"><li className="hover:font-semibold">Daily Readings</li></Link>
+            <Link to="/devotions/readings"><li className="hover:font-semibold">Daily Readings</li></Link>
             <Link to="/contact"><li className="hover:font-semibold">Saints Info</li></Link>
 
           </ul>

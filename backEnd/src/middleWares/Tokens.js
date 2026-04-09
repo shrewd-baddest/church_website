@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import jwt from "jsonwebtoken";
 import logger from "../logger/winston.js";
-import redisClient from "../Configs/redisConfig.js";
+// import redisClient from "../Configs/redisConfig.js";
 
 /**
  * Logout controller
@@ -25,9 +25,9 @@ export const logOut = async (req, res) => {
     ? decoded.exp - Math.floor(Date.now() / 1000)
     : 3600; // fallback 1 hour
   //  Store token in Redis as key, value "blacklisted", with expiration
-  await redisClient.set(token, "blacklisted", {
-    EX: expiresIn,
-  });
+  // await redisClient.set(token, "blacklisted", {
+  //   EX: expiresIn,
+  // });
   //  Update refresh token in database
   await db.query("UPDATE refresh_tokens SET revoked = true WHERE token = $1", [
     token,
@@ -52,11 +52,11 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ error: "Token required" });
     }
 
-    const isBlacklisted = await redisClient.get(token);
+    // const isBlacklisted = await redisClient.get(token);
 
-    if (isBlacklisted) {
-      return res.status(401).json({ message: "Token blacklisted" });
-    }
+    // if (isBlacklisted) {
+    //   return res.status(401).json({ message: "Token blacklisted" });
+    // }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = { id: decoded.id, role: decoded.role };

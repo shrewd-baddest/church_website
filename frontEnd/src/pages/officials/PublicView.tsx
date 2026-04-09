@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { FaPhoneAlt, FaWhatsapp } from 'react-icons/fa'
 
 const API_BASE = '/api/officials/list'
 const UPLOAD_BASE = '' // Photos are served relatively from /api or static routes
@@ -126,17 +127,25 @@ export default function PublicView(){
                         {off.position || off.category}
                       </p>
 
-                      {/* Contact Button */}
+                      {/* Contact Actions */}
                       {off.contact && (
-                        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
+                        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 flex justify-center gap-3">
                           <a
                             href={`tel:${off.contact.replace(/[^+0-9]/g,'')}`}
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r ${CATEGORY_COLORS[cat] || 'from-gray-600 to-gray-700'} text-white font-medium text-xs sm:text-sm hover:shadow-lg transition-shadow`}
+                            className="w-10 h-10 rounded-xl bg-gray-50 text-gray-600 hover:text-white relative overflow-hidden group flex items-center justify-center transition-all shadow-sm"
+                            title="Call Official"
                           >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773c.418 1.738 1.707 3.027 3.445 3.445l.773-1.548a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 4 14.18 4 9.5S7.82 2 12.5 2h2a1 1 0 011 1v2.153z"></path>
-                            </svg>
-                            Call
+                            <div className={`absolute inset-0 bg-gradient-to-r ${CATEGORY_COLORS[cat] || 'from-gray-600 to-gray-700'} opacity-0 group-hover:opacity-100 transition-opacity z-0`}></div>
+                            <FaPhoneAlt size={14} className="z-10 relative" />
+                          </a>
+                          <a
+                            href={`https://wa.me/${off.contact.replace(/[^+0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-10 h-10 rounded-xl bg-gray-50 text-[#25D366] hover:bg-[#25D366] hover:text-white flex items-center justify-center transition-all shadow-sm z-10"
+                            title="WhatsApp"
+                          >
+                            <FaWhatsapp size={18} />
                           </a>
                         </div>
                       )}

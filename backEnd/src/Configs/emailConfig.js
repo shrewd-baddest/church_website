@@ -35,23 +35,23 @@ export const sendEmail = async (subject, text, to) => {
     throw error;
   }
 };
-// import path from "path";
-// import { fileURLToPath } from "url";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
-// const TOKEN = process.env.MAILTRAP_TOKEN;
-// console.log(TOKEN);
+const TOKEN = process.env.MAILTRAP_TOKEN;
+console.log(TOKEN);
 
-// const client = new MailtrapClient({
-//   token: TOKEN,
-// });
+const client = new MailtrapClient({
+  token: TOKEN,
+});
 
-// const sender = {
-//   email: "hello@demomailtrap.co",
-//   name: "Mailtrap Test",
-// };
+const sender = {
+  email: "hello@demomailtrap.co",
+  name: "Mailtrap Test",
+};
 
 // const sendEmail = async (subject, text, recipient) => {
 //   const recipients = [

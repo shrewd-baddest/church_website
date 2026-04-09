@@ -102,10 +102,9 @@ const App: React.FC = () => {
         </Route>
         <Route path="/admin/quiz" element={<Appadmin />} />
         <Route path="/admin/officials" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-        <Route path="/officials" element={<PublicView />} />
-
         <Route path="/" element={<Pageoulet />}>
           <Route index element={<Home />} />
+          <Route path="officials" element={<PublicView />} />
 
           <Route
             path="/devotions"
