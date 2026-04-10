@@ -23,7 +23,7 @@ const ResetPasswordPage = () => {
 
       if (res.ok) {
         alert("OTP verified! You can reset your password.");
-        navigate("/login", { Response: true });
+        navigate("/login", { state: { Response: true } });
 
       } else {
         alert(data.message || "Invalid OTP");

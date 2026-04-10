@@ -5,7 +5,7 @@ import { MessageSquare, Trash2, Search, Calendar, User, Mail, RefreshCcw, Loader
 export default function AdminSuggestions() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const loadSuggestions = async () => {

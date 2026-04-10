@@ -13,7 +13,6 @@ import {
   Loader2,
   Image as ImageIcon,
   CheckCircle,
-  XCircle,
   Clock,
   ExternalLink
 } from 'lucide-react';
@@ -27,7 +26,7 @@ export default function CommunityDetailEditor() {
   const [moduleMeta, setModuleMeta] = useState<any>(null);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadCategoryData();

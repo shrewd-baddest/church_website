@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   X, Filter, Trash2, RotateCcw, ChevronLeft, ChevronRight, 
   Download, Image as ImageIcon, Phone, Calendar, Award as AwardIcon

@@ -74,7 +74,7 @@ export default function GalleryManager() {
     setUploadStatus('uploading');
     // Simulate upload
     setTimeout(() => {
-      const newImages: GalleryImage[] = selectedFiles.map((file, i) => ({
+      const newImages: GalleryImage[] = selectedFiles.map((file) => ({
         id: Math.random().toString(36).substr(2, 9),
         url: URL.createObjectURL(file),
         name: file.name,

@@ -5,7 +5,6 @@ import {
   Settings2, 
   Plus,
   Search,
-  MoreVertical,
   ExternalLink,
   Edit2,
   Trash2,
@@ -18,7 +17,7 @@ import { Link } from 'react-router-dom';
 export default function CommunityManager() {
   const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {

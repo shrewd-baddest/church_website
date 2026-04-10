@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -7,7 +6,6 @@ import {
   Database, 
   Settings, 
   Menu, 
-  X,
   ChevronRight,
   LogOut,
   Bell,
@@ -19,7 +17,7 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import NotificationDropdown, { type Notification } from './components/NotificationDropdown';
 import apiService from '../Landing/services/api';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { timeAgo } from '../../utils';
 
 const menuItems = [

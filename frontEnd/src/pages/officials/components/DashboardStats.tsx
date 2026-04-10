@@ -1,4 +1,3 @@
-import React from 'react';
 import { Users, History, Calendar, Award } from 'lucide-react';
 import type { ElectionTerm } from '../../../hooks/useTerms';
 

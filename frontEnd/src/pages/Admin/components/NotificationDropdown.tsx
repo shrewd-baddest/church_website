@@ -1,5 +1,4 @@
-import React from 'react';
-import { Bell, MessageSquare, Heart, Clock, Check, X } from 'lucide-react';
+import { Bell, MessageSquare, Heart, Check, X } from 'lucide-react';
 
 export interface Notification {
   id: string;
