@@ -1,15 +1,10 @@
 import { Link } from "react-router-dom";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
-import { SiGithub } from "react-icons/si";
+import { FaFacebook } from "react-icons/fa";
 
 const Footers = () => {
 
   const socialMedia = [
     { icon: <FaFacebook />, url: "https://facebook.com/YourPage", color: "#1877F2", name: "Facebook" },
-    { icon: <FaTwitter />, url: "https://twitter.com/YourPage", color: "#1DA1F2", name: "Twitter" },
-    { icon: <FaInstagram />, url: "https://instagram.com/YourPage", color: "#E1306C", name: "Instagram" },
-    { icon: <FaLinkedin />, url: "https://linkedin.com/in/YourPage", color: "#0A66C2", name: "LinkedIn" },
-    { icon: <SiGithub />, url: "https://github.com/YourProfile", color: "#333", name: "GitHub" },
   ];
   return (
     <div className="flex flex-col items-center justify-center gap-8 px-[8%] py-12 bg-gray-100 text-center ">

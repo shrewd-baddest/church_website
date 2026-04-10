@@ -21,6 +21,7 @@ const allowedTables = [
   "jumuiya",
   "users",
   "mpesa_request",
+  "suggestions",
 ];
 
 // Middleware to validate table name
