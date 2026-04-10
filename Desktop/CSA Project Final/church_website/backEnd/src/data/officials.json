@@ -1,0 +1,6 @@
+[
+  {"id":1,"name":"Fr. Joseph Kariuki","position":"Parish Priest","phone":"+254722123456","email":"priest@gloria.org"},
+  {"id":2,"name":"Sr. Mary Wanjiku","position":"Catechist Coordinator","phone":"+254733456789","email":"sr.mary@gloria.org"},
+  {"id":3,"name":"Mr. Peter Kamau","position":"CSA Chairperson","phone":"+254711987654","email":"chair@gloria.org"},
+  {"id":4,"name":"Mrs. Grace Muthoni","position":"Treasurer","phone":"+254744567890","email":"treasurer@gloria.org"}
+]

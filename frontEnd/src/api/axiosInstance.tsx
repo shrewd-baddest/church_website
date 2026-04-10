@@ -4,7 +4,7 @@ import axios from "axios";
 import { LocalStorage } from "../utils";
 
 // Create an Axios instance for API requests
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_SERVER_URI,
   withCredentials: true,
   timeout: 120000,
@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
         if (!refreshToken) throw new Error("No refresh token found");
 
         // Call refresh endpoint
-        const { data } = await axios.post("http://localhost:3001/authentication/v1/refresh", { refreshToken });
+        const { data } = await axios.post(`${import.meta.env.VITE_SERVER_URI}/authentication/v1/refresh`, { refreshToken });
 
         // Save new access token
         localStorage.setItem("accessToken", data.accessToken);

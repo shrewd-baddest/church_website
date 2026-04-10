@@ -2,6 +2,7 @@ import { serverConfig } from "./Configs/serverConfigs.js";
 import { app } from "./app.js";
 import { connectDb, connectToMongoDb } from "./Configs/dbConfig.js";
 import logger from "./logger/winston.js";
+import { startKeepAliveWorker } from "./services/keep-alive.js";
 
 process.on('uncaughtException', (err) => {
   logger.error('Uncaught Exception:', err);
@@ -20,6 +21,7 @@ const initServer = async () => {
 
     app.listen(serverConfig.PORT, () => {
       logger.info(`⚙️  Server is running on http://localhost:${serverConfig.PORT}`);
+      startKeepAliveWorker();
     });
   } catch (error) {
     logger.error("Failed to start server:", error.message);

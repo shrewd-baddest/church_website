@@ -29,20 +29,20 @@ import {
   CommunitySection,
   SupportSection,
 } from "./pages/Landing/components/sections";
-import ActivitiesSection from "./pages/Landing/components/sections/activities";
-import GallerySection from "./pages/Landing/components/sections/gallery";
-import ProjectsSection from "./pages/Landing/components/sections/projects";
-import OfficialsSection from "./pages/Landing/components/sections/officials";
-import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
+// Removed unused static sections
 import ImageSlider from "./pages/Landing/components/ImageSlider";
 import JumuiyaLanding from "./pages/Jumuiya/JumuiyaLanding";
 import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
-import CommunityHub from "./pages/sacramental/CommunityHub";
+import Community from "./pages/sacramental/Community";
+import CommunityDetail from "./pages/sacramental/CommunityDetail";
+import { CommunityProvider } from "./pages/sacramental/context/CommunityDataContext";
 import UniversalAdmin from "./pages/Admin/UniversalAdmin";
 import AdminDashboard from "./pages/Admin/pages/AdminDashboard";
 import AdminSuggestions from "./pages/Admin/pages/AdminSuggestions";
 import RecordsExplorer from "./pages/Admin/pages/RecordsExplorer";
 import DonationMonitor from "./pages/Admin/pages/DonationMonitor";
+import CommunityManager from "./pages/Admin/pages/CommunityManager";
+import CommunityDetailEditor from "./pages/Admin/pages/CommunityDetailEditor";
 import SuggestionBox from "./pages/Landing/components/sections/SuggestionBox";
 import GalleryManager from "./pages/Admin/pages/GalleryManager";
 import GalleryPage from "./pages/Gallery/index";
@@ -51,7 +51,6 @@ import { DataProvider } from "./pages/Jumuiya/context/DataContext";
 
 
 
-import { useAuth } from "./context/AuthContext";
 import { PublicRoute, ProtectedRoute } from "./Regulator";
 
 // Lazy-loaded component
@@ -67,13 +66,14 @@ const Home: React.FC = () => {
         <ImageSlider />
         <AboutSection />
         <CommunitySection />
-        <GallerySection />
+        <CommunitySection />
         <SuggestionBox />
         <SupportSection />
       </main>
     </div>
   );
 };
+
 
 const App: React.FC = () => {
   const router = createBrowserRouter(
@@ -100,10 +100,12 @@ const App: React.FC = () => {
           }
         >
           <Route index element={<AdminDashboard />} />
-          <Route path="officials-hub" element={<AdminPanel />} />
-          <Route path="devotions-hub" element={<Appadmin />} />
+          <Route path="officials" element={<AdminPanel />} />
+          <Route path="devotions" element={<Appadmin />} />
           <Route path="records" element={<RecordsExplorer />} />
           <Route path="donations" element={<DonationMonitor />} />
+          <Route path="community-management" element={<CommunityManager />} />
+          <Route path="community-management/:categoryId" element={<CommunityDetailEditor />} />
           <Route path="suggestions" element={<AdminSuggestions />} />
           <Route path="gallery" element={<GalleryManager />} />
           <Route path="settings" element={<div className="p-8 bg-white rounded-2xl shadow-sm border border-slate-200">Settings Page Coming Soon</div>} />
@@ -152,8 +154,20 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/community/:moduleSlug?"
-            element={<CommunityHub />}
+            path="/community"
+            element={
+              <CommunityProvider>
+                <Community />
+              </CommunityProvider>
+            }
+          />
+          <Route
+            path="/community/:moduleId"
+            element={
+              <CommunityProvider>
+                <CommunityDetail />
+              </CommunityProvider>
+            }
           />
           <Route path="/gallery" element={<GalleryPage />} />
         </Route>

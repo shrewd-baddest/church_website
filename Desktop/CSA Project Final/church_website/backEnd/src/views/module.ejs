@@ -1,0 +1,233 @@
+<%- include('partials/header') %>
+
+    <div class="module-page">
+        <style>
+            :root {
+                --theme-primary: <%= module.color || 'var(--primary-blue)' %>;
+                --theme-primary-dark: <%= module.color ? module.color + 'dd' : 'var(--primary-dark)' %>;
+                --theme-accent: #d4af37;
+                --theme-accent-glow: <%= module.color ? module.color + '44' : 'rgba(212, 175, 55, 0.3)' %>;
+            }
+        </style>
+
+        <header class="module-header">
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Hub</a>
+
+            <div data-reveal="fade-up">
+                <% if (module.logoUrl) { %>
+                    <div class="module-logo-bg">
+                        <img src="<%= module.logoUrl %>" alt="Logo">
+                    </div>
+                    <% } %>
+                        <h1>
+                            <%= module.title %>
+                        </h1>
+                        <p class="description">
+                            <%= module.description %>
+                        </p>
+            </div>
+        </header>
+
+        <div class="container">
+            <% if (module.fullImage || module.story) { %>
+                <div class="module-story-section" data-reveal="fade-up">
+                    <% if (module.fullImage) { %>
+                        <div class="module-story-image">
+                            <img src="<%= module.fullImage %>" alt="<%= module.title %>">
+                        </div>
+                        <% } %>
+                            <% if (module.story) { %>
+                                <div class="module-story-text">
+                                    <h3><i class="fas fa-scroll"></i> Our Patron</h3>
+                                    <div class="story-content">
+                                        <%- module.story %>
+                                    </div>
+                                </div>
+                                <% } %>
+                </div>
+                <% } %>
+
+                    <% if (module.announcements && module.announcements.length> 0) { %>
+                        <div class="info-section announcements-section" data-reveal="fade-up">
+                            <h4><i class="fas fa-bullhorn"></i> Updates & Announcements</h4>
+                            <div class="announcements-grid">
+                                <% module.announcements.forEach(ann=> { %>
+                                    <div class="announcement-card priority-<%= ann.priority %>">
+                                        <div class="ann-header">
+                                            <h5>
+                                                <%= ann.title %>
+                                            </h5>
+                                            <span class="ann-date">
+                                                <%= new Date(ann.date).toLocaleDateString() %>
+                                            </span>
+                                        </div>
+                                        <p>
+                                            <%= ann.message %>
+                                        </p>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                        </div>
+                        <% } %>
+
+                            <% if (module.training) { %>
+                                <div class="info-section" data-reveal="fade-up">
+                                    <h4><i class="fas fa-calendar-alt"></i>
+                                        <%= module.scheduleLabel || 'Ministry Schedule' %>
+                                    </h4>
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <i class="fas fa-clock"></i>
+                                            <div>
+                                                <h5>Meeting Time</h5>
+                                                <p>
+                                                    <%= module.training %>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <div>
+                                                <h5>Sanctuary/Location</h5>
+                                                <p>
+                                                    <%= module.location %>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% } %>
+
+                                    <% if (module.fees) { %>
+                                        <div class="info-section" data-reveal="fade-up">
+                                            <h4><i class="fas fa-hand-holding-heart"></i> Stewardship & Contributions
+                                            </h4>
+                                            <div class="table-container">
+                                                <table class="modern-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Service/Type</th>
+                                                            <th>Contribution</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><strong>Registration</strong></td>
+                                                            <td>
+                                                                <%= module.fees.registration || 'Free' %>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><strong>Subscription</strong></td>
+                                                            <td>
+                                                                <%= module.fees.subscription || 'None' %>
+                                                            </td>
+                                                        </tr>
+                                                        <% if (module.fees.uniform) { %>
+                                                            <tr>
+                                                                <td><strong>Sacred Vestments</strong></td>
+                                                                <td>
+                                                                    <%= module.fees.uniform %>
+                                                                </td>
+                                                            </tr>
+                                                            <% } %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <% } %>
+
+                                            <% if (module.officials && module.officials.length> 0) { %>
+                                                <div class="info-section" data-reveal="fade-up">
+                                                    <h4><i class="fas fa-users-viewfinder"></i> Leadership Team</h4>
+                                                    <div class="officials-grid">
+                                                        <% module.officials.forEach((official, index)=> { %>
+                                                            <div class="official-card hover-lift hover-glow"
+                                                                data-reveal="fade-up" data-delay="<%= index * 100 %>">
+                                                                <div class="official-card__photo">
+                                                                    <% if (official.photoUrl) { %>
+                                                                        <img src="<%= official.photoUrl %>"
+                                                                            alt="<%= official.name %>"
+                                                                            onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=<%= encodeURIComponent(official.name) %>&background=cccccc&color=555&size=200'">
+                                                                        <% } else { %>
+                                                                            <div class="official-card__placeholder">
+                                                                                <i class="fas fa-user"></i>
+                                                                            </div>
+                                                                            <% } %>
+                                                                </div>
+                                                                <div class="official-card__info">
+                                                                    <h5>
+                                                                        <%= official.name %>
+                                                                    </h5>
+                                                                    <p class="role">
+                                                                        <%= official.role %>
+                                                                    </p>
+                                                                    <div class="official-card__contact">
+                                                                        <% if (official.email) { %>
+                                                                            <a href="mailto: <%= official.email %>"
+                                                                                class="contact-icon"><i
+                                                                                    class="fas fa-envelope"></i></a>
+                                                                            <% } %>
+                                                                                <% if (official.phoneNumber) { %>
+                                                                                    <a href="tel: <%= official.phoneNumber %>"
+                                                                                        class="contact-icon"><i
+                                                                                            class="fas fa-phone"></i></a>
+                                                                                    <% } %>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <% }) %>
+                                                    </div>
+                                                </div>
+                                                <% } %>
+
+                                                    <% if (module.activities && module.activities.length> 0) { %>
+                                                        <div class="info-section" data-reveal="fade-up">
+                                                            <h4><i class="fas fa-timeline"></i> Sacred Journey &
+                                                                Activities</h4>
+                                                            <div class="activity-timeline">
+                                                                <% module.activities.forEach(activity=> { %>
+                                                                    <div class="activity-event">
+                                                                        <div class="activity-event__date">
+                                                                            <%= new
+                                                                                Date(activity.date).toLocaleDateString()
+                                                                                %>
+                                                                        </div>
+                                                                        <div class="activity-event__content">
+                                                                            <h5>
+                                                                                <%= activity.title %>
+                                                                            </h5>
+                                                                            <p>
+                                                                                <%= activity.description %>
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <% }) %>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+
+                                                            <% if (module.gallery && module.gallery.length> 0) { %>
+                                                                <div class="info-section" data-reveal="fade-up">
+                                                                    <h4><i class="fas fa-images"></i> Spiritual Moments
+                                                                    </h4>
+                                                                    <div class="gallery-grid">
+                                                                        <% module.gallery.forEach(photo=> { %>
+                                                                            <div class="gallery-item">
+                                                                                <img src="<%= photo.imageUrl %>"
+                                                                                    alt="<%= photo.eventName %>">
+                                                                                <div class="gallery-item-overlay">
+                                                                                    <h5 class="gallery-item-title">
+                                                                                        <%= photo.eventName %>
+                                                                                    </h5>
+                                                                                    <p class="gallery-item-desc">
+                                                                                        <%= photo.description %>
+                                                                                    </p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <% }) %>
+                                                                    </div>
+                                                                </div>
+                                                                <% } %>
+        </div>
+    </div>

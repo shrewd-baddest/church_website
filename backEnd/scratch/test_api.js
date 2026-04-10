@@ -1,6 +1,6 @@
 import { app } from '../src/app.js';
 import { connectDb } from '../src/Configs/dbConfig.js';
-import request from 'supertest'; // assuming supertest is installed, or I'll use express direct
+import { getTableData } from '../src/controllers/ApiController.js';
 
 async function test() {
   await connectDb();
@@ -11,7 +11,6 @@ async function test() {
   
   // Since supertest might not be there, I'll mock a request object
   // Actually, let's just use the controller directly
-  import { getTableData } from '../src/controllers/ApiController.js';
   try {
      const data = await getTableData('gallery');
      console.log("Data length:", data.length);

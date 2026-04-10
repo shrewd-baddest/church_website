@@ -3,6 +3,7 @@ import {
   getTableData,
   createRecord,
   deleteRecord,
+  updateRecord,
   getAllData,
 } from "../controllers/ApiController.js";
 import logger from "../logger/winston.js";
@@ -21,6 +22,12 @@ const allowedTables = [
   "jumuiya",
   "users",
   "mpesa_request",
+  "hub_modules",
+  "hub_activities",
+  "hub_announcements",
+  "hub_officials",
+  "hub_gallery",
+  "enrollments",
   "suggestions",
 ];
 
@@ -72,6 +79,21 @@ api.post("/:table", validateTable, async (req, res) => {
   } catch (error) {
     logger.error(`Error in POST '/:table': ${error.message}`);
 
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH update a record in a table
+api.patch("/:table/:id", validateTable, async (req, res) => {
+  try {
+    const { table, id } = req.params;
+    const updated = await updateRecord(table, id, req.body);
+    if (!updated) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+    return res.json(updated);
+  } catch (error) {
+    logger.error(`Error in PATCH '/:table/:id': ${error.message}`);
     return res.status(500).json({ error: error.message });
   }
 });

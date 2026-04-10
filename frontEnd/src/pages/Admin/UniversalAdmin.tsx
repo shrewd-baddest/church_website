@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -7,10 +6,10 @@ import {
   Database, 
   Settings, 
   Menu, 
-  X,
   ChevronRight,
   LogOut,
   Bell,
+  LayoutGrid,
   MessageSquare,
   Image as ImageIcon
 } from 'lucide-react';
@@ -18,14 +17,15 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import NotificationDropdown, { type Notification } from './components/NotificationDropdown';
 import apiService from '../Landing/services/api';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { timeAgo } from '../../utils';
 
 const menuItems = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-  { id: 'officials', name: 'Officials Management', icon: Users, path: '/admin/officials-hub' },
+  { id: 'officials', name: 'Officials Management', icon: Users, path: '/admin/officials' },
+  { id: 'community', name: 'Community Management', icon: LayoutGrid, path: '/admin/community-management' },
   { id: 'donations', name: 'Donation Monitor', icon: Heart, path: '/admin/donations' },
-  { id: 'devotions', name: 'Devotions & AI', icon: BookOpen, path: '/admin/devotions-hub' },
+  { id: 'devotions', name: 'Devotions & AI', icon: BookOpen, path: '/admin/devotions' },
   { id: 'suggestions', name: 'User Suggestions', icon: MessageSquare, path: '/admin/suggestions' },
   { id: 'gallery', name: 'Gallery Manager', icon: ImageIcon, path: '/admin/gallery' },
   { id: 'records', name: 'Records Explorer', icon: Database, path: '/admin/records' },

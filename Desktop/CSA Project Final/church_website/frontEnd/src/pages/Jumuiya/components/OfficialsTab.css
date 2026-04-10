@@ -1,0 +1,300 @@
+/* Officials Tab Premium Styles */
+.officials-tab {
+    padding-bottom: var(--spacing-3xl);
+}
+
+/* Header & Term Integration */
+.officials-header-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+    flex-wrap: wrap;
+}
+
+.header-text-part {
+    flex: 1;
+    min-width: 280px;
+}
+
+/* Minimal Term Card */
+.term-card-minimal {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    /* Pill shape */
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease;
+}
+
+.term-card-minimal:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.term-icon-circle {
+    width: 32px;
+    height: 32px;
+    background: var(--jumuiya-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.term-info-compact {
+    display: flex;
+    flex-direction: column;
+}
+
+.term-label-tiny {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.term-years-display {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Current Officials Grid - More Compact */
+.officials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-3xl);
+}
+
+.official-card-premium {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.official-card-premium:hover {
+    border-color: var(--jumuiya-color);
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+}
+
+.official-avatar-wrap {
+    flex-shrink: 0;
+}
+
+.avatar-img {
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px var(--border-color);
+}
+
+.avatar-md {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-xs {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-placeholder {
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+}
+
+.avatar-md.avatar-placeholder {
+    width: 64px;
+    height: 64px;
+    font-size: 1.2rem;
+}
+
+.avatar-sm.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    font-size: 0.85rem;
+}
+
+.avatar-xs.avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    font-size: 0.65rem;
+}
+
+.official-details-premium {
+    flex: 1;
+}
+
+.official-name-premium {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 2px;
+}
+
+.official-role-premium {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 8px;
+    font-weight: 500;
+}
+
+.official-quick-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    background: #f8fafc;
+}
+
+.action-circle:hover {
+    background: var(--jumuiya-color);
+    color: white;
+    border-color: var(--jumuiya-color);
+    transform: scale(1.1);
+}
+
+.wa-accent:hover {
+    background: #25d366;
+    border-color: #25d366;
+}
+
+/* Former Leadership - Ultra Minimal */
+.former-leadership-section {
+    margin-top: var(--spacing-3xl);
+}
+
+.section-divider-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: var(--spacing-xl);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+}
+
+.section-divider-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border-color), transparent);
+}
+
+.former-terms-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.former-term-row {
+    display: flex;
+    gap: var(--spacing-xl);
+}
+
+.term-year-tag {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--jumuiya-color);
+    background: color-mix(in srgb, var(--jumuiya-color), white 90%);
+    padding: 4px 12px;
+    border-radius: 6px;
+    height: fit-content;
+    white-space: nowrap;
+}
+
+.former-members-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.former-member-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    background: #fdfdfd;
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    transition: all 0.2s;
+}
+
+.former-member-chip:hover {
+    border-color: var(--jumuiya-color);
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.chip-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.chip-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.chip-role {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+@media (max-width: 640px) {
+    .officials-header-wrap {
+        flex-direction: column;
+    }
+
+    .term-card-minimal {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .former-term-row {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+}

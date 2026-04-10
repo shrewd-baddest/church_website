@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import apiService from '../../Landing/services/api'
-import { Database, Search, Plus, Trash2, Filter } from 'lucide-react'
+import { Database, Search, Plus, Trash2 } from 'lucide-react'
 
 export default function RecordsExplorer() {
   const [activeTab, setActiveTab] = useState('members')

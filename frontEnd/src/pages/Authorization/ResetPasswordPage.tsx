@@ -13,7 +13,7 @@ const ResetPasswordPage = () => {
 
     try {
       // Send OTP to backend for verification
-      const res = await fetch(`http://localhost:3001/authentication/v1/otp/${email}`, {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URI}/authentication/v1/otp/${email}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ otp }),
@@ -23,7 +23,7 @@ const ResetPasswordPage = () => {
 
       if (res.ok) {
         alert("OTP verified! You can reset your password.");
-        navigate("/login", { Response: true });
+        navigate("/login", { state: { Response: true } });
 
       } else {
         alert(data.message || "Invalid OTP");

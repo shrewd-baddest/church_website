@@ -22,7 +22,6 @@ export function ArchiveModal({
  onConfirm, 
  isArchiving, 
  officialsCount, 
- electionTerms, 
  currentTerm,
  mode = 'csa',
  jumuiyaCountMap = {},
@@ -32,8 +31,8 @@ export function ArchiveModal({
  const [termName, setTermName] = useState('');
  const [termYear, setTermYear] = useState('');
  const [termStartDate, setTermStartDate] = useState(new Date().toISOString().split('T')[0]);
- const [termEndDate, setTermEndDate] = useState('');
- const [termDescription, setTermDescription] = useState('');
+ const [termEndDate] = useState('');
+ const [termDescription] = useState('');
  const [confirmed, setConfirmed] = useState(false);
  const [selectedJumuiya, setSelectedJumuiya] = useState('all');
 

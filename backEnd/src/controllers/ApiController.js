@@ -101,4 +101,24 @@ export const getAllData = async () => {
   
   return data;
 };
-
+// Update a record in a table
+export const updateRecord = async (tableName, id, data) => {
+  try {
+    const columns = Object.keys(data);
+    const values = Object.values(data);
+    const setClause = columns.map((col, i) => `"${col}" = $${i + 1}`).join(', ');
+    
+    const query = `
+      UPDATE "${tableName}"
+      SET ${setClause}
+      WHERE id = $${columns.length + 1}
+      RETURNING *
+    `;
+    
+    const result = await testDb.query(query, [...values, id]);
+    return result.rows[0];
+  } catch (error) {
+    console.error(`Error updating record in ${tableName}:`, error.message);
+    throw error;
+  }
+};

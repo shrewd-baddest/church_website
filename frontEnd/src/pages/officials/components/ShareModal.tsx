@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Share2, Copy, Send, Mail, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Official } from '../../../hooks/useOfficials';

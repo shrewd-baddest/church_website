@@ -26,7 +26,7 @@ const Reset: React.FC = () => {
       let response;
       if (purpose === "setting email") {
         response = await axios.post(
-          "http://localhost:3001/authentication/v1/reset-email",
+          `${import.meta.env.VITE_SERVER_URI}/authentication/v1/reset-email`,
           { email, password, purpose },
           {
             headers: {
@@ -37,7 +37,7 @@ const Reset: React.FC = () => {
         );
       } else {
         response = await axios.post(
-          "http://localhost:3001/authentication/v1/reset",
+          `${import.meta.env.VITE_SERVER_URI}/authentication/v1/reset`,
           { email, password, purpose },
         );
       }
