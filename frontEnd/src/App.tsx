@@ -62,6 +62,7 @@ const FallBack: React.FC = () => (
   </div>
 );
 
+
 const App: React.FC = () => {
   return (
     <Suspense fallback={<FallBack />}>
@@ -90,10 +91,14 @@ const App: React.FC = () => {
           }
         >
           <Route index element={<AdminDashboard />} />
-          <Route path="officials-hub" element={<AdminPanel />} />
-          <Route path="devotions-hub" element={<Appadmin />} />
+          <Route path="officials" element={<AdminPanel />} />
+          <Route path="devotions" element={<Appadmin />} />
           <Route path="records" element={<RecordsExplorer />} />
           <Route path="donations" element={<DonationMonitor />} />
+          <Route path="community-management" element={<CommunityManager />} />
+          <Route path="community-management/:categoryId" element={<CommunityDetailEditor />} />
+          <Route path="suggestions" element={<AdminSuggestions />} />
+          <Route path="gallery" element={<GalleryManager />} />
           <Route path="settings" element={<div className="p-8 bg-white rounded-2xl shadow-sm border border-slate-200">Settings Page Coming Soon</div>} />
         </Route>
 

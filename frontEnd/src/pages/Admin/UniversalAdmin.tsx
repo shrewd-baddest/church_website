@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -9,16 +8,26 @@ import {
   Menu, 
   ChevronRight,
   LogOut,
-  Bell
+  Bell,
+  LayoutGrid,
+  MessageSquare,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import NotificationDropdown, { type Notification } from './components/NotificationDropdown';
+import apiService from '../Landing/services/api';
+import { useEffect, useState } from 'react';
+import { timeAgo } from '../../utils';
 
 const menuItems = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-  { id: 'officials', name: 'Officials Management', icon: Users, path: '/admin/officials-hub' },
+  { id: 'officials', name: 'Officials Management', icon: Users, path: '/admin/officials' },
+  { id: 'community', name: 'Community Management', icon: LayoutGrid, path: '/admin/community-management' },
   { id: 'donations', name: 'Donation Monitor', icon: Heart, path: '/admin/donations' },
-  { id: 'devotions', name: 'Devotions & AI', icon: BookOpen, path: '/admin/devotions-hub' },
+  { id: 'devotions', name: 'Devotions & AI', icon: BookOpen, path: '/admin/devotions' },
+  { id: 'suggestions', name: 'User Suggestions', icon: MessageSquare, path: '/admin/suggestions' },
+  { id: 'gallery', name: 'Gallery Manager', icon: ImageIcon, path: '/admin/gallery' },
   { id: 'records', name: 'Records Explorer', icon: Database, path: '/admin/records' },
   { id: 'settings', name: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
@@ -27,6 +36,65 @@ export default function UniversalAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const [suggestions, donations] = await Promise.all([
+        apiService.fetchTableData('suggestions'),
+        apiService.fetchTableData('mpesa_request')
+      ]);
+
+      const formattedSuggestions: Notification[] = suggestions.map((s: any) => ({
+        id: `s-${s.id}`,
+        type: 'suggestion',
+        title: 'New Suggestion',
+        message: `${s.name || 'Someone'} sent a new suggestion: "${s.suggestion}"`,
+        time: timeAgo(s.created_at),
+        rawDate: s.created_at,
+        isRead: false,
+        link: '/admin/suggestions'
+      }));
+
+      const formattedDonations: Notification[] = donations
+        .filter((d: any) => d.status === 'paid')
+        .map((d: any) => ({
+          id: `d-${d.id}`,
+          type: 'donation',
+          title: 'New Donation',
+          message: `Received KES ${Number(d.amount).toLocaleString()} from ${d.user_id}`,
+          time: timeAgo(d.created_at),
+          rawDate: d.created_at,
+          isRead: false,
+          link: '/admin/donations'
+        }));
+
+      // Combine and sort by date descending
+      const combined = [...formattedSuggestions, ...formattedDonations]
+        .sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime())
+        .slice(0, 10);
+      
+      setNotifications(combined);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+  };
+
+  const handleClearAll = () => {
+    setNotifications([]);
+    setIsNotificationsOpen(false);
+  };
 
 const {user , logout} = useAuth()
 
@@ -112,11 +180,25 @@ const {user , logout} = useAuth()
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <button className="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
+          <div className="flex items-center gap-6 relative">
+            <button 
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className={`relative p-2 transition-colors ${isNotificationsOpen ? 'text-blue-600' : 'text-slate-400 hover:text-blue-600'}`}
+            >
               <Bell size={22} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+              {notifications.filter(n => !n.isRead).length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+              )}
             </button>
+
+            {isNotificationsOpen && (
+              <NotificationDropdown 
+                notifications={notifications}
+                onClose={() => setIsNotificationsOpen(false)}
+                onMarkAsRead={handleMarkAsRead}
+                onClearAll={handleClearAll}
+              />
+            )}
             <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold text-slate-800">{user?.name}</p>

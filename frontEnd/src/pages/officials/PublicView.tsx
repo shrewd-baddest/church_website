@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { FaPhoneAlt, FaWhatsapp } from 'react-icons/fa'
 
-const API_BASE = '/api/officials/list'
-const UPLOAD_BASE = ''
+const API_BASE = `${import.meta.env.VITE_SERVER_URI}/api/officials/list`
+const UPLOAD_BASE = import.meta.env.VITE_SERVER_URI || ''
 
 const CATEGORY_ORDER = [
   'Executive','Jumuiya Coordinators','Bible Coordinators','Rosary',
@@ -56,7 +56,7 @@ export default function PublicView() {
   }, [data])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="h-full bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-16 text-center relative">

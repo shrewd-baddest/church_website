@@ -126,7 +126,7 @@ const Field: React.FC<{ label: string; required?: boolean; children: React.React
     </div>
 );
 
-const inp = (tc: string): React.CSSProperties => ({
+const inp = (_tc: string): React.CSSProperties => ({
     width: '100%', padding: '12px 16px', border: '2px solid #e2e8f0',
     borderRadius: '12px', fontSize: '0.9rem', outline: 'none',
     boxSizing: 'border-box', transition: 'border-color 0.2s', color: '#1e293b', fontFamily: 'inherit',

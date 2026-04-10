@@ -5,7 +5,13 @@ import logger from "./winston.js";
 
 const stream = {
   // Use the http severity
-  write: (message) => logger.http(message.trim()),
+  write: (message) => {
+    if (logger && logger.http) {
+      logger.http(message.trim());
+    } else {
+      console.log(`[HTTP] ${message.trim()}`);
+    }
+  },
 };
 
 const skip = () => {

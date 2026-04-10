@@ -1,7 +1,7 @@
 import { testDb, db } from "../../Configs/dbConfig.js";
 import axios from "axios";
 
-export const initiateSTK = async (userId, phoneNumber, amount) => {
+export const initiateSTK = async (userId, phoneNumber, amount, description) => {
   const consumerKey = process.env.CONSUMER_KEY;
   const consumerSecret = process.env.CONSUMER_SECRET;
   const shortcode = process.env.SHORTCODE;
@@ -51,8 +51,8 @@ export const initiateSTK = async (userId, phoneNumber, amount) => {
       PartyB: shortcode,
       PhoneNumber: phoneNumber,
       CallBackURL: process.env.CALLBACK_URL,
-      AccountReference: "Donation",
-      TransactionDesc: "Church Donation",
+      AccountReference: "ChurchContribution",
+      TransactionDesc: description || "Church Payment",
     },
     {
       headers: {

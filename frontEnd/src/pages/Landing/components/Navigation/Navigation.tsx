@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import AdminPanel from "../AdminPanel";
 import { useAuth } from "../../../../context/AuthContext";
 
 function Navigation() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showAdmin, setShowAdmin] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -52,9 +53,13 @@ function Navigation() {
                   {link.name}
                 </a>
               ) : (
-                <Link
+                 <Link
                   to={link.path}
-                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors text-sm whitespace-nowrap"
+                  className={`font-medium transition-colors text-sm whitespace-nowrap pb-1 ${
+                    location.pathname === link.path 
+                      ? "text-blue-600 border-b-2 border-blue-600" 
+                      : "text-gray-600 hover:text-blue-600"
+                  }`}
                 >
                   {link.name}
                 </Link>
@@ -143,7 +148,9 @@ function Navigation() {
                 ) : (
                   <Link
                     to={link.path}
-                    className="block py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors"
+                    className={`block py-2 font-medium transition-colors ${
+                      location.pathname === link.path ? "text-blue-600 bg-blue-50 px-3 rounded-lg" : "text-gray-600 hover:text-blue-600"
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.name}

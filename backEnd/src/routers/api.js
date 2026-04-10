@@ -3,6 +3,7 @@ import {
   getTableData,
   createRecord,
   deleteRecord,
+  updateRecord,
   getAllData,
 } from "../controllers/ApiController.js";
 import logger from "../logger/winston.js";
@@ -21,6 +22,13 @@ const allowedTables = [
   "jumuiya",
   "users",
   "mpesa_request",
+  "hub_modules",
+  "hub_activities",
+  "hub_announcements",
+  "hub_officials",
+  "hub_gallery",
+  "enrollments",
+  "suggestions",
 ];
 
 // Middleware to validate table name
@@ -38,10 +46,10 @@ const validateTable = (req, res, next) => {
 api.get("/all/data", async (req, res) => {
   try {
     const data = await getAllData();
-    logger.debug("received data ${data} from route '/all/data'");
+    logger.debug(`received data from route '/all/data'`);
     return res.json(data);
   } catch (error) {
-    logger.error(`${error.message}  from route '/all/data'`);
+    logger.error(`Error in '/all/data': ${error.message}\n${error.stack}`);
     res.status(500).json({ error: error.message });
   }
 });
@@ -51,10 +59,10 @@ api.get("/:table", validateTable, async (req, res) => {
   try {
     const { table } = req.params;
     const data = await getTableData(table);
-    logger.debug(`received data ${data} from route '/:table'`);
+    logger.debug(`Success fetching from route '/:table'`);
     return res.json(data);
   } catch (error) {
-    logger.error(`${error.message}  from route '/:table'`);
+    logger.error(`Error in '/:table': ${error.message}\n${error.stack}`);
 
     return res.status(500).json({ error: error.message });
   }
@@ -65,12 +73,27 @@ api.post("/:table", validateTable, async (req, res) => {
   try {
     const { table } = req.params;
     const newRecord = await createRecord(table, req.body);
-    logger.debug(`newRecord cretaed ${newRecord} from route '/:table'`);
+    logger.debug(`newRecord created from route '/:table'`);
 
     return res.status(201).json(newRecord);
   } catch (error) {
-    logger.error(`${error.message}  from route '/:table'`);
+    logger.error(`Error in POST '/:table': ${error.message}`);
 
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH update a record in a table
+api.patch("/:table/:id", validateTable, async (req, res) => {
+  try {
+    const { table, id } = req.params;
+    const updated = await updateRecord(table, id, req.body);
+    if (!updated) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+    return res.json(updated);
+  } catch (error) {
+    logger.error(`Error in PATCH '/:table/:id': ${error.message}`);
     return res.status(500).json({ error: error.message });
   }
 });

@@ -23,6 +23,7 @@ const initServer = async () => {
 
     httpServer.listen(serverConfig.PORT, () => {
       logger.info(`⚙️  Server is running on http://localhost:${serverConfig.PORT}`);
+      startKeepAliveWorker();
     });
   } catch (error) {
     logger.error("Failed to start server:", error.message);

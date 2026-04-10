@@ -1,0 +1,6 @@
+[
+  {"id":1,"name":"David Njoroge","position":"Choir Director","phone":"+254712345678","email":"director.choir@gloria.org"},
+  {"id":2,"name":"Esther Wambui","position":"Lead Vocalist","phone":"+254723456789","email":"lead.choir@gloria.org"},
+  {"id":3,"name":"James Otieno","position":"Pianist","phone":"+254734567890","email":"pianist@gloria.org"},
+  {"id":4,"name":"Lucy Achieng","position":"Secretary","phone":"+254745678901","email":"sec.choir@gloria.org"}
+]

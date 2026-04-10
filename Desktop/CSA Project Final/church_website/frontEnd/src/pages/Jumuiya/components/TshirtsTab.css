@@ -1,0 +1,396 @@
+/* T-Shirts Tab */
+.tshirts-tab {
+    padding: 0;
+}
+
+/* Banner */
+.tshirts-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-xl);
+    color: white;
+    margin-bottom: var(--spacing-2xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.tshirts-banner-icon {
+    font-size: 3rem;
+    flex-shrink: 0;
+    opacity: 0.9;
+}
+
+.tshirts-banner-text h2 {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.tshirts-banner-text p {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+/* Content layout */
+.tshirts-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xl);
+}
+
+/* Section title */
+.tshirts-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Form section card */
+.tshirts-form-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-2xl);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Form */
+.tshirts-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-icon {
+    font-size: 0.85rem;
+}
+
+.form-input {
+    padding: 12px 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    background: var(--bg-primary, #fff);
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: var(--jumuiya-color);
+    box-shadow: 0 0 0 3px var(--jumuiya-color-light, rgba(0, 0, 0, 0.08));
+}
+
+.input-error {
+    border-color: #ef4444 !important;
+}
+
+.form-error {
+    font-size: 0.8rem;
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.form-hint {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+/* Size & Quantity row */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-xl);
+    align-items: start;
+}
+
+/* Size selector */
+.size-selector {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.size-btn {
+    padding: 8px 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary, #fff);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--text-primary);
+}
+
+.size-btn:hover {
+    border-color: var(--jumuiya-color);
+    color: var(--jumuiya-color);
+}
+
+/* Quantity */
+.form-group-qty {
+    min-width: 140px;
+}
+
+.qty-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.qty-btn {
+    width: 38px;
+    height: 38px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary, #f8fafc);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.qty-btn:hover {
+    background: var(--border-color);
+}
+
+.qty-input {
+    width: 60px;
+    text-align: center;
+    padding: 8px;
+}
+
+/* Size Guide */
+.size-guide {
+    background: var(--bg-secondary, #f8fafc);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+}
+
+.size-guide h4 {
+    margin: 0 0 var(--spacing-md);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.size-guide-table {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sg-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.sg-header {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+}
+
+.sg-active {
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+}
+
+/* Submit button */
+.btn-submit-order {
+    padding: 14px 28px;
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-submit-order:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Success state */
+.tshirts-success {
+    text-align: center;
+    padding: var(--spacing-3xl) var(--spacing-xl);
+}
+
+.tshirts-success-icon {
+    font-size: 3.5rem;
+    margin-bottom: var(--spacing-lg);
+}
+
+.tshirts-success h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-md);
+}
+
+.tshirts-success p {
+    color: var(--text-secondary);
+    margin: 0 auto var(--spacing-xl);
+    max-width: 480px;
+    line-height: 1.6;
+}
+
+.btn-order-another {
+    padding: 12px 28px;
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-order-another:hover {
+    opacity: 0.9;
+}
+
+/* Orders list */
+.tshirts-orders-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-2xl);
+    box-shadow: var(--shadow-sm);
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.order-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary, #fff);
+    transition: box-shadow 0.2s;
+}
+
+.order-card:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.order-card-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.order-card-info {
+    flex: 1;
+}
+
+.order-holder {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.order-size-tag {
+    background: var(--bg-secondary, #f1f5f9);
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.order-payer {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin: 0 0 2px;
+}
+
+.order-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .tshirts-banner {
+        flex-direction: column;
+        text-align: center;
+        padding: var(--spacing-xl);
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tshirts-form-section {
+        padding: var(--spacing-lg);
+    }
+
+    .size-selector {
+        gap: 6px;
+    }
+}

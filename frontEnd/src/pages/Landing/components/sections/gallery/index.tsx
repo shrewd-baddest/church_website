@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import apiService from '../../../services/api';
 
 interface GalleryItem {
@@ -71,35 +72,62 @@ const GallerySection: React.FC = () => {
         {galleryItems.length === 0 ? (
           <p className="text-center text-gray-500">No gallery items found.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {galleryItems.map((item) => (
               <div 
                 key={item.id} 
-                className="relative group cursor-pointer overflow-hidden rounded-lg"
+                className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group cursor-pointer border border-gray-100"
                 onClick={() => setSelectedImage(item)}
               >
-                {item.image_url ? (
-                  <img 
-                    src={item.image_url} 
-                    alt={item.title}
-                    className="w-full h-32 md:h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="w-full h-32 md:h-48 bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400 text-xs md:text-sm">No Image</span>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-300 flex items-end">
-                  <div className="p-2 md:p-3 w-full">
-                    <h4 className="text-white font-semibold text-xs md:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 truncate">
-                      {item.title}
-                    </h4>
+                <div className="relative overflow-hidden aspect-[4/3]">
+                  {item.image_url ? (
+                    <img 
+                      src={item.image_url} 
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm font-medium">No Image</span>
+                    </div>
+                  )}
+                  {/* Subtle category badge */}
+                  {item.category && (
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                        {item.category}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <h4 className="text-slate-900 font-bold text-base mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                    {item.title}
+                  </h4>
+                  {item.description && (
+                    <p className="text-slate-500 text-sm line-clamp-2 mb-3">
+                      {item.description}
+                    </p>
+                  )}
+                  <div className="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center text-[10px] text-slate-400 font-semibold uppercase tracking-widest">
+                    <span>{item.event_date ? new Date(item.event_date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : 'Event'}</span>
+                    <span className="text-blue-500 group-hover:translate-x-1 transition-transform">View Details →</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        <div className="mt-12 text-center">
+          <Link 
+            to="/gallery" 
+            className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-500/20 transform hover:-translate-y-1 transition-all duration-300 group"
+          >
+            View All Photos
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
+          </Link>
+        </div>
 
         {/* Lightbox */}
         {selectedImage && (

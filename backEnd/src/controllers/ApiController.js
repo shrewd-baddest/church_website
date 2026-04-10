@@ -18,24 +18,39 @@ export const getTableData = async (tableName) => {
   const sortCol = TABLE_SORT_COLUMNS[tableName] || 'id';
 
   try {
-    // First attempt: ordered query
+    // Attempt query with ordering (using quotes to handle potential reserved words)
     const result = await testDb.query(
-      `SELECT * FROM ${tableName} ORDER BY ${sortCol} DESC`
+      `SELECT * FROM "${tableName}" ORDER BY "${sortCol}" DESC`
     );
     return result.rows;
   } catch (firstError) {
-    // 42703 = column does not exist, 42P01 = table does not exist
-    if (firstError.code === '42703' || firstError.code === '42P01') {
-      logger.warn(`Falling back to unordered SELECT for "${tableName}" (code: ${firstError.code})`);
+    // Fallback to unordered if ordering column is missing
+    if (firstError.code === '42703') {
+      logger.warn(`Falling back to unordered SELECT for "${tableName}" - column "${sortCol}" not found`);
       try {
-        const fallback = await testDb.query(`SELECT * FROM ${tableName}`);
+        const fallback = await testDb.query(`SELECT * FROM "${tableName}"`);
         return fallback.rows;
       } catch (fallbackError) {
-        logger.error(`Fallback SELECT also failed for "${tableName}": ${fallbackError.message}`);
+        console.error(`Fallback SELECT also failed for "${tableName}":`, fallbackError.message);
         return [];
       }
     }
+    
+    // Check if table exists
+    if (firstError.code === '42P01') {
+      console.error(`[ApiController] Table "${tableName}" does not exist in DB.`);
+      return [];
+    }
+    
+    // Other database errors - log to console for immediate visibility in server logs
+    console.error(`[ApiController] Database Error fetching ${tableName}:`, firstError);
     logger.error(`Error fetching ${tableName}: ${firstError.message}`);
+    
+    // Connection issues fallback (return empty array instead of crashing app)
+    if (firstError.message.includes('connection') || firstError.message.includes('queryable')) {
+       return [];
+    }
+    
     throw firstError;
   }
 };
@@ -77,7 +92,7 @@ export const deleteRecord = async (tableName, id) => {
 
 // Get all data from all tables
 export const getAllData = async () => {
-  const tables = ['members', 'events', 'contributions', 'officials', 'projects', 'activities', 'gallery', 'jumuiya', 'mpesa_request'];
+  const tables = ['members', 'events', 'contributions', 'officials', 'projects', 'activities', 'gallery', 'jumuiya', 'mpesa_request', 'suggestions'];
   const data = {};
   
   for (const table of tables) {
@@ -91,4 +106,24 @@ export const getAllData = async () => {
   
   return data;
 };
-
+// Update a record in a table
+export const updateRecord = async (tableName, id, data) => {
+  try {
+    const columns = Object.keys(data);
+    const values = Object.values(data);
+    const setClause = columns.map((col, i) => `"${col}" = $${i + 1}`).join(', ');
+    
+    const query = `
+      UPDATE "${tableName}"
+      SET ${setClause}
+      WHERE id = $${columns.length + 1}
+      RETURNING *
+    `;
+    
+    const result = await testDb.query(query, [...values, id]);
+    return result.rows[0];
+  } catch (error) {
+    console.error(`Error updating record in ${tableName}:`, error.message);
+    throw error;
+  }
+};
