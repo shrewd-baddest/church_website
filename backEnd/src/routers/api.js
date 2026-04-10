@@ -28,6 +28,7 @@ const allowedTables = [
   "hub_officials",
   "hub_gallery",
   "enrollments",
+  "suggestions",
 ];
 
 // Middleware to validate table name

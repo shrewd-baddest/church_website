@@ -127,7 +127,6 @@ export const jumuiyaList: JumuiyaData[] = [
         ],
         socialMedia: [
             { platform: 'Facebook', url: 'https://facebook.com/stanthonyjumuiya' },
-            { platform: 'Email', url: 'mailto:stanthony@parish.com' }
         ],
         gallery: [
             {
@@ -211,9 +210,7 @@ export const jumuiyaList: JumuiyaData[] = [
             { id: 'f3', name: 'Francis Otieno', position: 'Treasurer', yearsServed: '2022–2024', image: 'https://randomuser.me/api/portraits/men/26.jpg' }
         ],
         socialMedia: [
-            { platform: 'WhatsApp', url: 'https://wa.me/254745678901' },
-            { platform: 'Facebook', url: 'https://facebook.com/staugustinejumuiya' },
-            { platform: 'Email', url: 'mailto:staugustine@parish.com' }
+            { platform: 'Facebook', url: 'https://facebook.com/staugustinejumuiya' }
         ],
         gallery: [
             {
@@ -297,9 +294,7 @@ export const jumuiyaList: JumuiyaData[] = [
             { id: 'f3', name: 'Isaac Kariuki', position: 'Treasurer', yearsServed: '2022–2024', image: 'https://randomuser.me/api/portraits/men/36.jpg' }
         ],
         socialMedia: [
-            { platform: 'WhatsApp', url: 'https://wa.me/254778901234' },
-            { platform: 'Facebook', url: 'https://facebook.com/stcatherinejumuiya' },
-            { platform: 'Instagram', url: 'https://instagram.com/stcatherinejumuiya' }
+            { platform: 'Facebook', url: 'https://facebook.com/stcatherinejumuiya' }
         ],
         gallery: [
             {
@@ -383,9 +378,7 @@ export const jumuiyaList: JumuiyaData[] = [
             { id: 'f3', name: 'Lydia Chebet', position: 'Treasurer', yearsServed: '2022–2024', image: 'https://randomuser.me/api/portraits/women/46.jpg' }
         ],
         socialMedia: [
-            { platform: 'WhatsApp', url: 'https://wa.me/254701234567' },
-            { platform: 'Facebook', url: 'https://facebook.com/stdominicjumuiya' },
-            { platform: 'YouTube', url: 'https://youtube.com/@stdominicjumuiya' }
+            { platform: 'Facebook', url: 'https://facebook.com/stdominicjumuiya' }
         ],
         gallery: [
             {
@@ -469,9 +462,7 @@ export const jumuiyaList: JumuiyaData[] = [
             { id: 'f3', name: 'Oliver Kibet', position: 'Treasurer', yearsServed: '2022–2024', image: 'https://randomuser.me/api/portraits/men/56.jpg' }
         ],
         socialMedia: [
-            { platform: 'WhatsApp', url: 'https://wa.me/254734567890' },
-            { platform: 'Facebook', url: 'https://facebook.com/stelizabethjumuiya' },
-            { platform: 'Email', url: 'mailto:stelizabeth@parish.com' }
+            { platform: 'Facebook', url: 'https://facebook.com/stelizabethjumuiya' }
         ],
         gallery: [
             {
@@ -555,9 +546,7 @@ export const jumuiyaList: JumuiyaData[] = [
             { id: 'f3', name: 'Rosemary Njoki', position: 'Treasurer', yearsServed: '2022–2024', image: 'https://randomuser.me/api/portraits/women/66.jpg' }
         ],
         socialMedia: [
-            { platform: 'WhatsApp', url: 'https://wa.me/254767890123' },
-            { platform: 'Instagram', url: 'https://instagram.com/stmariagorettijumuiya' },
-            { platform: 'TikTok', url: 'https://tiktok.com/@stmariagorettijumuiya' }
+            { platform: 'Facebook', url: 'https://facebook.com/stmariagoretti' }
         ],
         gallery: [
             {
@@ -641,9 +630,7 @@ export const jumuiyaList: JumuiyaData[] = [
             { id: 'f3', name: 'Victor Gitau', position: 'Treasurer', yearsServed: '2022–2024', image: 'https://randomuser.me/api/portraits/men/76.jpg' }
         ],
         socialMedia: [
-            { platform: 'WhatsApp', url: 'https://wa.me/254790123456' },
-            { platform: 'Facebook', url: 'https://facebook.com/stmonicajumuiya' },
-            { platform: 'Email', url: 'mailto:stmonica@parish.com' }
+            { platform: 'Facebook', url: 'https://facebook.com/stmonicajumuiya' }
         ],
         gallery: [
             {

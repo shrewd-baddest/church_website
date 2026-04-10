@@ -40,12 +40,7 @@ To add a new administrative feature, follow these steps:
 2. **Add a link** to the `menuItems` array in `src/pages/Admin/UniversalAdmin.tsx`.
 3. **Define the route** in `src/App.tsx` inside the nested `/admin` group.
 
-### 🎨 Design Standards
-- All admin pages should use the **Slate-50** background color.
-- Use **Card-based layouts** with `bg-white` and `rounded-2xl`.
-- Icons should be imported from **lucide-react**.
 
----
 
 ## 🔐 Security
 - Access to `/admin` and its sub-routes is gated by the `ProtectedRoute` component.

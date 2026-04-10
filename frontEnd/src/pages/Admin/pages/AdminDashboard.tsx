@@ -35,11 +35,6 @@ export default function AdminDashboard() {
         apiService.fetchTableData('events')
       ]);
 
-      // Log raw responses to browser console for debugging
-      console.log('[Dashboard] members raw:', members);
-      console.log('[Dashboard] donations raw:', donations);
-      console.log('[Dashboard] events raw:', events);
-
       // Guard: if response is an error object, treat as empty
       const membersArr = Array.isArray(members) ? members : [];
       const donationsArr = Array.isArray(donations) ? donations : [];

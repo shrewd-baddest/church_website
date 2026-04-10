@@ -1,15 +1,10 @@
 import { Link } from "react-router-dom";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
-import { SiGithub } from "react-icons/si";
+import { FaFacebook } from "react-icons/fa";
 
 const Footers = () => {
 
   const socialMedia = [
     { icon: <FaFacebook />, url: "https://facebook.com/YourPage", color: "#1877F2", name: "Facebook" },
-    { icon: <FaTwitter />, url: "https://twitter.com/YourPage", color: "#1DA1F2", name: "Twitter" },
-    { icon: <FaInstagram />, url: "https://instagram.com/YourPage", color: "#E1306C", name: "Instagram" },
-    { icon: <FaLinkedin />, url: "https://linkedin.com/in/YourPage", color: "#0A66C2", name: "LinkedIn" },
-    { icon: <SiGithub />, url: "https://github.com/YourProfile", color: "#333", name: "GitHub" },
   ];
   return (
     <div className="flex flex-col items-center justify-center gap-8 px-[8%] py-12 bg-gray-100 text-center ">
@@ -21,9 +16,9 @@ const Footers = () => {
         <section className="flex flex-col items-center gap-4">
           <h2 className="text-xl text-blue-500 font-semi-bold">About CSA</h2>
           <ul>
-            <Link to="/mission"> <li className="hover:font-semibold">Our Mission</li></Link>
-            <Link to="/values"> <li className="hover:font-semibold">Our Values</li></Link>
-            <Link to="/history"> <li className="hover:font-semibold">Our History</li></Link>
+            <li className="hover:font-semibold"><a href="/#about">About CSA</a></li>
+            <li className="hover:font-semibold"><a href="/#mission">Our Mission</a></li>
+            <li className="hover:font-semibold"><a href="/#vision">Our Vision</a></li>
           </ul>
         </section>
         <section className="flex flex-col items-center gap-4">

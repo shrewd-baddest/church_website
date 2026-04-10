@@ -40,10 +40,14 @@ import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
 import CommunityHub from "./pages/sacramental/CommunityHub";
 import UniversalAdmin from "./pages/Admin/UniversalAdmin";
 import AdminDashboard from "./pages/Admin/pages/AdminDashboard";
+import AdminSuggestions from "./pages/Admin/pages/AdminSuggestions";
 import RecordsExplorer from "./pages/Admin/pages/RecordsExplorer";
 import DonationMonitor from "./pages/Admin/pages/DonationMonitor";
 import CommunityManager from "./pages/Admin/pages/CommunityManager";
 import CommunityDetailEditor from "./pages/Admin/pages/CommunityDetailEditor";
+import SuggestionBox from "./pages/Landing/components/sections/SuggestionBox";
+import GalleryManager from "./pages/Admin/pages/GalleryManager";
+import GalleryPage from "./pages/Gallery/index";
 import { DataProvider } from "./pages/Jumuiya/context/DataContext";
 
 
@@ -59,33 +63,14 @@ const Login = lazy(() => import("./pages/Authorization/Login"));
 const FallBack: React.FC = () => <div>🍷 Please wait ...</div>;
 
 const Home: React.FC = () => {
-  const { user } = useAuth();
-
   return (
     <div className="flex flex-col h-full bg-gray-50">
       <main className="w-full">
-        {/* Show landing page content when NOT logged in */}
-        {!user && (
-          <>
-            <ImageSlider />
-            <AboutSection />
-            <CommunitySection />
-            <GallerySection />
-          </>
-        )}
-
-        {/* Show all sections when logged in */}
-        {user && (
-          <>
-            <JumuiyaSection />
-            <OfficialsSection />
-            <ProjectsSection />
-            <ActivitiesSection />
-            <GallerySection />
-          </>
-        )}
-
-        {/* Show Support section to everyone */}
+        <ImageSlider />
+        <AboutSection />
+        <CommunitySection />
+        <GallerySection />
+        <SuggestionBox />
         <SupportSection />
       </main>
     </div>
@@ -124,6 +109,8 @@ const App: React.FC = () => {
           <Route path="donations" element={<DonationMonitor />} />
           <Route path="community-management" element={<CommunityManager />} />
           <Route path="community-management/:categoryId" element={<CommunityDetailEditor />} />
+          <Route path="suggestions" element={<AdminSuggestions />} />
+          <Route path="gallery" element={<GalleryManager />} />
           <Route path="settings" element={<div className="p-8 bg-white rounded-2xl shadow-sm border border-slate-200">Settings Page Coming Soon</div>} />
         </Route>
 
@@ -173,6 +160,7 @@ const App: React.FC = () => {
             path="/community/:moduleSlug?"
             element={<CommunityHub />}
           />
+          <Route path="/gallery" element={<GalleryPage />} />
         </Route>
 
       </>,

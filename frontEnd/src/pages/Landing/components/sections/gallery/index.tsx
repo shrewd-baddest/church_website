@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import apiService from '../../../services/api';
 
 interface GalleryItem {
@@ -117,6 +118,16 @@ const GallerySection: React.FC = () => {
             ))}
           </div>
         )}
+
+        <div className="mt-12 text-center">
+          <Link 
+            to="/gallery" 
+            className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-500/20 transform hover:-translate-y-1 transition-all duration-300 group"
+          >
+            View All Photos
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
+          </Link>
+        </div>
 
         {/* Lightbox */}
         {selectedImage && (

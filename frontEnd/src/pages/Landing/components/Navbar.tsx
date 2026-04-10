@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useState } from 'react';
 import DonationModal from './DonationModal';
@@ -6,6 +6,7 @@ import { Heart } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const [isDonationOpen, setIsDonationOpen] = useState(false);
 
   return (
@@ -13,11 +14,40 @@ const Navbar = () => {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="text-2xl font-bold text-blue-700">CSA Kirinyaga</div>
         <ul className="flex items-center space-x-6">
-          <li><Link to="/" className="text-gray-600 hover:text-blue-700 font-medium">Home</Link></li>
+          <li>
+            <Link 
+              to="/" 
+              className={`font-medium transition-colors ${location.pathname === "/" ? "text-blue-700 border-b-2 border-blue-700 pb-1" : "text-gray-600 hover:text-blue-700"}`}
+            >
+              Home
+            </Link>
+          </li>
           {user ? (
             <>
-              <li><Link to="/jumuiya" className="text-gray-600 hover:text-blue-700 font-medium">Jumuiya</Link></li>
-              <li><Link to="/officials" className="text-gray-600 hover:text-blue-700 font-medium">Officials</Link></li>
+              <li>
+                <Link 
+                  to="/jumuiya" 
+                  className={`font-medium transition-colors ${location.pathname === "/jumuiya" ? "text-blue-700 border-b-2 border-blue-700 pb-1" : "text-gray-600 hover:text-blue-700"}`}
+                >
+                  Jumuiya
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/officials" 
+                  className={`font-medium transition-colors ${location.pathname === "/officials" ? "text-blue-700 border-b-2 border-blue-700 pb-1" : "text-gray-600 hover:text-blue-700"}`}
+                >
+                  Officials
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/gallery" 
+                  className={`font-medium transition-colors ${location.pathname === "/gallery" ? "text-blue-700 border-b-2 border-blue-700 pb-1" : "text-gray-600 hover:text-blue-700"}`}
+                >
+                  Gallery
+                </Link>
+              </li>
             </>
           ) : (
             <>

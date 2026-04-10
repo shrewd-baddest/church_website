@@ -87,7 +87,7 @@ export const deleteRecord = async (tableName, id) => {
 
 // Get all data from all tables
 export const getAllData = async () => {
-  const tables = ['members', 'events', 'contributions', 'officials', 'projects', 'activities', 'gallery', 'jumuiya', 'mpesa_request'];
+  const tables = ['members', 'events', 'contributions', 'officials', 'projects', 'activities', 'gallery', 'jumuiya', 'mpesa_request', 'suggestions'];
   const data = {};
   
   for (const table of tables) {
