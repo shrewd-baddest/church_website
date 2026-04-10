@@ -66,7 +66,6 @@ const Home: React.FC = () => {
         <ImageSlider />
         <AboutSection />
         <CommunitySection />
-        <CommunitySection />
         <SuggestionBox />
         <SupportSection />
       </main>
