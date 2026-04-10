@@ -29,15 +29,13 @@ import {
   CommunitySection,
   SupportSection,
 } from "./pages/Landing/components/sections";
-import ActivitiesSection from "./pages/Landing/components/sections/activities";
-import GallerySection from "./pages/Landing/components/sections/gallery";
-import ProjectsSection from "./pages/Landing/components/sections/projects";
-import OfficialsSection from "./pages/Landing/components/sections/officials";
-import JumuiyaSection from "./pages/Landing/components/sections/jumuiya";
+// Removed unused static sections
 import ImageSlider from "./pages/Landing/components/ImageSlider";
 import JumuiyaLanding from "./pages/Jumuiya/JumuiyaLanding";
 import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
 import CommunityHub from "./pages/sacramental/CommunityHub";
+import CommunityHubDetail from "./pages/sacramental/CommunityHubDetail";
+import { CommunityProvider } from "./pages/sacramental/context/CommunityDataContext";
 import UniversalAdmin from "./pages/Admin/UniversalAdmin";
 import AdminDashboard from "./pages/Admin/pages/AdminDashboard";
 import AdminSuggestions from "./pages/Admin/pages/AdminSuggestions";
@@ -53,7 +51,6 @@ import { DataProvider } from "./pages/Jumuiya/context/DataContext";
 
 
 
-import { useAuth } from "./context/AuthContext";
 import { PublicRoute, ProtectedRoute } from "./Regulator";
 
 // Lazy-loaded component
@@ -69,7 +66,7 @@ const Home: React.FC = () => {
         <ImageSlider />
         <AboutSection />
         <CommunitySection />
-        <GallerySection />
+        <CommunitySection />
         <SuggestionBox />
         <SupportSection />
       </main>
@@ -157,8 +154,20 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/community/:moduleSlug?"
-            element={<CommunityHub />}
+            path="/community"
+            element={
+              <CommunityProvider>
+                <CommunityHub />
+              </CommunityProvider>
+            }
+          />
+          <Route
+            path="/community/:moduleId"
+            element={
+              <CommunityProvider>
+                <CommunityHubDetail />
+              </CommunityProvider>
+            }
           />
           <Route path="/gallery" element={<GalleryPage />} />
         </Route>

@@ -37,9 +37,8 @@ const limiter = rateLimit({
   },
   handler: (req, res, next, options) => {
     res.status(options.statusCode || 429).json({
-      error: `There are too many requests. You are only allowed ${
-        options.max
-      } requests per ${options.windowMs / 60000} minutes`,
+      error: `There are too many requests. You are only allowed ${options.max
+        } requests per ${options.windowMs / 60000} minutes`,
     });
   },
 });
@@ -119,10 +118,10 @@ app.use((err, req, res, next) => {
   } else {
     console.error(`[GlobalError] ${errorMessage}`, errorStack);
   }
-  
+
   const statusCode = err.statusCode || 500;
   const message = err.message || 'An unexpected error occurred';
-  
+
   res.status(statusCode).json({
     success: false,
     message: message,

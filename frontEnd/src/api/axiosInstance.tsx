@@ -4,7 +4,7 @@ import axios from "axios";
 import { LocalStorage } from "../utils";
 
 // Create an Axios instance for API requests
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_SERVER_URI,
   withCredentials: true,
   timeout: 120000,

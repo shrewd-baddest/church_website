@@ -92,11 +92,13 @@ export const getModule = async (req, res) => {
         const meta = moduleResult.rows[0];
 
         // Fetch related data in parallel with per-query catch to avoid total failure
-        const [officials, activities, announcements, gallery] = await Promise.all([
+        const [officials, activities, announcements, gallery, schedules, classes] = await Promise.all([
             db.query('SELECT * FROM hub_officials WHERE module_id = $1', [id]).catch(() => ({ rows: [] })),
             db.query('SELECT * FROM hub_activities WHERE module_id = $1 ORDER BY activity_date DESC', [id]).catch(() => ({ rows: [] })),
             db.query('SELECT * FROM hub_announcements WHERE module_id = $1 ORDER BY announcement_date DESC', [id]).catch(() => ({ rows: [] })),
-            db.query('SELECT * FROM hub_gallery WHERE module_id = $1', [id]).catch(() => ({ rows: [] }))
+            db.query('SELECT * FROM hub_gallery WHERE module_id = $1', [id]).catch(() => ({ rows: [] })),
+            db.query('SELECT * FROM hub_schedules WHERE module_id = $1', [id]).catch(() => ({ rows: [] })),
+            db.query('SELECT * FROM hub_music_classes WHERE module_id = $1', [id]).catch(() => ({ rows: [] }))
         ]);
 
         const moduleInfo = {
@@ -134,6 +136,15 @@ export const getModule = async (req, res) => {
                 ...g,
                 imageUrl: g.image_url,
                 eventName: g.event_name
+            })),
+            practiceSchedules: schedules.rows.map(s => ({
+                ...s,
+                startTime: s.start_time,
+                endTime: s.end_time
+            })),
+            musicClasses: classes.rows.map(c => ({
+                ...c,
+                skillLevel: c.skill_level
             }))
         };
 
