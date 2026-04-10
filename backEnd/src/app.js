@@ -111,7 +111,14 @@ app.post("/api/choir/gallery", upload.single("file"), (req, res) => {
 });
 // ERROR HANDLER
 app.use((err, req, res, next) => {
-  logger.error(`${err.message}\n${err.stack}`);
+  const errorMessage = err.message || 'An unexpected error occurred';
+  const errorStack = err.stack || '';
+
+  if (logger && logger.error) {
+    logger.error(`${errorMessage}\n${errorStack}`);
+  } else {
+    console.error(`[GlobalError] ${errorMessage}`, errorStack);
+  }
   
   const statusCode = err.statusCode || 500;
   const message = err.message || 'An unexpected error occurred';

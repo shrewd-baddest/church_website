@@ -10,6 +10,9 @@ export default defineConfig({
       },
     }),
   ],
+  optimizeDeps: {
+    include: ['react/jsx-runtime', 'framer-motion'],
+  },
   server: {
     proxy: {
       '/api': {

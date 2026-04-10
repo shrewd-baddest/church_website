@@ -48,7 +48,7 @@ export default function PublicHistoryView() {
   const selectedTermYear = terms.find(t => t.id.toString() === termFilter)?.year || 'All Years';
 
   return (
-    <div className="min-h-screen bg-transparent p-4 sm:p-8">
+    <div className="h-full bg-transparent p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Navigation & Header */}
         <div className="mb-12">

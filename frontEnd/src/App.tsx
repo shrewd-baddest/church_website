@@ -60,8 +60,8 @@ const Home: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <main className="flex-grow">
+    <div className="flex flex-col h-full bg-gray-50">
+      <main className="w-full">
         {/* Show landing page content when NOT logged in */}
         {!user && (
           <>

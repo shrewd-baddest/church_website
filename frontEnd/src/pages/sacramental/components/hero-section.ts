@@ -22,6 +22,7 @@ export class HeroSection {
     render(): void {
         this.container.innerHTML = '';
         this.container.className = 'csa-choir-hero';
+        this.container.setAttribute('data-text', this.config.name);
 
         const heroContent = DOMHelpers.createElement('div', 'csa-choir-hero__content csa-choir-container');
 

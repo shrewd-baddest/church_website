@@ -6,7 +6,7 @@
 import { DOMHelpers } from '../../backend/utils/dom-helpers.js';
 import { Validators } from '../../backend/utils/validators.js';
 import { ChoirApiService } from '../services/choir-api.js';
-import { ChoirRegistration, VoiceType, SkillLevel, RegistrationFormState } from '../../types.js';
+import type { ChoirRegistration, VoiceType, SkillLevel, RegistrationFormState } from '../../types.js';
 
 export class RegistrationForm {
   private container: HTMLElement;
@@ -17,13 +17,16 @@ export class RegistrationForm {
   private checkoutID: string | null = null;
   private isChoir: boolean;
 
+  private moduleName: string;
+
   constructor(
     containerId: string,
     membershipFee: number = 20,
     currency: string = 'Ksh',
     onSuccess?: (registrationId: string) => void,
-    private moduleName: string = 'Choir'
+    moduleName: string = 'Choir'
   ) {
+    this.moduleName = moduleName;
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Container with id "${containerId}" not found`);

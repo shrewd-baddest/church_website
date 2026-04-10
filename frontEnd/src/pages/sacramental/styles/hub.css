@@ -5,8 +5,8 @@
 
 .csa-hub-module {
     background-color: var(--csa-choir-bg-secondary);
-    min-height: 100vh;
-    padding-bottom: var(--csa-choir-spacing-xl);
+    height: auto;
+    overflow: visible;
 }
 
 .csa-hub-header {
@@ -26,7 +26,7 @@
 
 .csa-hub-hero {
     text-align: center;
-    padding: var(--csa-choir-spacing-2xl) 0;
+    padding: var(--csa-choir-spacing-xl) 0 0 0;
 }
 
 .csa-hub-hero__content h2 {
@@ -48,36 +48,58 @@
 }
 
 .csa-hub-card {
-    background: var(--csa-choir-white);
-    border-radius: var(--csa-choir-border-radius-lg);
-    padding: var(--csa-choir-spacing-lg);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--card-icon-color) 12%, white), white);
+    border-radius: 24px;
+    padding: var(--csa-choir-spacing-xl);
     text-decoration: none;
     color: inherit;
     display: flex;
     flex-direction: column;
-    transition: all var(--csa-choir-transition-base);
-    border: 1px solid var(--csa-choir-border-color);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid color-mix(in srgb, var(--card-icon-color) 20%, transparent);
+    box-shadow: 0 10px 30px -15px color-mix(in srgb, var(--card-icon-color) 30%, transparent);
+    position: relative;
+    overflow: hidden;
 }
 
 .csa-hub-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--csa-choir-shadow-xl);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px -20px color-mix(in srgb, var(--card-icon-color) 40%, transparent);
     border-color: var(--card-icon-color);
 }
 
+/* Add a subtle glow on hover */
+.csa-hub-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--card-icon-color) 5%, transparent) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+
+.csa-hub-card:hover::after {
+    opacity: 1;
+}
+
 .csa-hub-card__icon {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     background-color: var(--card-icon-color);
-    border-radius: 12px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     color: var(--csa-choir-white);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     position: relative;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 2;
+    box-shadow: 0 8px 16px -4px color-mix(in srgb, var(--card-icon-color) 50%, transparent);
 }
 
 .csa-hub-card__dot {
@@ -93,17 +115,28 @@
 
 .csa-hub-card__content h3 {
     font-family: var(--csa-choir-font-family-heading);
-    font-size: var(--csa-choir-font-size-xl);
+    font-size: 1.35rem;
     color: var(--csa-choir-primary);
     margin-bottom: 0.75rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
 }
 
 .csa-hub-category {
-    font-size: var(--csa-choir-font-size-xs);
+    font-size: 0.7rem;
     text-transform: uppercase;
+    color: var(--card-icon-color);
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.1em;
+    opacity: 0.8;
+}
+
+.csa-hub-card__content p {
     color: var(--csa-choir-text-muted);
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
 }
 
 .csa-hub-card__footer {
@@ -112,15 +145,26 @@
 }
 
 .csa-hub-btn-portal {
-    color: var(--csa-choir-primary);
-    font-weight: 700;
-    font-size: var(--csa-choir-font-size-sm);
-    display: flex;
+    background: white;
+    color: var(--card-icon-color);
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    transition: gap 0.2s;
+    justify-content: center;
+    gap: 0.6rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid color-mix(in srgb, var(--card-icon-color) 10%, transparent);
 }
 
 .csa-hub-card:hover .csa-hub-btn-portal {
-    gap: 0.75rem;
+    background: var(--card-icon-color);
+    color: white;
+    transform: translateX(4px);
+    box-shadow: 0 8px 16px -4px color-mix(in srgb, var(--card-icon-color) 40%, transparent);
 }

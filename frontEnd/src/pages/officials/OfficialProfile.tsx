@@ -61,13 +61,13 @@ const OfficialProfile: React.FC = () => {
     }, [id]);
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="h-full flex items-center justify-center bg-gray-50">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
     );
 
     if (error || !official) return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+        <div className="h-full flex flex-col items-center justify-center bg-gray-50 p-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">{error || 'Something went wrong'}</h2>
             <button onClick={() => navigate(-1)} className="px-6 py-2 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition-colors">Go Back</button>
         </div>
@@ -80,7 +80,7 @@ const OfficialProfile: React.FC = () => {
     const themeGradient = `bg-gradient-to-br ${gradient}`;
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="h-full bg-white">
             {/* Header / Hero Section */}
             <div className={`relative h-[350px] sm:h-[450px] ${themeGradient} overflow-hidden`}>
                 <div className="absolute inset-0 opacity-20 pointer-events-none">

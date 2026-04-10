@@ -37,17 +37,40 @@ const CommunityHub: React.FC = () => {
     return () => window.removeEventListener('message', handleMessage);
   }, [navigate]);
 
+  const [isLoading, setIsLoading] = React.useState(true);
   const iframeSrc = moduleSlug ? `/community-view/${moduleSlug}` : '/community-view/';
 
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+  };
+
   return (
-    <div className="w-full bg-gray-50 pt-10 pb-10">
+    <div className="w-full bg-gray-50 pt-6 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full relative">
+          {isLoading && (
+            <div className="absolute inset-0 z-10 bg-white p-8">
+               <div className="animate-pulse space-y-8">
+                  <div className="h-10 bg-gray-100 rounded-lg w-1/3"></div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="h-64 bg-gray-50 rounded-2xl"></div>
+                    <div className="h-64 bg-gray-50 rounded-2xl"></div>
+                    <div className="h-64 bg-gray-50 rounded-2xl"></div>
+                  </div>
+               </div>
+            </div>
+          )}
           <iframe 
             id="community-iframe"
             src={iframeSrc}
+            onLoad={handleIframeLoad}
             className="w-full border-none"
-            style={{ minHeight: '100vh', width: '100%', transition: 'height 0.3s ease-in-out' }}
+            style={{ 
+               minHeight: '400px', 
+               width: '100%', 
+               transition: 'opacity 0.5s ease-in-out',
+               opacity: isLoading ? 0 : 1 
+            }}
             title="Community"
             scrolling="no"
           />

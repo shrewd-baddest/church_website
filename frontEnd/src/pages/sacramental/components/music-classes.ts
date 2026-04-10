@@ -71,7 +71,7 @@ export class MusicClasses {
         const enrollBtn = DOMHelpers.createElement('button', 'csa-choir-btn csa-choir-btn--primary csa-choir-btn--full-width', {
             'data-class-id': musicClass.id
         });
-        enrollBtn.textContent = 'Enroll Now';
+        enrollBtn.textContent = 'Join Class';
         enrollBtn.addEventListener('click', () => this.showEnrollmentModal(musicClass));
 
         DOMHelpers.appendChildren(card, [header, description, schedule, enrollBtn]);
@@ -91,18 +91,29 @@ export class MusicClasses {
             <form class="csa-choir-modal__form">
                 <div class="csa-choir-form-group">
                     <label class="csa-choir-label">Full Name</label>
-                    <input type="text" name="fullName" class="csa-choir-input" required placeholder="Your full name">
+                    <input type="text" name="fullName" class="csa-choir-input" required placeholder="Enter your registered name">
                 </div>
                 <div class="csa-choir-form-group">
-                    <label class="csa-choir-label">Email</label>
-                    <input type="email" name="email" class="csa-choir-input" required placeholder="your.email@example.com">
+                    <label class="csa-choir-label">Voice Type</label>
+                    <select name="voiceType" class="csa-choir-input" required>
+                        <option value="" disabled selected>Select your voice type</option>
+                        <option value="Soprano">Soprano</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Tenor">Tenor</option>
+                        <option value="Bass">Bass</option>
+                    </select>
                 </div>
                 <div class="csa-choir-form-group">
-                    <label class="csa-choir-label">Phone Number</label>
-                    <input type="tel" name="phone" class="csa-choir-input" required placeholder="e.g. 0712345678">
+                    <label class="csa-choir-label">Music Knowledge Level</label>
+                    <select name="musicLevel" class="csa-choir-input" required>
+                        <option value="" disabled selected>Select your level</option>
+                        <option value="Beginner">Beginner (No experience)</option>
+                        <option value="Intermediate">Intermediate (Basic reading/theory)</option>
+                        <option value="Advanced">Advanced (Proficient)</option>
+                    </select>
                 </div>
                 <button type="submit" class="csa-choir-btn csa-choir-btn--primary csa-choir-btn--full-width">
-                    Submit Enrollment
+                    Join Class
                 </button>
             </form>
         `;
@@ -128,10 +139,10 @@ export class MusicClasses {
 
             const formData = new FormData(form);
             const enrollmentData = {
-                classId: musicClass.id,
-                fullName: formData.get('fullName') as string,
-                email: formData.get('email') as string,
-                phone: formData.get('phone') as string
+                class_id: musicClass.id,
+                full_name: formData.get('fullName') as string,
+                voice_type: formData.get('voiceType') as string,
+                music_level: formData.get('musicLevel') as string
             };
 
             const response = await ChoirApiService.enrollInClass(enrollmentData);

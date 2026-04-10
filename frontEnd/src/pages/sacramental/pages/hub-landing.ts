@@ -51,7 +51,8 @@ export class HubLandingPage {
         // 1. Instantly show loading state or cached content
         const cached = this.getCachedData();
         if (cached) {
-            this.render(cached, true); // Render cached but keep loading in background
+            // Render cached silently (no banner) while we fetch fresh data
+            this.render(cached, false); 
         } else {
             this.showLoading();
         }
@@ -59,6 +60,7 @@ export class HubLandingPage {
         // 2. Fetch fresh data
         try {
             HubMessenger.notifyModuleLoaded(null);
+            this.showSyncingStatus();
 
             const response = await fetch(this.baseUrl);
             
@@ -70,8 +72,8 @@ export class HubLandingPage {
             
             if (modules && modules.length > 0) {
                 this.saveToCache(modules);
-                this.render(modules);
-            } else {
+                this.render(modules); // Banner disappears here as isCached will be false
+            } else if (!cached) {
                 this.showEmpty();
             }
         } catch (error) {
@@ -80,10 +82,16 @@ export class HubLandingPage {
             // 3. Fallback logic: Use cache -> Use Mock -> Show Error
             if (cached) {
                 console.info('Using cached data after fetch failure');
-                this.render(cached);
+                this.render(cached, true); // Now show the banner because fetch failed
             } else {
                 console.info('Using mock fallback data');
-                this.render(this.mockModules, false, true); // Show mocks with a warning
+                this.render(this.mockModules, false, true);
+            }
+        } finally {
+            const spinner = (window as any)._hubSpinner;
+            if (spinner) {
+                spinner.remove();
+                delete (window as any)._hubSpinner;
             }
         }
     }
@@ -93,9 +101,15 @@ export class HubLandingPage {
         if (!container) return;
 
         container.innerHTML = `
-            <div class="csa-choir-text-center w-full py-20">
-                <div class="csa-choir-loading"></div>
-                <p class="csa-choir-mt-md csa-choir-text-muted">Loading sacred ministries...</p>
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ${Array(3).fill(0).map(() => `
+                    <div class="bg-gray-100 rounded-2xl p-6 h-64 animate-pulse">
+                        <div class="w-16 h-16 bg-gray-200 rounded-2xl mb-6"></div>
+                        <div class="w-2/3 h-6 bg-gray-200 rounded mb-4"></div>
+                        <div class="w-full h-4 bg-gray-200 rounded mb-2"></div>
+                        <div class="w-5/6 h-4 bg-gray-200 rounded"></div>
+                    </div>
+                `).join('')}
             </div>
         `;
     }
@@ -116,20 +130,31 @@ export class HubLandingPage {
         `;
     }
 
-    private showError(): void {
+    private showSyncingStatus(): void {
         const container = document.getElementById(this.containerId);
         if (!container) return;
 
-        container.innerHTML = `
-            <div class="csa-choir-alert csa-choir-alert--error csa-choir-text-center py-10">
-                <p class="font-bold mb-2">Connection Issue</p>
-                <p>We are having trouble reaching the sacred archives.</p>
-                <button onclick="window.location.reload()" class="csa-choir-btn csa-choir-btn--accent csa-choir-mt-sm">
-                    <i class="fas fa-redo mr-2"></i> Retry Connection
-                </button>
-            </div>
-        `;
+        const spinner = document.createElement('div');
+        spinner.id = 'hub-syncing-indicator';
+        spinner.style.position = 'fixed';
+        spinner.style.right = '20px';
+        spinner.style.top = '20px';
+        spinner.style.display = 'flex';
+        spinner.style.alignItems = 'center';
+        spinner.style.gap = '8px';
+        spinner.style.background = 'rgba(255, 255, 255, 0.9)';
+        spinner.style.padding = '8px 12px';
+        spinner.style.borderRadius = '99px';
+        spinner.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+        spinner.style.fontSize = '12px';
+        spinner.style.color = '#666';
+        spinner.style.zIndex = '9999';
+        spinner.innerHTML = '<i class="fas fa-sync fa-spin"></i> Syncing...';
+        
+        document.body.appendChild(spinner);
+        (window as any)._hubSpinner = spinner;
     }
+
 
     private render(modules: HubModule[], isCached = false, isMock = false): void {
         const container = document.getElementById(this.containerId);
@@ -178,7 +203,10 @@ export class HubLandingPage {
                 <p>${mod.description}</p>
             </div>
             <div class="csa-hub-card__footer">
-                <span class="csa-hub-btn-portal">Explore Portal <i class="fas fa-chevron-right"></i></span>
+                <span class="csa-hub-btn-portal">
+                    Explore Portal 
+                    <i class="fas fa-arrow-right"></i>
+                </span>
             </div>
         `;
 
