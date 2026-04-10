@@ -11,7 +11,8 @@ import {
   ChevronRight,
   LogOut,
   Bell,
-  MessageSquare
+  MessageSquare,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -26,6 +27,7 @@ const menuItems = [
   { id: 'donations', name: 'Donation Monitor', icon: Heart, path: '/admin/donations' },
   { id: 'devotions', name: 'Devotions & AI', icon: BookOpen, path: '/admin/devotions-hub' },
   { id: 'suggestions', name: 'User Suggestions', icon: MessageSquare, path: '/admin/suggestions' },
+  { id: 'gallery', name: 'Gallery Manager', icon: ImageIcon, path: '/admin/gallery' },
   { id: 'records', name: 'Records Explorer', icon: Database, path: '/admin/records' },
   { id: 'settings', name: 'Settings', icon: Settings, path: '/admin/settings' },
 ];

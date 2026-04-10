@@ -43,8 +43,9 @@ import AdminDashboard from "./pages/Admin/pages/AdminDashboard";
 import AdminSuggestions from "./pages/Admin/pages/AdminSuggestions";
 import RecordsExplorer from "./pages/Admin/pages/RecordsExplorer";
 import DonationMonitor from "./pages/Admin/pages/DonationMonitor";
-import GalleryPage from "./pages/Gallery/index";
 import SuggestionBox from "./pages/Landing/components/sections/SuggestionBox";
+import GalleryManager from "./pages/Admin/pages/GalleryManager";
+import GalleryPage from "./pages/Gallery/index";
 import { DataProvider } from "./pages/Jumuiya/context/DataContext";
 
 
@@ -104,6 +105,7 @@ const App: React.FC = () => {
           <Route path="records" element={<RecordsExplorer />} />
           <Route path="donations" element={<DonationMonitor />} />
           <Route path="suggestions" element={<AdminSuggestions />} />
+          <Route path="gallery" element={<GalleryManager />} />
           <Route path="settings" element={<div className="p-8 bg-white rounded-2xl shadow-sm border border-slate-200">Settings Page Coming Soon</div>} />
         </Route>
 
