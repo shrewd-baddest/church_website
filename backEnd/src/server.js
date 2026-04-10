@@ -1,7 +1,8 @@
 import { serverConfig } from "./Configs/serverConfigs.js";
-import { app } from "./app.js";
+import { httpServer } from "./app.js";
 import { connectDb, connectToMongoDb } from "./Configs/dbConfig.js";
 import logger from "./logger/winston.js";
+import { runMigration } from "./migrations/scripts/index.js";
 
 process.on('uncaughtException', (err) => {
   logger.error('Uncaught Exception:', err);
@@ -15,10 +16,12 @@ process.on('unhandledRejection', (reason, promise) => {
 const initServer = async () => {
   // Start DB connections in parallel without blocking the app server
   try {
-    connectDb().catch(err => logger.error("Postgres connection failed (continuing anyway):", err.message));
-    // connectToMongoDb().catch(err => logger.error("MongoDB connection failed (continuing anyway):", err.message));
+    await connectDb();
+    //  await connectToMongoDb(;
+    // await runMigration();
 
-    app.listen(serverConfig.PORT, () => {
+
+    httpServer.listen(serverConfig.PORT, () => {
       logger.info(`⚙️  Server is running on http://localhost:${serverConfig.PORT}`);
     });
   } catch (error) {
@@ -26,9 +29,13 @@ const initServer = async () => {
   }
 };
 
-const signals = ["SIGINT", "SIGTERM", "SIGHUP"];
-let isShuttingDown = false;
 
+
+// Step 1: Define signals to listen for
+const signals = ["SIGINT", "SIGTERM", "SIGHUP"];
+// Step 2: Flag to track shutdown state
+let isShuttingDown = false;
+// Step 3: Shutdown handler
 const shutDown = (signal) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
@@ -36,6 +43,10 @@ const shutDown = (signal) => {
   process.exit(0);
 };
 
+
+
+
+// Step 4: Attach listeners for each signal
 signals.forEach((sig) => {
   process.on(sig, () => shutDown(sig));
 });

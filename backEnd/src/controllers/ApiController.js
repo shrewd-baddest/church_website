@@ -1,13 +1,6 @@
 import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
-
-// Explicit sort column overrides for tables without a standard 'id' column
-const TABLE_SORT_COLUMNS = {
-  members: 'member_id',
-  mpesa_request: 'created_at',
-};
-
 // Get all records from a table
 export const getTableData = async (tableName) => {
   const sortCol = TABLE_SORT_COLUMNS[tableName] || 'id';

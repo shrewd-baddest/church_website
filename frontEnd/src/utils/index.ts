@@ -1,8 +1,6 @@
+
 // Check if the code is running in a browser environment
 export const isBrowser = typeof window !== "undefined";
-
-
-// 
 export class LocalStorage {
   // Get a value from local storage by key
   static get(key: string) {

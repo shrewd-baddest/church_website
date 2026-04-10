@@ -1,8 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
 import type { JumuiyaData } from '../data/jumuiyaData';
-import { FaCalendarDay, FaClock, FaMapMarkerAlt, FaSignInAlt, FaUserShield, FaFilePdf } from 'react-icons/fa';
+import { FaCalendarDay, FaClock, FaMapMarkerAlt, FaFilePdf } from 'react-icons/fa';
 import './TabsSystem.css';
 
 interface AboutTabProps {
@@ -12,16 +10,7 @@ interface AboutTabProps {
 
 const AboutTab: React.FC<AboutTabProps> = ({ jumuiya }) => {
     // const { isAuthenticated, user } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLoginClick = () => {
-        navigate('/admin/officials'); // Navigate directly to the admin dashboard. ProtectedRoute will handle redirecting to login if needed.
-    };
-
-    const handleAdminLogin = () => {
-        navigate('/admin/AdminLayout');
-    };
-
+ 
     return (
         <div className="tab-system-content" style={{ '--jumuiya-color': jumuiya.color } as React.CSSProperties}>
 

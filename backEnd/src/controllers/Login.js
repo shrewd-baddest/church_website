@@ -16,12 +16,10 @@ export const Login = async (req, res) => {
   }
 
   try {
-    const result = await testDb.query(
-      `SELECT m.member_id, m.password, m.first_name, m.last_name, m.email, r.role_name 
-       FROM members m 
-       JOIN member_roles mr ON m.member_id = mr.member_id 
-       JOIN roles r ON mr.role_id = r.role_id 
-       WHERE m.member_id = $1`,
+    const result = await testDb?.query(
+      `SELECT m.member_id,m.password,m.jumui_id m.email, r.role_name FROM members m 
+      JOIN member_roles mr ON m.member_id = mr.member_id 
+      JOIN roles r ON mr.role_id = r.role_id WHERE m.member_id =$1`,
       [userReg],
     );
 
@@ -41,17 +39,10 @@ export const Login = async (req, res) => {
     const accessToken = generateAccesstoken(user.member_id, user.role_name , user.first_name , user.last_name , user.email);
     const refreshToken = generateRefreshtoken(user.member_id, user.role_name);
 
-    // calculate expiry
-    const decoded = jwt.decode(refreshToken);
-    const expiresAt = new Date(decoded.exp * 1000); // exp is in seconds
-
-    // store in DB
-    const hashedToken = await bcrypt.hash(refreshToken, 10);
-
-    await testDb.query(
-      `INSERT INTO refresh_tokens (member_id, token, expires_at)
-   VALUES ($1, $2, $3)`,
-      [user.member_id, hashedToken, expiresAt],
+    const token = jwt.sign(
+      { id: user.member_id, role: user.role_name , jumuiaId: user.jumuia_id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
     );
 
     if (!user.email) {

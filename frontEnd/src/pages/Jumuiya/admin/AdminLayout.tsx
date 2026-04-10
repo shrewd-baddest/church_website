@@ -38,10 +38,10 @@ const AdminLayout: React.FC = () => {
 
                 <div className="user-info">
                     <div className="user-avatar">
-                        {user?.username.charAt(0).toUpperCase()}
+                        {user?.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <p className="user-name">{user?.username}</p>
+                        <p className="user-name">{user?.name}</p>
                         <p className="user-role">Administrator</p>
                     </div>
                 </div>

@@ -1,16 +1,12 @@
 
-
-import authRoutes from "./v1/Authorization.js"
-import generateQuestions from "./v1/GenerateQuestions.js"
-import uploadMedia from "./v1/mediaRoutes.js"
-import hubView from "./hubRouter.js"
 import {Router} from "express"
+import v1Routes from "./v1/index.js"
 
-const route = Router()
+const router = Router()
 
-route.use("/v1" , authRoutes)
-route.use("/v1" , generateQuestions)
-route.use("/v1" , uploadMedia)
-route.use("/" , hubView)
+router.use("/v1", v1Routes);
 
-export default route
+
+export default router;
+
+

@@ -1,12 +1,17 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function Dashboard() {
+
+const {user} = useAuth();
+
+
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 ">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold">Welcome Back, Robert Macharia.</h1>
+        <h1 className="text-3xl font-bold">Welcome Back, {user?.name} </h1>
         <p className="text-gray-600">
-          Your spiritual journey continues today. Explore readings and prayers
+          Your spiritual journey continues today. Explore readings , daily challages and prayers
           below.
         </p>
       </header>

@@ -10,9 +10,9 @@ interface UserData {
   name: string; // Combined firstName and lastName as per backend change
   email: string;
   status: string; // e.g. "success"
+  jumuiya_id: number;
 }
 
-// Define the shape of the context data
 interface AuthContextType {
   user: UserData | null;
   login: (data: UserData) => void;

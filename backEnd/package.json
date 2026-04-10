@@ -15,12 +15,15 @@
     "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
+    "cookie": "^1.1.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "ejs": "^5.0.1",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-rate-limit": "^6.7.0",
+    "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "libphonenumber-js": "^1.12.40",
     "mailtrap": "^3.1.1",
@@ -30,12 +33,22 @@
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^2.2.1",
     "nodemailer": "^8.0.4",
+<<<<<<< HEAD
+=======
+    "nodemon": "^3.1.14",
+>>>>>>> origin/feature/authorization
     "pg": "^8.16.3",
     "redis": "^5.11.0",
     "request-ip": "^3.3.0",
+<<<<<<< HEAD
     "winston": "^3.8.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+=======
+    "socket.io": "^4.8.0",
+    "winston": "^3.8.2",
+    "xlsx": "^0.18.5"
+>>>>>>> origin/feature/authorization
   }
 }

@@ -22,7 +22,6 @@ export function ArchiveModal({
   onConfirm, 
   isArchiving, 
   officialsCount, 
-  electionTerms, 
   currentTerm,
   mode = 'csa',
   jumuiyaCountMap = {},

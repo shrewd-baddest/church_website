@@ -19,7 +19,7 @@ export interface Official {
 
 export function useOfficials() {
   const queryClient = useQueryClient();
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   const officialsQuery = useQuery({
     queryKey: ['officials'],
@@ -37,7 +37,7 @@ export function useOfficials() {
         method: 'POST', 
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         }
       });
       if (!res.ok) {
@@ -62,7 +62,7 @@ export function useOfficials() {
         method: 'PUT', 
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         }
       });
       if (!res.ok) {
@@ -87,7 +87,7 @@ export function useOfficials() {
       const res = await fetch(`${API_BASE}/${id}`, { 
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         }
       });
       if (!res.ok) {
@@ -113,7 +113,7 @@ export function useOfficials() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         },
         body: JSON.stringify(data),
       });

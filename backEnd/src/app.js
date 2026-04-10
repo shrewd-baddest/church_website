@@ -1,10 +1,8 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import fs from "fs";
+import { createServer } from "http";
 import cors from "cors";
-import multer from "multer";
-
 import apiRoutes from "./routers/index.js";
 import { api } from "./routers/api.js";
 import officialsRouter from "./routers/officialsRouter.js";
@@ -15,15 +13,40 @@ import { rateLimit } from "express-rate-limit";
 import requestIp from "request-ip";
 import corsOptions from "./Configs/corsConfigs.js";
 import upload from "./Configs/multerStorageConfig.js";
+import { Server } from "socket.io";
+import cookieParser from "cookie-Parser"
+import { errorHandler } from "./middleWares/error.middlewares.js";
+import { initializeSocketIO, setSocketInstance } from "./socket/index.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app midlewares
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+app.use(cookieParser());
+
+// create app using httserver so we can add a socket on top of the serve , unlike the http server
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+  pingTimeout: 60000, //the socket will listen for 6 second of inactivity then only then decleare as not connected
+  cors: {
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  },
+});
+
+// set the io instance directly to the app object to avoid global use cases as follows req.app.get("io")
+app.set("io", io);
+
+// this is the best way to to get the actual ip adress of a device even if the server is behind a proxy
+//rather than getting the proxy ip adress , usefull in fare shairing of resorces
+app.use(requestIp.mw());
+
 app.use(cors(corsOptions));
 
 // Rate limiter
@@ -37,8 +60,7 @@ const limiter = rateLimit({
   },
   handler: (req, res, next, options) => {
     res.status(options.statusCode || 429).json({
-      error: `There are too many requests. You are only allowed ${
-        options.max
+      error: `There are too many requests. You are only allowed ${options.max
       } requests per ${options.windowMs / 60000} minutes`,
     });
   },
@@ -47,47 +69,17 @@ const limiter = rateLimit({
 // app.use(limiter);
 app.use(morganMiddleware);
 
+app.use("/api", apiRoutes)
+
 // Static Files
 app.use(express.static(path.join(__dirname, "../../frontEnd/public")));
-app.use(
-  express.static(
-    path.join(__dirname, "../../frontEnd/src/pages/sacramental/public"),
-  ),
-);
-app.use(
-  "/community-assets/backend",
-  express.static(
-    path.join(__dirname, "../../frontEnd/src/pages/sacramental/dist/backend"),
-  ),
-);
-app.use(
-  "/community-assets",
-  express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),
-);
-app.use(
-  "/localFileUploads",
-  express.static(path.join(process.cwd(), "localFileUploads")),
-);
-app.use(
-  "/uploads",
-  express.static(path.join(process.cwd(), "localFileUploads")),
-);
-
+app.use(express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental/public")));
 // Routes
-app.get("/", (_req, res) => res.redirect("/community"));
-app.use("/authentication", apiRoutes);
+app.get('/', (_req, res) => res.redirect('/community-hub'));
 app.use("/api/officials", officialsRouter);
 app.use("/api/jumuiya-officials", jumuiyaOfficialsRouter);
 app.use("/api", api);
-
-app.use("/questions", apiRoutes);
-app.use("/files", apiRoutes);
-app.use(
-  "/community-view",
-  express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramental")),
-);
-app.use("/community-view", apiRoutes);
-
+app.use("/community-hub", hubRouter);
 // Gallery APIs
 app.get("/api/choir/gallery", (_req, res) => {
   const gallery = BackendDataService.load("choir_gallery.json", []);
@@ -109,18 +101,15 @@ app.post("/api/choir/gallery", upload.single("file"), (req, res) => {
   BackendDataService.save("choir_gallery.json", gallery);
   res.status(201).json(newPhoto);
 });
-// ERROR HANDLER
-app.use((err, req, res, next) => {
-  logger.error(`${err.message}\n${err.stack}`);
-  
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'An unexpected error occurred';
-  
-  res.status(statusCode).json({
-    success: false,
-    message: message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
-});
 
-export { app };
+
+// Initialize Backend Data Service
+BackendDataService.init();
+
+
+
+initializeSocketIO(io)
+setSocketInstance(io);
+app.use(errorHandler)
+
+export { httpServer };

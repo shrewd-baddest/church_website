@@ -68,7 +68,7 @@ function Navigation() {
           {user ? (
             <div className="hidden md:flex items-center space-x-4">
               <span className="text-sm font-semibold text-gray-700">
-                Hi, {user.username}
+                Hi, {user?.name}
               </span>
               {user.role === "admin" && (
                 <button
@@ -154,7 +154,7 @@ function Navigation() {
             <li className="pt-4 border-t border-gray-50">
               {user ? (
                 <div className="space-y-3">
-                  <div className="text-sm font-semibold text-gray-700">Welcome, {user.username}</div>
+                  <div className="text-sm font-semibold text-gray-700">Welcome, {user?.name}</div>
                   {user.role === "admin" && (
                     <button
                       className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold"
