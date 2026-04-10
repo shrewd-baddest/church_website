@@ -16,9 +16,9 @@ const Footers = () => {
         <section className="flex flex-col items-center gap-4">
           <h2 className="text-xl text-blue-500 font-semi-bold">About CSA</h2>
           <ul>
-            <Link to="/mission"> <li className="hover:font-semibold">Our Mission</li></Link>
-            <Link to="/values"> <li className="hover:font-semibold">Our Values</li></Link>
-            <Link to="/history"> <li className="hover:font-semibold">Our History</li></Link>
+            <li className="hover:font-semibold"><a href="/#about">About CSA</a></li>
+            <li className="hover:font-semibold"><a href="/#mission">Our Mission</a></li>
+            <li className="hover:font-semibold"><a href="/#vision">Our Vision</a></li>
           </ul>
         </section>
         <section className="flex flex-col items-center gap-4">

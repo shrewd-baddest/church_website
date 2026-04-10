@@ -60,33 +60,13 @@ const Login = lazy(() => import("./pages/Authorization/Login"));
 const FallBack: React.FC = () => <div>🍷 Please wait ...</div>;
 
 const Home: React.FC = () => {
-  const { user } = useAuth();
-
   return (
     <div className="flex flex-col h-full bg-gray-50">
       <main className="w-full">
-        {/* Show landing page content when NOT logged in */}
-        {!user && (
-          <>
-            <ImageSlider />
-            <AboutSection />
-            <CommunitySection />
-            <GallerySection />
-          </>
-        )}
-
-        {/* Show all sections when logged in */}
-        {user && (
-          <>
-            <JumuiyaSection />
-            <OfficialsSection />
-            <ProjectsSection />
-            <ActivitiesSection />
-            <GallerySection />
-          </>
-        )}
-
-        {/* Show Support section to everyone */}
+        <ImageSlider />
+        <AboutSection />
+        <CommunitySection />
+        <GallerySection />
         <SuggestionBox />
         <SupportSection />
       </main>

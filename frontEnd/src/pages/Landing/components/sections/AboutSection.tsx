@@ -17,7 +17,7 @@ function AboutSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mt-8 md:mt-12">
         {/* Mission */}
-        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300">
+        <div id="mission" className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300">
           <div className="text-blue-600 mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 rounded-full">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -40,7 +40,7 @@ function AboutSection() {
         </div>
 
         {/* Vision */}
-        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300">
+        <div id="vision" className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300">
           <div className="text-blue-600 mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 rounded-full">
             <svg
               xmlns="http://www.w3.org/2000/svg"
