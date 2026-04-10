@@ -20,12 +20,12 @@ interface SemesterActivity {
 
 /* ---------------- WEEKLY DATA ---------------- */
 const weeklyActivities: WeeklyActivity[] = [
-  { id:1, day:"Monday", time:"7:30 PM", activity:"Rosary", venue:"Church", imageUrl:"https://images.unsplash.com/photo-1504052434569-70ad5836ab65" },
-  { id:2, day:"Tuesday", time:"6:00 PM", activity:"Choir Practice", venue:"Church", imageUrl:"https://images.unsplash.com/photo-1519681393784-d120267933ba" },
-  { id:3, day:"Wednesday", time:"7:00 PM", activity:"Bible Study", venue:"Church", imageUrl:"https://images.unsplash.com/photo-1524995997946-a1c2e315a42f" },
-  { id:4, day:"Thursday", time:"7:30 PM", activity:"Rosary", venue:"Church", imageUrl:"https://images.unsplash.com/photo-1504052434569-70ad5836ab65" },
-  { id:5, day:"Friday", time:"7:00 PM", activity:"Mass", venue:"Church", imageUrl:"https://images.unsplash.com/photo-1507692049790-de58290a4334" },
-  { id:6, day:"Saturday", time:"1:00 PM", activity:"Choir Practice", venue:"School", imageUrl:"https://images.unsplash.com/photo-1519681393784-d120267933ba" },
+  { id:1, day:"Monday", time:"7:30 PM", activity:"Rosary", venue:"Church", imageUrl:"/images/rosary.jpg" },
+  { id:2, day:"Tuesday", time:"6:00 PM", activity:"Choir Practice", venue:"Church", imageUrl:"/images/choir.png" },
+  { id:3, day:"Wednesday", time:"7:00 PM", activity:"Bible Study", venue:"Church", imageUrl:"/images/mass.webp" },
+  { id:4, day:"Thursday", time:"7:30 PM", activity:"Rosary", venue:"Church", imageUrl:"/images/rosary.jpg" },
+  { id:5, day:"Friday", time:"7:00 PM", activity:"Mass", venue:"Church", imageUrl:"/images/mass.webp" },
+  { id:6, day:"Saturday", time:"1:00 PM", activity:"Choir Practice", venue:"School", imageUrl:"/images/choir2.png" },
 ];
 
 /* ---------------- FIXED SEMESTER IMAGES ---------------- */
