@@ -26,29 +26,20 @@
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "libphonenumber-js": "^1.12.40",
-    "mailtrap": "^3.1.1",
+    "mailtrap": "^4.5.1",
     "minimatch": "^10.2.5",
     "mongoose": "^9.3.1",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
-    "multer-storage-cloudinary": "^2.2.1",
-    "nodemailer": "^8.0.4",
-<<<<<<< HEAD
-=======
-    "nodemon": "^3.1.14",
->>>>>>> origin/feature/authorization
+    "nodemailer": "^8.0.5",
     "pg": "^8.16.3",
     "redis": "^5.11.0",
     "request-ip": "^3.3.0",
-<<<<<<< HEAD
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
     "winston": "^3.8.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
-=======
-    "socket.io": "^4.8.0",
-    "winston": "^3.8.2",
-    "xlsx": "^0.18.5"
->>>>>>> origin/feature/authorization
   }
 }

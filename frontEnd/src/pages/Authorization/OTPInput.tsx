@@ -51,7 +51,7 @@ export default function OTPInput({
   };
 
   return (
-    <div style={{ display: "flex", gap: "10px" }}>
+    <div className="flex gap-2.5 justify-center lg:justify-start w-full">
       {otp.map((digit, index) => (
         <input
           key={index}
@@ -61,12 +61,7 @@ export default function OTPInput({
           ref={(el) => { inputsRef.current[index] = el }}
           onChange={(e) => handleInputChange(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          style={{
-            width: "40px",
-            height: "40px",
-            textAlign: "center",
-            fontSize: "20px",
-          }}
+          className="w-11 sm:w-12 h-12 sm:h-14 bg-gray-100 rounded-xl text-center text-xl font-black text-black focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all border border-gray-200 shadow-sm"
         />
       ))}
     </div>

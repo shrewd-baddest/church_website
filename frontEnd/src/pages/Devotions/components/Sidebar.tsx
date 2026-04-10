@@ -150,7 +150,7 @@ export default function Sidebar() {
       </aside>
 
       {/* ✅ Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-200 md:hidden flex justify-around py-2 shadow-sm">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 md:hidden flex justify-around py-3 z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         {items.map((it) => (
           <NavLink
             key={it.to}
@@ -164,7 +164,7 @@ export default function Sidebar() {
               }`
             }
           >
-            <span className="text-lg">{it.icon}</span>
+            <span className="text-2xl">{it.icon}</span>
             <span className="sr-only">{it.label}</span>
           </NavLink>
         ))}

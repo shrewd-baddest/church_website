@@ -13,8 +13,7 @@ import {
   deleteArchivedJumuiyaOfficial,
   bulkDeleteArchivedJumuiyaOfficials
 } from '../controllers/jumuiyaOfficialsController.js';
-import upload from '../Configs/multerCloudinaryConfig.js';
-
+import { createFile } from '../controllers/mediaController.js';
 
 const router = express.Router();
 
@@ -30,9 +29,9 @@ router.delete('/term/:id', deleteArchivedJumuiyaOfficial);
 router.get('/', getAllJumuiyaOfficials);
 router.get('/list', getAllJumuiyaOfficials);
 router.get('/export', exportJumuiyaOfficials);
-router.post('/', upload.single('photo'), createJumuiyaOfficial);
+router.post('/', createFile, createJumuiyaOfficial);
 router.get('/:id', getJumuiyaOfficialById);
-router.put('/:id', upload.single('photo'), updateJumuiyaOfficial);
+router.put('/:id',createFile, updateJumuiyaOfficial);
 router.delete('/:id', deleteJumuiyaOfficial);
 
 export default router;

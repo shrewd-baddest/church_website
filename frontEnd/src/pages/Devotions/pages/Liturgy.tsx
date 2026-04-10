@@ -38,93 +38,129 @@ export default function Liturgy() {
 
 
 return (
-  <div className="w-full h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-100 relative flex flex-col">
+  <div className="w-full h-screen bg-[#fcfcfd] relative flex flex-col overflow-hidden">
     
-    {/* Floating Reminder inside parent */}
-    <div className="flex justify-center pt-2">
-      <div className="bg-gray-600/60 text-white px-6 py-3 rounded-lg">
-        <h2 className="text-2xl font-bold text-center">Order of the Mass</h2>
-      </div>
+    {/* Spiritual Header - Increased top padding to push content down */}
+    <div className="flex flex-col items-center pt-14 pb-4 bg-white shadow-sm shrink-0 border-b border-gray-50">
+      <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic">Liturgy</h2>
+      <p className="text-[10px] text-blue-600 font-extrabold uppercase tracking-[0.3em] mt-1 italic">Order of the Mass</p>
     </div>
 
-    {/* Sleeping avatar always visible when not awake */}
+    {/* Avatar Assistant - Moved to the corner to prevent clashing */}
     {!avatarAwake && (
-      <div className="fixed top-24 right-4 flex flex-col items-center z-50 transition-all duration-500">
-        <img
-          src="../src/assets/images/avatar-sleep.png"
-          alt="Sleeping Avatar"
-          className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-lg transition-all duration-500"
-        />
-        <p className="text-xs sm:text-sm text-gray-700 italic mt-2 max-w-[160px] text-center animate-fadeIn">
-          👀 I’m watching each section for your details…
-        </p>
+      <div className="absolute top-2 right-2 sm:top-24 sm:right-4 z-40 animate-fadeIn pointer-events-none">
+        <div className="bg-white/95 backdrop-blur-xl px-2.5 py-1.5 rounded-xl shadow-md border border-gray-100 flex items-center gap-2">
+          <p className="text-[8px] text-gray-400 font-black max-w-[60px] leading-tight text-right uppercase italic">
+            Tap below
+          </p>
+          <img
+            src="/src/assets/images/avatar-sleep.png"
+            alt="Assistant"
+            className="w-7 h-7 sm:w-10 sm:h-10 opacity-50"
+          />
+        </div>
       </div>
     )}
 
-    {/* Accordion fills entire viewport */}
-    <div className="flex-1 w-full overflow-y-scroll no-scrollbar px-6 py-6 space-y-6">
-      {OrderOfTheMassData.map((section) => {
+    {/* Content Area - Added top margin for separation */}
+    <div className="flex-1 w-full overflow-y-auto no-scrollbar px-5 py-4 space-y-4 pb-48 mt-4">
+      {OrderOfTheMassData.map((section, index) => {
         const isOpen = openSection === section.section;
         return (
           <div
             key={section.section}
-            className="rounded-xl p-4 bg-gray-100/90 backdrop-blur-md"
+            className={`rounded-2xl transition-all duration-300 border ${
+              isOpen 
+              ? "bg-white border-blue-100 shadow-xl shadow-blue-50/50" 
+              : "bg-white border-gray-100 shadow-sm"
+            }`}
           >
             <button
               onClick={() => toggleSection(section.section)}
-              className="w-full flex justify-between items-center font-semibold text-gray-800"
+              className="w-full flex justify-between items-center p-5 text-left group"
             >
-              {section.section}
-              <span>{isOpen ? "−" : "+"}</span>
+              <div className="flex items-center gap-4">
+                <span className={`text-xs font-black ${isOpen ? 'text-blue-600' : 'text-gray-300'}`}>
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className={`font-black text-sm uppercase tracking-wider ${isOpen ? 'text-blue-700' : 'text-gray-700'}`}>
+                  {section.section}
+                </span>
+              </div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                isOpen ? 'bg-blue-600 text-white rotate-180' : 'bg-gray-50 text-gray-400'
+              }`}>
+                {isOpen ? "−" : "+"}
+              </div>
             </button>
 
             <div
-              className={`grid transition-all duration-300 ${
-                isOpen ? "grid-rows-[1fr] mt-3" : "grid-rows-[0fr]"
+              className={`grid transition-all duration-300 ease-out ${
+                isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
               }`}
             >
               <div className="overflow-hidden">
-                {isOpen && avatarAwake && (
-                  <div className="flex flex-col items-center mb-4">
-                    <img
-                      src="../src/assets/images/avatar-awake.png"
-                      alt="Awake Avatar"
-                      className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-lg animate-fadeIn"
-                    />
-                  </div>
-                )}
+                <div className="p-6 pt-0 space-y-6">
+                  {isOpen && avatarAwake && (
+                    <div className="flex justify-center animate-bounce">
+                      <img
+                        src="/src/assets/images/avatar-awake.png"
+                        alt="Awake"
+                        className="w-12 h-12 drop-shadow-md"
+                      />
+                    </div>
+                  )}
 
-                {/* Gestures */}
-                {section.gestures && (
-                  <ul className="list-disc pl-6 text-gray-700 mb-3">
-                    {section.gestures.map((g, i) => (
-                      <li key={i}>
-                        <strong>{g.action}:</strong> {g.meaning}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* Responses */}
-                {section.responses && (
-                  <div className="space-y-2 text-gray-700 italic">
-                    {section.responses[language]?.map((resp, i) => (
-                      <p key={i}>{resp}</p>
-                    ))}
-                  </div>
-                )}
-
-                {/* Hot Discussion */}
-                {section.topics && (
-                  <div className="space-y-4">
-                    {section.topics.map((t, i) => (
-                      <div key={i} className="border-l-4 border-indigo-400 pl-3">
-                        <p className="font-semibold">{t.question}</p>
-                        <p className="text-gray-600 italic">{t.answer}</p>
+                  {/* Gestures Section */}
+                  {section.gestures && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Gestures & Meanings</h4>
+                      <div className="grid gap-2">
+                        {section.gestures.map((g, i) => (
+                          <div key={i} className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 flex gap-3">
+                            <span className="text-xl">✨</span>
+                            <div>
+                               <p className="font-black text-xs text-gray-900 uppercase">{g.action}</p>
+                               <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">{g.meaning}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+
+                  {/* Liturgical Responses */}
+                  {section.responses && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Liturgical Dialogue</h4>
+                      <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 space-y-3">
+                        {section.responses[language]?.map((resp, i) => (
+                          <div key={i} className="flex gap-3">
+                             <div className="w-1 h-auto bg-amber-200 rounded-full shrink-0"></div>
+                             <p className="text-sm text-amber-900 font-serif italic italic leading-relaxed">
+                               {resp}
+                             </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Teaching / Discussion */}
+                  {section.topics && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em]">Faith Insights</h4>
+                      <div className="space-y-4">
+                        {section.topics.map((t, i) => (
+                          <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <p className="font-black text-sm text-gray-900 leading-snug">{t.question}</p>
+                            <p className="text-sm text-gray-600 mt-2 leading-relaxed border-t border-gray-50 pt-2">{t.answer}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -132,31 +168,29 @@ return (
       })}
     </div>
 
-    {/* Floating Language Switcher */}
-    <div className="fixed bottom-6 right-6 z-50">
-      <div className="relative flex bg-gray-600/60 rounded-full p-1 shadow-lg w-40">
-        {/* Sliding Switcher */}
+    {/* Floating Language Switcher - Redesigned to look more deliberate */}
+    <div className="fixed bottom-12 sm:bottom-6 right-6 z-[60]">
+      <div className="relative flex bg-white rounded-2xl p-1 shadow-2xl border border-gray-100 w-44">
+        {/* Sliding Indicator (Clean & Professional) */}
         <div
-          className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-white shadow-md transform transition-transform duration-300 ease-in-out ${
+          className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-blue-600 shadow-md transform transition-transform duration-500 ease-out ${
             language === "english" ? "translate-x-0" : "translate-x-full"
           }`}
         ></div>
 
-        {/* English Button */}
         <button
           onClick={() => setLanguage("english")}
-          className={`relative z-10 flex-1 px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
-            language === "english" ? "text-gray-900" : "text-gray-500"
+          className={`relative z-10 flex-1 px-4 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors duration-500 ${
+            language === "english" ? "text-white" : "text-gray-400 font-bold"
           }`}
         >
           English
         </button>
 
-        {/* Kiswahili Button */}
         <button
           onClick={() => setLanguage("kiswahili")}
-          className={`relative z-10 flex-1 px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
-            language === "kiswahili" ? "text-gray-900" : "text-gray-500"
+          className={`relative z-10 flex-1 px-4 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors duration-500 ${
+            language === "kiswahili" ? "text-white" : "text-gray-400 font-bold"
           }`}
         >
           Kiswahili
@@ -164,15 +198,14 @@ return (
       </div>
     </div>
 
-    {/* Animations */}
     <style>
       {`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.6s ease-in-out;
+          animation: fadeIn 0.4s ease-out forwards;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

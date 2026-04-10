@@ -33,15 +33,15 @@ app.use(cookieParser());
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
-  pingTimeout: 60000, //the socket will listen for 6 second of inactivity then only then decleare as not connected
+  pingTimeout: 60000,
   cors: {
-    origin: process.env.CORS_ORIGIN,
+    origin:process.env.CORS_ORIGIN,
     credentials: true,
   },
 });
 
-// set the io instance directly to the app object to avoid global use cases as follows req.app.get("io")
-app.set("io", io);
+initializeSocketIO(io)
+setSocketInstance(io);
 
 // this is the best way to to get the actual ip adress of a device even if the server is behind a proxy
 //rather than getting the proxy ip adress , usefull in fare shairing of resorces
@@ -58,7 +58,7 @@ const limiter = rateLimit({
   keyGenerator: (req, res) => {
     return req.clientIp;
   },
-  handler: (req, res, next, options) => {
+  handler: (_, __, ___, res) => {
     res.status(options.statusCode || 429).json({
       error: `There are too many requests. You are only allowed ${options.max
       } requests per ${options.windowMs / 60000} minutes`,
@@ -70,6 +70,8 @@ const limiter = rateLimit({
 app.use(morganMiddleware);
 
 app.use("/api", apiRoutes)
+// app.use("/api", api);
+// app.use("/community-hub", hubRouter);
 
 // Static Files
 app.use(express.static(path.join(__dirname, "../../frontEnd/public")));
@@ -78,8 +80,6 @@ app.use(express.static(path.join(__dirname, "../../frontEnd/src/pages/sacramenta
 app.get('/', (_req, res) => res.redirect('/community-hub'));
 app.use("/api/officials", officialsRouter);
 app.use("/api/jumuiya-officials", jumuiyaOfficialsRouter);
-app.use("/api", api);
-app.use("/community-hub", hubRouter);
 // Gallery APIs
 app.get("/api/choir/gallery", (_req, res) => {
   const gallery = BackendDataService.load("choir_gallery.json", []);
@@ -108,8 +108,7 @@ BackendDataService.init();
 
 
 
-initializeSocketIO(io)
-setSocketInstance(io);
+
 app.use(errorHandler)
 
 export { httpServer };

@@ -1,7 +1,7 @@
 
 import upload from "../Configs/multerStorageConfig.js"
 import logger from "../logger/winston.js";
-import ApiError  from "../utils/ApiError.js";
+import { ApiError } from "../utils/ApiError.js";
 
 
 export function uploadMiddleware(req, res, next) {

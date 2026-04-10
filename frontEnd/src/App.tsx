@@ -12,6 +12,14 @@ const Pageoulet = lazy(() => import("./assets/Layouts/Pageoulet"));
 const Layout = lazy(() => import("./pages/Devotions/components/Layout"));
 const UniversalAdmin = lazy(() => import("./pages/Admin/UniversalAdmin"));
 
+// Landing standalone pages
+const ProjectsPage = lazy(() => import("./pages/Landing/components/page/ProjectsPage"));
+const ActivitiesPage = lazy(() => import("./pages/Landing/components/page/ActivitiesPage"));
+const GalleryPage = lazy(() => import("./pages/Landing/components/page/GalleryPage"));
+
+// Utility pages
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 // Authorization
 const Login = lazy(() => import("./pages/Authorization/Login"));
 const Reset = lazy(() => import("./pages/Authorization/Reset"));
@@ -43,6 +51,7 @@ const DonationMonitor = lazy(() => import("./pages/Admin/pages/DonationMonitor")
 
 // Sacramental / Community
 const CommunityHub = lazy(() => import("./pages/sacramental/CommunityHub"));
+const NotificationPage = lazy(() => import("./pages/Devotions/pages/NotificationPage"));
 
 // Fallback component
 const FallBack: React.FC = () => (
@@ -95,6 +104,13 @@ const App: React.FC = () => {
           <Route path="officials/:id" element={<OfficialProfile />} />
           <Route path="officials/history" element={<PublicHistoryView />} />
 
+          {/* Standalone Landing Pages */}
+          <Route path="gallery" element={<GalleryPage />} />
+          <Route path="projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+          <Route path="activities" element={<ProtectedRoute><ActivitiesPage /></ProtectedRoute>} />
+          
+          {/* show notification to all */}
+          <Route path="Notification" element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
           {/* Devotions (Protected) */}
           <Route
             path="devotions"
@@ -139,6 +155,9 @@ const App: React.FC = () => {
             path="community/:moduleSlug?"
             element={<CommunityHub />}
           />
+
+          {/* 404 - Catch-all for unmatched routes */}
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </Suspense>

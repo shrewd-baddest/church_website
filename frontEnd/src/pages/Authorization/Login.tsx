@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaHome } from "react-icons/fa";
+import { Eye, EyeOff, ArrowRight, ChevronLeft, User } from "lucide-react";
 import { loginApi } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 
@@ -9,114 +9,181 @@ interface ErrorResponse {
   message: string;
 }
 
-const Loader: React.FC = () => {
-  return (
-    <div className="flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-t-blue-600 border-gray-300 rounded-full animate-spin"></div>
-    </div>
-  );
-};
-
 const Login: React.FC = () => {
-  const [userReg, setUserReg] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [userReg, setUserReg] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
-
   const navigate = useNavigate();
 
   const submit = async () => {
+    if (!userReg || !password) return;
     try {
       setLoading(true);
-      const response = await loginApi({ userReg, password })
-
+      const response = await loginApi({ userReg, password });
       if (response.data.status === "success") {
-        login(response.data); 
-      }
-
-      else if (response.data.message == "User email not found") {
-        alert("Login User email not found. Please enter your email and change your password.");
-        login(response.data); 
-        navigate("reset", { state: { purpose: 'email' } });
-      }
-      else {
+        login(response.data);
+      } else if (response.data.message === "User email not found") {
+        alert("User email not found. Please reset your password.");
+        login(response.data);
+        navigate("reset", { state: { purpose: "email" } });
+      } else {
         alert(response.data.message || "Login failed");
       }
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
-      console.error("Login error:", error);
-
       alert((axiosError.response?.data as ErrorResponse)?.message || "Login failed. Please check your credentials.");
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") submit();
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        {/* Back to   FaHome Button */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center mb-4 text-sm text-gray-600 transition-colors hover:text-blue-600"
-        >
-          < FaHome className="w-4 h-4 mr-1" />
-          Back to  Home
-        </button>
+    <div className="min-h-screen flex items-center justify-center bg-[#f8f7f4] px-6 py-12">
+      
+      {/* ══════════ Main Container ══════════ */}
+      <div className="w-full max-w-md lg:max-w-5xl flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-24 relative z-10">
 
-        <h2 className="mb-6 text-2xl font-bold text-center text-gray-800">
-          Welcome Back
-        </h2>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              User Name
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={userReg}
-              onChange={(e) => setUserReg(e.target.value)}
-              placeholder="Enter your userReg"
-            />
+        {/* ══════════ LEFT — Branding (Desktop only) ══════════ */}
+        <div className="hidden lg:flex flex-col justify-center w-1/2 pl-10">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center shadow-xl shadow-gray-200">
+              <span className="text-white font-black text-sm tracking-widest">CSA</span>
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="text-gray-950 font-black text-xl tracking-tight leading-none mb-1">Catholic Students</span>
+              <span className="text-amber-500 font-black text-sm tracking-tight leading-none">Association</span>
+            </div>
           </div>
+          
+          <div className="w-10 h-[3px] bg-amber-500 mb-8 rounded-full" />
+          
+          <h2 className="text-6xl font-black text-gray-950 leading-[1.05] tracking-tight mb-6">
+            Growing<br />Together in<br />
+            <span className="text-amber-500">Faith.</span>
+          </h2>
+          
+          <p className="text-lg text-gray-500 font-medium leading-relaxed mb-12 max-w-sm">
+            Access your daily devotions, Rosary tracker, Jumuiya discussions, and community events purely in one place.
+          </p>
 
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-            />
-          </div>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            © {new Date().getFullYear()} CSA Kirinyaga Chapter
+          </p>
+        </div>
 
-          <div className="flex items-center">
-            <input type="checkbox" id="remember" className="mr-2" />
-            <label htmlFor="remember" className="text-sm text-gray-600">
-              Remember me
-            </label>
-          </div>
-
+        {/* ══════════ RIGHT — Form Panel ══════════ */}
+        <div className="w-full lg:w-[45%] px-0 sm:px-12 lg:px-0">
+          
+          {/* Back button */}
           <button
-            onClick={submit}
-            className="w-full px-4 py-2 text-white transition-colors bg-blue-700 rounded-md hover:bg-blue-800"
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-gray-400 hover:text-black text-[10px] font-black uppercase tracking-widest transition-colors group mb-10 w-fit"
           >
-        {loading ? <Loader /> : "Sign In"}
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            Back to Home
           </button>
 
-          <div className="mt-4 text-center">
+          {/* Form Header */}
+          <div className="mb-8 flex flex-col items-center lg:items-start text-center lg:text-left">
+            {/* Avatar (Mobile Only) */}
+            <div className="relative mb-6 mt-2 lg:hidden">
+              {/* Outer ring */}
+              <div className="absolute inset-0 rounded-full bg-black/5 scale-[1.3] animate-pulse" />
+              {/* Avatar circle */}
+              <div className="relative w-24 h-24 rounded-full bg-white shadow-xl shadow-gray-200/50 border border-gray-100 flex items-center justify-center">
+                <User className="w-10 h-10 text-gray-300" strokeWidth={1.5} />
+              </div>
+              {/* Status dot */}
+              <div className="absolute bottom-1 right-2 w-5 h-5 rounded-full bg-green-500 border-2 border-white shadow-sm" />
+            </div>
+
+            <h1 className="text-3xl font-black text-gray-950 tracking-tight mt-1">Welcome back.</h1>
+            <p className="text-sm text-gray-500 font-medium mt-2">Sign in to continue your journey</p>
+          </div>
+
+          {/* Fields */}
+          <div className="space-y-6" onKeyDown={handleKeyDown}>
+
+            {/* Registration */}
+            <div>
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2 pl-1">
+                Registration No.
+              </label>
+              <input
+                type="text"
+                value={userReg}
+                onChange={(e) => setUserReg(e.target.value)}
+                placeholder="e.g. KE/CSA/2024/001"
+                className="w-full bg-gray-100 rounded-2xl px-5 py-4 text-sm font-black text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all border border-gray-200"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2 pl-1">
+                Password
+              </label>
+              <div className="relative flex items-center">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full bg-gray-100 rounded-2xl px-5 py-4 pr-12 text-sm font-black text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all border border-gray-200 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-0 bottom-0 flex items-center justify-center text-gray-400 hover:text-black transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember + Forgot */}
+            <div className="flex items-center justify-between pt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="w-3.5 h-3.5 rounded border-gray-300 accent-black cursor-pointer" />
+                <span className="text-xs font-bold text-gray-500">Remember me</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => navigate("reset", { state: { purpose: "reset password" } })}
+                className="text-xs font-bold text-black hover:text-amber-500 transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {/* Submit */}
             <button
-              onClick={() => navigate('reset', { state: { purpose: 'reset password' } })}
-              className="text-sm text-blue-600 hover:underline"
+              onClick={submit}
+              disabled={loading || !userReg || !password}
+              className="w-full flex items-center justify-center gap-2.5 bg-black text-white font-black text-xs uppercase tracking-[0.2em] py-4 rounded-2xl shadow-xl shadow-gray-200 hover:bg-gray-900 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed group mt-4"
             >
-              Forgot Password?
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign In
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </div>
+          
         </div>
       </div>
     </div>
@@ -124,6 +191,3 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-
-
-

@@ -5,7 +5,7 @@ import type { fileUpload } from "../interface/api";
 import { normalizeFiles } from "../pages/Devotions/utitlty";
 
 // Create an Axios instance for API requests
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_SERVER_URI,
   withCredentials: true,
   timeout: 120000,
@@ -98,8 +98,8 @@ export const individualJumuiAttemptsData =( jumuiyaId : number)=>{
 }
 
 // Api for fetching notification data either at csa or jumuiya level
-export const fetchNotifications = (jumuiyaId: number) =>{
-  return apiClient.get( `/notifications?jumuiyaId=${jumuiyaId}&posted_to=csa`)
+export const fetchNotifications = () =>{
+  return apiClient.get( `/notifications`)
 } 
 
 export const createNotificationEventApi= (payload: { title: string; message: string; images?: fileUpload[]; posted_To?: string; status?: string;}) => {
@@ -134,17 +134,25 @@ export const deleteOneOrMoreFiles = (publicIds: string | string[]) => {
 
 
 export const loginApi = (data: { userReg: string; password: string }) => {
-  return apiClient.post("/authentication/v1/login", data);
+  return apiClient.post("/authentication/login", data);
 };
 
 export const initiateSTKPush = (data: { amount: number; phoneNumber: string }) => {
-  return apiClient.post("/authentication/v1/stk-push", data);
+  return apiClient.post("/authentication/stk-push", data);
 };
 
 export const initiateGuestSTKPush = (data: { amount: number; phoneNumber: string }) => {
-  return apiClient.post("/authentication/v1/stk-push-guest", data);
+  return apiClient.post("/authentication/stk-push-guest", data);
 };
 
 export const getSTKPushStatus = (checkoutId: string) => {
-  return apiClient.get(`/authentication/v1/stk-push-status/${checkoutId}`);
+  return apiClient.get(`/authentication/stk-push-status/${checkoutId}`);
 };
+
+export const resetEmailApi = (data: { email: string; password?: string; purpose: string }) => {
+  return apiClient.post("/authentication/v1/reset-email", data);
+};
+
+export const resetPasswordApi = (data: { email: string; password?: string; purpose: string }) => {
+  return apiClient.post("/authentication/v1/reset", data);
+};

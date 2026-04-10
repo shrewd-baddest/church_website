@@ -20,12 +20,17 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ error: "Token required" });
     }
 
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("decoded", decoded);
 
     req.user = {
       id: decoded.id,
+      member_id: decoded.id,
       role: decoded.role,
-      jumuiaId: decoded.jumuiaId,
+      jumuiya_id: decoded.jumuiya_id,
+      firstName: decoded.firstName,
+      lastName: decoded.lastName,
+      email: decoded.email
     };
 
     next();
@@ -35,5 +40,10 @@ const verifyToken = async (req, res, next) => {
     return res.status(401).json({ message: err.message });
   }
 };
+
+
+
+
+
 
 export default verifyToken;

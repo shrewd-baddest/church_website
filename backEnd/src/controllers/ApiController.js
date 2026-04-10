@@ -1,6 +1,18 @@
 import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
+const TABLE_SORT_COLUMNS = {
+  events: "event_date",
+  contributions: "date",
+  gallery: "event_date",
+  activities: "activity_date",
+  members: "join_date",
+  officials: "id",
+  projects: "id",
+  jumuiya: "id",
+  mpesa_request: "created_at",
+};
+
 // Get all records from a table
 export const getTableData = async (tableName) => {
   const sortCol = TABLE_SORT_COLUMNS[tableName] || 'id';

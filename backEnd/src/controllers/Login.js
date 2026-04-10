@@ -7,19 +7,23 @@ dotenv.config();
 
 export const Login = async (req, res) => {
   let { userReg, password } = req.body ?? {};
-  // console.log("Login attempt for user:", userReg);
+
   userReg = userReg?.toUpperCase();
 
   if (!userReg || !password) {
+    console.log("Username and password required");
     logger.error("Username and password required");
     return res.status(400).json({ status: false, message: "Username and password required" });
   }
-
-  try {
+ try {
     const result = await testDb?.query(
-      `SELECT m.member_id,m.password,m.jumui_id m.email, r.role_name FROM members m 
-      JOIN member_roles mr ON m.member_id = mr.member_id 
-      JOIN roles r ON mr.role_id = r.role_id WHERE m.member_id =$1`,
+      `SELECT m.member_id, m.password, m.jumuiya_id, m.first_name, m.last_name, m.email, 
+              ARRAY_AGG(r.role_name) as roles
+       FROM members m 
+       JOIN member_roles mr ON m.member_id = mr.member_id 
+       JOIN roles r ON mr.role_id = r.role_id 
+       WHERE m.member_id = $1
+       GROUP BY m.member_id, m.password, m.jumuiya_id, m.first_name, m.last_name, m.email`,
       [userReg],
     );
 
@@ -36,28 +40,26 @@ export const Login = async (req, res) => {
       return res.status(401).json({ status: false, message: "Invalid username or password" });
     }
 
-    const accessToken = generateAccesstoken(user.member_id, user.role_name , user.first_name , user.last_name , user.email);
-    const refreshToken = generateRefreshtoken(user.member_id, user.role_name);
+    const accessToken = generateAccesstoken(user.member_id, user.roles, user.first_name, user.last_name, user.email, user.jumuiya_id);
+    const refreshToken = generateRefreshtoken(user.member_id, user.roles);
 
-    const token = jwt.sign(
-      { id: user.member_id, role: user.role_name , jumuiaId: user.jumuia_id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" },
-    );
-
-    if (!user.email) {
-      logger.error("User email not found");
-       res.json({message: "User email not found" });
-    }
-    res.status(200).json({status: "success",  accessToken, refreshToken, role: user.role_name , firstName: user.first_name , lastName: user.last_name , email: user.email });
+    res.status(200).json({
+      status: "success",
+      accessToken,
+      refreshToken,
+      role: user.roles, // returning role as array
+      name: `${user.first_name} ${user.last_name}`.trim(),
+      email: user.email,
+      jumuiya_id: user.jumuiya_id
+    });
   } catch (err) {
-    logger.error("Server error");
+    logger.error("Server error", err);
     res.status(500).json({ status: false, message: "Server error" });
   }
 };
 
-export const generateAccesstoken = (id, role , firstName , lastName , email) => {
-  return jwt.sign({ id, role , firstName , lastName , email }, process.env.JWT_SECRET, { expiresIn: "15min" });
+export const generateAccesstoken = (id, role, firstName, lastName, email, jumuiya_id) => {
+  return jwt.sign({ id, role, firstName, lastName, email, jumuiya_id }, process.env.JWT_SECRET, { expiresIn: "15min" });
 };
 
 export const generateRefreshtoken = (id, role) => {
@@ -103,7 +105,23 @@ AND expires_at > NOW()`,
       return res.status(403).json({ error: "Invalid refresh token" });
     }
     //  Generate new access token
-    const accessToken = generateAccesstoken(decoded.id, decoded.role);
+    const userResult = await testDb.query(
+      `SELECT m.member_id, m.jumuiya_id, m.first_name, m.last_name, m.email, 
+              ARRAY_AGG(r.role_name) as roles
+       FROM members m 
+       JOIN member_roles mr ON m.member_id = mr.member_id 
+       JOIN roles r ON mr.role_id = r.role_id 
+       WHERE m.member_id = $1
+       GROUP BY m.member_id, m.jumuiya_id, m.first_name, m.last_name, m.email`,
+      [decoded.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(403).json({ error: "User no longer exists" });
+    }
+
+    const user = userResult.rows[0];
+    const accessToken = generateAccesstoken(user.member_id, user.roles, user.first_name, user.last_name, user.email, user.jumuiya_id);
 
     res.status(200).json({ accessToken });
   } catch (error) {

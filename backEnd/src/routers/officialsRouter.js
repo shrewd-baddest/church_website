@@ -18,8 +18,8 @@ import {
   deleteArchivedOfficial,
   bulkDeleteArchivedOfficials
 } from '../controllers/officialsController.js';
-import upload from '../Configs/multerCloudinaryConfig.js';
 
+import { createFile } from '../controllers/mediaController.js';
 
 const router = express.Router();
 
@@ -42,8 +42,8 @@ router.delete('/term/:officialId', deleteArchivedOfficial);
 router.get('/list', getAllOfficials); 
 router.get('/export', exportOfficials);
 router.get('/:id', getOfficialById);
-router.post('/', upload.single('photo'), createOfficial);
-router.put('/:id', upload.single('photo'), updateOfficial);
+router.post('/', createFile, createOfficial);
+router.put('/:id', createFile, updateOfficial);
 router.delete('/:id', deleteOfficial);
 
 export default router;

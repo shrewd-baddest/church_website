@@ -1,57 +1,80 @@
 import { Link } from "react-router-dom";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
-import { SiGithub } from "react-icons/si";
+import { footerSections, footerSocialMedia } from "./footerRoutes";
 
 const Footers = () => {
+  const currentYear = new Date().getFullYear();
 
-  const socialMedia = [
-    { icon: <FaFacebook />, url: "https://facebook.com/YourPage", color: "#1877F2", name: "Facebook" },
-    { icon: <FaTwitter />, url: "https://twitter.com/YourPage", color: "#1DA1F2", name: "Twitter" },
-    { icon: <FaInstagram />, url: "https://instagram.com/YourPage", color: "#E1306C", name: "Instagram" },
-    { icon: <FaLinkedin />, url: "https://linkedin.com/in/YourPage", color: "#0A66C2", name: "LinkedIn" },
-    { icon: <SiGithub />, url: "https://github.com/YourProfile", color: "#333", name: "GitHub" },
-  ];
   return (
-    <div className="flex flex-col items-center justify-center gap-8 px-[8%] py-12 bg-gray-100 text-center ">
-      <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-4">
-        <section className="flex flex-col items-center gap-4">
-          <h2 className="text-xl text-blue-500 font-semi-bold">CSA Kirinyaga</h2>
-          <p>Growing Together in Faith and Service</p>
+    <footer className="bg-transparent text-gray-600 py-20 px-6 sm:px-12 lg:px-24">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-12 pt-4">
+        
+        {/* Slogan Section - Spans 2 on Mobile */}
+        <section className="col-span-2 lg:col-span-1 flex flex-col items-center text-center lg:items-start lg:text-left space-y-5">
+          <div className="flex flex-col items-center lg:items-start">
+            <div className="h-1.5 w-10 bg-blue-600 rounded-full mb-4"></div>
+            <p className="text-base sm:text-lg font-black italic text-gray-950 leading-tight">
+              "Growing Together in Faith and Service."
+            </p>
+          </div>
+          <p className="text-[12px] sm:text-sm leading-relaxed max-w-xs font-medium text-gray-500">
+            Empowering students through spiritual guidance and community hubs.
+          </p>
         </section>
-        <section className="flex flex-col items-center gap-4">
-          <h2 className="text-xl text-blue-500 font-semi-bold">About CSA</h2>
-          <ul>
-            <Link to="/mission"> <li className="hover:font-semibold">Our Mission</li></Link>
-            <Link to="/values"> <li className="hover:font-semibold">Our Values</li></Link>
-            <Link to="/history"> <li className="hover:font-semibold">Our History</li></Link>
-          </ul>
-        </section>
-        <section className="flex flex-col items-center gap-4">
-          <h2 className="text-xl text-blue-500 font-semi-bold">Resources</h2>
-          <ul>
-            <Link to="/resources" ><li className="hover:font-semibold">View Resources</li></Link>
-            <Link to="/devotions/readings"><li className="hover:font-semibold">Daily Readings</li></Link>
-            <Link to="/contact"><li className="hover:font-semibold">Saints Info</li></Link>
 
-          </ul>
-        </section>
-        <section className="flex flex-col items-center gap-4">
-          <h2 className="text-xl text-blue-500 font-semi-bold">Connect</h2>
-          <ul>
-            {socialMedia.map((platform, index) => (
-              <li key={index}>
-                <a href={platform.url} target="_blank" className="flex items-center gap-2">
-                  {platform.icon}
-                  <span className="text-sm hover:font-semibold">{platform.name}</span>
-                </a>
-              </li>
+        {/* Dynamic Navigation Sections */}
+        {footerSections.map((section, idx) => (
+          <section key={idx} className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-8">
+            <h3 className="text-[10px] sm:text-[11px] font-black text-gray-950 uppercase tracking-[0.4em]">
+              {section.title}
+            </h3>
+            <ul className="space-y-4">
+              {section.routes.map((route, rIdx) => (
+                <li key={rIdx}>
+                  <Link 
+                    to={route.path} 
+                    className={`${section.hoverColor} transition-colors text-xs sm:text-sm font-medium text-gray-600`}
+                  >
+                    {route.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+
+        {/* Social Icons - Centered below all categories */}
+        <div className="col-span-2 lg:col-span-4 flex flex-col items-center gap-6 mt-8">
+           <div className="h-[1px] w-full max-w-xs bg-gray-100"></div>
+           <div className="flex justify-center gap-6">
+            {footerSocialMedia.map((platform, index) => (
+              <a 
+                key={index} 
+                href={platform.url} 
+                target="_blank" 
+                rel="noreferrer"
+                className="w-11 h-11 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center hover:bg-gray-950 hover:text-white hover:shadow-2xl transition-all duration-500 group"
+              >
+                <span className="text-lg transform group-hover:scale-125 transition-transform">
+                  <platform.icon />
+                </span>
+              </a>
             ))}
-          </ul>
-        </section>
+          </div>
+        </div>
+
       </div>
-      <h2 className="text-sm text-gray-600">© 2026 CSA Kirinyaga. All rights reserved.</h2>
-    </div>
-  )
+
+      {/* Copyright Bar */}
+      <div className="max-w-7xl mx-auto pt-16 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
+        <p>© {currentYear}. Crafted for the Catholic Community.</p>
+        <div className="flex gap-6">
+           <a href="#" className="hover:text-gray-950 transition-colors">Privacy</a>
+           <a href="#" className="hover:text-gray-900 transition-colors text-gray-200">•</a>
+           <a href="#" className="hover:text-gray-900 transition-colors text-gray-200">Terms</a>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footers;

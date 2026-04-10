@@ -25,7 +25,7 @@ export const connectDb = async () => {
     logger.error("Failed to connect postgree database:", error.message, {
       stack: error.stack,
     });
-    // process.exit(1)
+    process.exit(1)
   }
 };
 

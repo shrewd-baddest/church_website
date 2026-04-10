@@ -1,5 +1,5 @@
 // Base URL for the API endpoints - using proxy
-const API_BASE_URL = '/api';
+import { apiClient } from "../../../api/axiosInstance";
 
 /**
  * ApiService class provides methods to interact with the backend API.
@@ -13,11 +13,8 @@ class ApiService {
    */
   async fetchTableData(tableName: string): Promise<any[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/${tableName}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await apiClient.get(`/${tableName}`);
+      return response.data;
     } catch (error) {
       console.error(`Error fetching ${tableName}:`, error);
       throw error;
@@ -32,17 +29,8 @@ class ApiService {
    */
   async createRecord(tableName: string, data: Record<string, any>): Promise<any> {
     try {
-      const response = await fetch(`${API_BASE_URL}/${tableName}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await apiClient.post(`/${tableName}`, data);
+      return response.data;
     } catch (error) {
       console.error(`Error creating record in ${tableName}:`, error);
       throw error;
@@ -57,13 +45,8 @@ class ApiService {
    */
   async deleteRecord(tableName: string, id: string | number): Promise<any> {
     try {
-      const response = await fetch(`${API_BASE_URL}/${tableName}/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await apiClient.delete(`/${tableName}/${id}`);
+      return response.data;
     } catch (error) {
       console.error(`Error deleting record from ${tableName}:`, error);
       throw error;
@@ -169,11 +152,8 @@ class ApiService {
    */
   async poolAllData(): Promise<Record<string, any[]>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/all`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await apiClient.get('/all');
+      return response.data;
     } catch (error) {
       console.error('Error pooling all data:', error);
       throw error;

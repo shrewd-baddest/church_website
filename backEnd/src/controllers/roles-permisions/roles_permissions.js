@@ -61,7 +61,7 @@ export const registerUser = async (req, res) => {
     // 6. Insert into members
     const insertMemberQuery = `
       INSERT INTO members (
-        member_id, jumuia_id, first_name, last_name, gender, email, phone,
+        member_id, jumuiya_id, first_name, last_name, gender, email, phone,
         year_of_study, course, password, join_date
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_DATE)

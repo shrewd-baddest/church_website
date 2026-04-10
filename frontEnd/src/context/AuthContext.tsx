@@ -6,11 +6,11 @@ import {  LocalStorage } from '../utils';
 interface UserData {
   accessToken: string;
   refreshToken: string;
-  role: string;
+  role: string[];
   name: string; // Combined firstName and lastName as per backend change
   email: string;
   status: string; // e.g. "success"
-  jumuiya_id: number;
+  jumuiya_id: string;
 }
 
 interface AuthContextType {
@@ -32,8 +32,9 @@ const AuthContext = createContext<AuthContextType>({
 
 // Create the provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserData | null>(null);
 
+  const [user, setUser] = useState<UserData | null>(null);
+console.log(user)
   // Check for stored user on initial load
   useEffect(() => {
     const storedData = LocalStorage.get('userdata');
@@ -52,7 +53,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = (data: UserData) => {
       setUser(data);
-      LocalStorage.set('userdata', JSON.stringify(data));
+      LocalStorage.set('userdata', data);
   };
 
   const logout = () => {

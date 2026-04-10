@@ -2,7 +2,7 @@ import logger from "../logger/winston.js";
 import { testDb } from "../Configs/dbConfig.js";
 import cloudinary from "../Configs/cloudinaryConfigs.js";
 import { uploadOneFile, uploadManyFiles } from "../utils/index.js";
-import ApiError  from "../utils/ApiError.js";
+import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 // Upload one or many files

@@ -2,7 +2,7 @@ import fs from "fs";
 import cloudinary from "../Configs/cloudinaryConfigs.js";
 import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
-import  ApiError  from "./ApiError.js";
+import { ApiError } from "./ApiError.js";
 
 export const parseQuestionBlock = (block) => {
   const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);

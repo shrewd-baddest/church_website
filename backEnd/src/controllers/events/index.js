@@ -2,7 +2,7 @@ import { testDb as pool } from "../../Configs/dbConfig.js";
 import { ChatEventEnum } from "../../constant.js";
 import logger from "../../logger/winston.js";
 import { emitSocketEvent } from "../../socket/index.js";
-import  ApiError from "../../utils/ApiError.js";
+import { ApiError } from "../../utils/ApiError.js";
 
 // /notifications-event/v1/event + payload
 export const createNotification = async (req, res) => {
@@ -262,6 +262,38 @@ export const deleteNotification = async (req, res) => {
 
     return res.status(500).json({
       error: "Error deleting notification",
+    });
+  }
+};
+
+//function that receives a jumuiyaid , fetches all notification with the jumuia id  and any other notification where posted to is csa and return the notifications 
+
+export const getNotification = async (req, res) => {
+  const { jumuiya_id: jumuiyaId } = req.user;
+
+  try {
+    const result = await pool.query(
+      `SELECT * FROM notifications 
+       WHERE posted_to=$1 OR posted_to='csa' `,
+      [jumuiyaId],
+    );
+    
+    if (result.rows.length === 0) {
+      logger.info("⚠️ No notifications found", {
+        jumuiyaId,
+      });
+    }
+
+    return res.json(result.rows);
+  } catch (err) {
+    logger.error("❌ Error fetching notifications", {
+      message: err,
+      stack: err.stack,
+      jumuiyaId,
+    });
+
+    return res.status(500).json({
+      error: "Error fetching notifications",
     });
   }
 };

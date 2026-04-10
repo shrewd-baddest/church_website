@@ -10,10 +10,10 @@ export const ELECTION_TERM_DURATION = 2; // years
 export const ChatEventEnum = Object.freeze({//where .freeze is used for predictability and immutability. exactrly doing the following function you cannot add, remove, or change properties.
     //- Event names are critical identifiers in a chat app. If someone accidentally changes "connected" to "connectd", sockets will break. Freezing prevents that.
   // ? once user is ready to go
-  CONNECTED_EVENT: "connected",
+  CONNECTED_EVENT: "connection",
   // ? when user gets disconnected
   DISCONNECT_EVENT: "disconnect",
-  // ?  when user joins respective jumuia
+  // ?  when user joins respective jumuia 
   JOIN_INDIVIDUAL_JUMUIA_EVENT:"joinIndividualJumuia",
   //? event to notify user on csa notification
   NOTIFY_CSA_ON_NEW_NOTIFICATION_EVENT:"csaNotification",

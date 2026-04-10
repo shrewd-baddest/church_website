@@ -214,26 +214,24 @@ if (portalStatus === "welcome") {
               Stay consistent. Grow your knowledge. Earn your rewards.
             </p>
 
-            {/* Achievement Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-8 items-center">
+            {/* Achievement Cards - Stacked on mobile, Grid on desktop */}
+            <div className="flex flex-col sm:grid sm:grid-cols-3 gap-6 sm:gap-4 mb-10 items-center">
               {[
-                { icon: "🔥", title: "Consistency", desc: "Build a daily streak", badge: "Streak Master", color: "bg-orange-100 text-orange-800" },
-                { icon: "🧠", title: "Knowledge", desc: "Learn something new", badge: "Thinker", color: "bg-white text-gray-900" },
-                { icon: "🏆", title: "Rewards", desc: "Earn recognition", badge: "Champion", color: "bg-yellow-100 text-yellow-800" }
+                { icon: "🔥", title: "Consistency", desc: "Build a daily streak", badge: "Streak Master", color: "bg-orange-50 text-orange-900" },
+                { icon: "🧠", title: "Knowledge", desc: "Learn something new", badge: "Thinker", color: "bg-white text-gray-900 border border-gray-100" },
+                { icon: "🏆", title: "Rewards", desc: "Earn recognition", badge: "Champion", color: "bg-yellow-50 text-yellow-900" }
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className={`flex flex-col justify-center items-center rounded-lg h-44 shadow-md 
+                  className={`flex flex-col justify-center items-center rounded-2xl w-full h-40 sm:h-44 shadow-lg transition-all duration-300
                     ${idx === 1 
-                      ? "scale-110 -translate-y-2 z-20 animate-float shadow-xl" // Center card bigger + floating
+                      ? "sm:scale-110 sm:-translate-y-2 z-20 animate-float shadow-2xl bg-white" 
                       : ""} ${item.color}`}
                 >
-                  {/* Animated Icon */}
-                  <div className="text-3xl animate-bounce">{item.icon}</div>
-                  <p className="italic text-lg font-semibold mt-2">{item.title}</p>
-                  <p className="italic text-sm mt-1">{item.desc}</p>
-                  {/* Badge */}
-                  <span className="mt-2 px-3 py-1 text-xs italic rounded-full bg-gray-200 text-gray-700 shadow-sm">
+                  <div className="text-4xl animate-bounce mb-2">{item.icon}</div>
+                  <p className="italic text-lg font-black tracking-tight">{item.title}</p>
+                  <p className="italic text-xs opacity-70 mt-1 px-4 text-center">{item.desc}</p>
+                  <span className="mt-3 px-4 py-1.5 text-[10px] italic font-black rounded-full bg-gray-950 text-white shadow-lg uppercase tracking-widest">
                     {item.badge}
                   </span>
                 </div>
@@ -387,26 +385,36 @@ if (portalStatus === "welcome") {
   // ✅ COMPLETED (REVIEW MODE)
   if (portalStatus === "completed") {
     return (
-      <div className="min-h-screen bg-gray-50 px-4 py-8 flex justify-center">
-        <div className="w-full max-w-3xl">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Your Score: {score}/{questions.length}
-            </h2>
+      <div className="min-h-screen bg-transparent px-4 py-12 flex justify-center overflow-y-auto no-scrollbar">
+        <div className="w-full max-w-2xl">
+          {/* Compact Top Header - Optimized Vertical Space */}
+          <div className="flex flex-col items-center sm:items-start mb-12 px-2 gap-5">
+            {/* Victory Row */}
+            <div className="flex items-center gap-5">
+              <div className="text-4xl sm:text-5xl animate-bounce">🏆</div>
+              <div>
+                <p className="text-[9px] font-black text-blue-700 uppercase tracking-[0.3em] italic">Devotion Milestone</p>
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tighter leading-none mb-1">
+                  Score: {score}<span className="text-gray-400">/{questions.length}</span>
+                </h2>
+                <p className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] italic">Know the Church</p>
+              </div>
+            </div>
 
-            {/* Floating Right Button */}
-            <button
-              onClick={handleReset}
-              className="bg-gray-900 text-white px-5 py-2 rounded-lg font-medium 
-              hover:scale-105 transition-transform duration-200"
-            >
-              Try Again Tomorrow
-            </button>
+            {/* Actions Row */}
+            <div className="w-full flex justify-center sm:justify-start">
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-3 bg-gray-900 text-white px-8 py-3.5 rounded-full font-black text-[9px] uppercase tracking-[0.2em] shadow-xl hover:bg-gray-800 transition-all active:scale-95 group"
+              >
+                Finish Challenge
+                <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
 
-          {/* Questions */}
-          <div className="space-y-5">
+          {/* Results List - Borderless Style */}
+          <div className="space-y-16 pb-32">
             {questions.map((q, i) => {
               const userAnswer = userAnswers[i];
               const isCorrect = userAnswer === q.correctAnswer;
@@ -414,53 +422,75 @@ if (portalStatus === "welcome") {
               return (
                 <div
                   key={i}
-                  className={`p-5 rounded-xl border ${
-                    isCorrect
-                      ? "border-green-300 bg-green-50"
-                      : "border-red-300 bg-red-50"
-                  }`}
+                  className="animate-fadeIn relative"
+                  style={{ animationDelay: `${i * 100}ms` }}
                 >
-                  {/* Question */}
-                  <h3 className="font-semibold text-gray-800 mb-4">
-                    {i + 1}. {q.question}
+                  {/* Vertical Question ID Indicator */}
+                  <div className="flex items-center gap-3 mb-6">
+                     <span className="text-xs font-black text-gray-500 italic tracking-tighter">QUESTION {String(i + 1).padStart(2, '0')}</span>
+                     <div className={`h-[1px] flex-1 ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}></div>
+                     {isCorrect ? (
+                       <span className="text-[9px] font-black text-green-600 uppercase tracking-widest">Mastered</span>
+                     ) : (
+                       <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Incomplete</span>
+                     )}
+                  </div>
+                  
+                  {/* Question Title */}
+                  <h3 className="font-bold text-xl text-gray-800 mb-8 leading-snug max-w-xl">
+                    {q.question}
                   </h3>
 
-                  {/* Options */}
-                  <div className="space-y-2">
+                  {/* Options List - Clean/No Border */}
+                  <div className="space-y-4">
                     {q.options.map((opt, idx) => {
-                      const isUser = idx === userAnswer;
-                      const isRight = idx === q.correctAnswer;
+                      const isUserChoice = idx === userAnswer;
+                      const isCorrectAnswer = idx === q.correctAnswer;
 
                       return (
                         <div
                           key={idx}
-                          className={`p-3 rounded-lg border text-sm flex justify-between items-center
-                          ${
-                            isRight
-                              ? "border-green-400 bg-green-100"
-                              : isUser
-                                ? "border-red-400 bg-red-100"
-                                : "border-gray-200 bg-white"
-                          }`}
+                          className="flex items-start gap-4 group"
                         >
-                          <span>{opt}</span>
+                          {/* Dot Indicator */}
+                          <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 transition-all ${
+                            isCorrectAnswer 
+                              ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" 
+                              : isUserChoice && !isCorrectAnswer
+                                ? "bg-red-400"
+                                : "bg-gray-200"
+                          }`}></div>
 
-                          <span className="ml-2">
-                            {isRight && "✅"}
-                            {isUser && !isRight && "❌"}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className={`text-sm font-medium transition-colors ${
+                              isCorrectAnswer 
+                                ? "text-gray-900 font-bold" 
+                                : isUserChoice && !isCorrectAnswer
+                                  ? "text-red-600"
+                                  : "text-gray-600"
+                            }`}>
+                              {opt}
+                            </span>
+                            
+                            {/* Sub-label */}
+                            {isCorrectAnswer && (
+                              <span className="text-[8px] font-black text-green-700 uppercase tracking-widest mt-1">Correct Answer</span>
+                            )}
+                            {isUserChoice && !isCorrectAnswer && (
+                              <span className="text-[8px] font-black text-red-600 uppercase tracking-widest mt-1">Your Selection</span>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Explanation */}
+                  {/* Minimal Reflection */}
                   {q.explanation && (
-                    <div className="mt-4 text-sm text-gray-600 bg-white border rounded-lg p-3">
-                      <span className="font-medium text-gray-700">
-                        Explanation:
-                      </span>{" "}
-                      {q.explanation}
+                    <div className="mt-8 pl-6 border-l-2 border-gray-200">
+                      <p className="text-xs text-gray-500 italic leading-relaxed font-semibold">
+                        {q.explanation}
+                      </p>
                     </div>
                   )}
                 </div>

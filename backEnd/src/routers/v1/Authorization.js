@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { Login, refreshAccessToken } from "../../controllers/Login.js";
 import { OTPverification, Reset } from "../../controllers/Reset.js";
-import verifyToken, { logOut } from "../../middleWares/Tokens.js";
+import verifyToken from "../../middleWares/Tokens.js";
 import { stkCalls, stkGuestCalls, checkStatus } from "../../controllers/stkPush/stkCall.js";
 import { callback } from "../../controllers/stkPush/stkController.js";
 

@@ -3,7 +3,7 @@ import logger from "../logger/winston.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { removeUnusedMulterImageFilesOnError } from "../utils/index.js";
 import multer from "multer";
-import  ApiError  from "../utils/ApiError.js";
+import { ApiError } from "../utils/ApiError.js";
 
 /**
  *

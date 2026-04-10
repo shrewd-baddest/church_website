@@ -10,7 +10,7 @@ import { errorHandler } from "../middleWares/error.middlewares.js";
 //  * @param {any[]} errors
 //  * @param {string} stack
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(statusCode, message = "Something went wrong", errors = [], stack = "",) {
     super(message);
     this.statusCode = statusCode;
@@ -36,4 +36,3 @@ export  class UploadError extends Error {
   }
 }
 
-export default  { ApiError  ,  UploadError};
