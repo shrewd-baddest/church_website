@@ -31,9 +31,12 @@ const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose }) => {
 
     try {
       const apiCall = user ? initiateSTKPush : initiateGuestSTKPush;
+      
+      const formattedPhone = phone.startsWith('254') ? phone : `254${phone}`;
+      
       const response = await apiCall({
         amount: parseInt(amount),
-        phoneNumber: phone
+        phoneNumber: formattedPhone
       });
 
       if (response.data.status === 'success' || response.data.checkoutId) {
@@ -134,7 +137,10 @@ const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose }) => {
                       type="number"
                       placeholder="0.00"
                       value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
+                      onChange={(e) => {
+                        const val = Math.max(0, parseInt(e.target.value) || 0).toString();
+                        setAmount(val === '0' && e.target.value !== '0' ? '' : val);
+                      }}
                       className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all text-xl font-bold text-gray-900"
                     />
                   </div>
@@ -146,12 +152,21 @@ const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose }) => {
                     <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
                     <input
                       type="text"
-                      placeholder="07XXXXXXXX"
+                      placeholder="7XXXXXXXX"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-12 pr-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all text-gray-900 font-bold"
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, '');
+                        if (val.startsWith('254')) val = val.substring(3);
+                        else if (val.startsWith('0')) val = val.substring(1);
+                        if (val.length <= 9) {
+                          setPhone(val);
+                        }
+                      }}
+                      className="w-full pl-[5.5rem] pr-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all text-gray-900 font-bold"
                     />
+                    <div className="absolute left-10 top-1/2 -translate-y-1/2 text-gray-500 font-bold pl-1">+254</div>
                   </div>
+                  <p className="text-[10px] text-gray-400 font-semibold ml-2 mt-1">Enter your Safaricom number (e.g., 712345678)</p>
                 </div>
 
                 <button
