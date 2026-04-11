@@ -29,11 +29,9 @@ const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   useEffect(() => {
     if (user?.accessToken) {
-      console.log("Initializing socket with token:", user?.accessToken);
       const newSocket = getSocket(user.accessToken);
       setSocket(newSocket);
       return () => {
-        console.log("Closing socket connection");
         newSocket?.close();
       };
     } else {
