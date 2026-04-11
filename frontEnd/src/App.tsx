@@ -50,8 +50,14 @@ const RecordsExplorer = lazy(() => import("./pages/Admin/pages/RecordsExplorer")
 const DonationMonitor = lazy(() => import("./pages/Admin/pages/DonationMonitor"));
 
 // Sacramental / Community
-const CommunityHub = lazy(() => import("./pages/sacramental/CommunityHub"));
+const CommunityHub = lazy(() => import("./pages/sacramental/Community"));
 const NotificationPage = lazy(() => import("./pages/Devotions/pages/NotificationPage"));
+
+// Admin Components
+const CommunityManager = lazy(() => import("./pages/Admin/pages/CommunityManager"));
+const CommunityDetailEditor = lazy(() => import("./pages/Admin/pages/CommunityDetailEditor"));
+const AdminSuggestions = lazy(() => import("./pages/Admin/pages/AdminSuggestions"));
+const GalleryManager = lazy(() => import("./pages/Admin/pages/GalleryManager"));
 
 // Fallback component
 const FallBack: React.FC = () => (

@@ -19,7 +19,7 @@ const Notifications: React.FC = () => {
   >(null);
   const [showModal, setShowModal] = useState(false);
 
-  const roles = useMemo(() => user?.role ?? [], [user?.role]);
+  const roles = useMemo(() => user?.role ? [user.role] : [], [user?.role]);
   const isAdmin = true;
 
   // Sync "read" status when category is active

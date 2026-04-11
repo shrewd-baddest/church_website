@@ -3,6 +3,7 @@ import { httpServer } from "./app.js";
 import { connectDb, connectToMongoDb } from "./Configs/dbConfig.js";
 import logger from "./logger/winston.js";
 import { runMigration } from "./migrations/scripts/index.js";
+import { startKeepAliveWorker } from "./services/keep-alive.js";
 
 process.on('uncaughtException', (err) => {
   logger.error('Uncaught Exception:', err);

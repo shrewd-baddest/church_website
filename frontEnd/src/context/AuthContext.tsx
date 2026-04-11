@@ -6,7 +6,7 @@ import {  LocalStorage } from '../utils';
 interface UserData {
   accessToken: string;
   refreshToken: string;
-  role: string[];
+  role: string;
   name: string; // Combined firstName and lastName as per backend change
   email: string;
   status: string; // e.g. "success"
