@@ -48,5 +48,9 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+  },
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "noEmitOnError": false
   }
 }
