@@ -8,6 +8,7 @@ import notificationRoutes from "./notification.js"
 import officialsRouter from "./officialsRouter.js";
 import jumuiyaOfficialsRouter from "./jumuiyaOfficialsRouter.js";
 import galleryRouter from "./galleryRouter.js";
+import communityViewRouter from "./communityViewRouter.js";
 import { Router } from "express"
 import verifyToken from "../../middlewares/Tokens.js"
 
@@ -22,6 +23,7 @@ router.use("/member", verifyToken, memberProgressRoute);
 router.use("/officials", officialsRouter);
 router.use("/jumuiya-officials", jumuiyaOfficialsRouter);
 router.use("/", galleryRouter); // handles /choir/gallery
+router.use("/community-view", communityViewRouter);
 router.use("/questions", verifyToken, QuestionsRoutes);
 router.use("/files", verifyToken, uploadMedia);
 router.use("/notifications", verifyToken, notificationRoutes);
