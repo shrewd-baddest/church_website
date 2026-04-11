@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "build": "echo 'No build required for backend'",
     "db:migrate": "node db_operations/migrate_hub_to_pg.js",
     "db:seed": "node db_operations/seed_gallery_images.js",
     "db:check": "node db_operations/check_schema.js",
