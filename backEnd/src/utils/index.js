@@ -196,22 +196,34 @@ export const removeUnusedMulterImageFilesOnError = (req) => {
     if (multerFile) {
       // If there is file uploaded and there is validation error
       // We want to remove that file
-      removeLocalFile(multerFile.path);
+      if (fs.existsSync(multerFile.path)) {
+        fs.unlinkSync(multerFile.path);
+      }
     }
 
     if (multerFiles) {
-      /** @type {Express.Multer.File[][]}  */
-      const filesValueArray = Object.values(multerFiles);
-      // If there are multiple files uploaded for more than one fields
-      // We want to remove those files as well
-      filesValueArray.map((fileFields) => {
-        fileFields.map((fileObject) => {
-          removeLocalFile(fileObject.path);
+      if (Array.isArray(multerFiles)) {
+        multerFiles.forEach((fileObject) => {
+          if (fs.existsSync(fileObject.path)) {
+            fs.unlinkSync(fileObject.path);
+          }
         });
-      });
+      } else {
+        /** @type {Express.Multer.File[][]}  */
+        const filesValueArray = Object.values(multerFiles);
+        // If there are multiple files uploaded for more than one fields
+        // We want to remove those files as well
+        filesValueArray.forEach((fileFields) => {
+          fileFields.forEach((fileObject) => {
+            if (fs.existsSync(fileObject.path)) {
+              fs.unlinkSync(fileObject.path);
+            }
+          });
+        });
+      }
     }
   } catch (error) {
     // fail silently
-    logger.error("Error while removing image files: ", error);
+    logger.error(`Error while removing image files: ${error.message || error}`);
   }
 };

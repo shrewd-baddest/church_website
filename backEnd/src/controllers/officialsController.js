@@ -1,4 +1,4 @@
-import { testDb as pool } from "../Configs/dbConfig.js";
+import { db as pool } from "../Configs/dbConfig.js";
 import path from 'path';
 import ExcelJS from 'exceljs';
 import { 
@@ -229,14 +229,15 @@ export const archiveCurrentOfficials = async (req, res) => {
       });
     }
 
-    const archivePromises = currentOfficials.rows.map(official =>
-      client.query(
-        `UPDATE officials SET status = 'archived', election_term_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
-        [termId, official.id]
-      )
+    // 3. Archive all current officials in one bulk operation
+    await client.query(
+      `UPDATE officials 
+       SET status = 'archived', 
+           election_term_id = $1, 
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE (status = 'active' OR status IS NULL)`,
+      [termId]
     );
-
-    await Promise.all(archivePromises);
 
     const termInfo = await client.query('SELECT * FROM election_terms WHERE id = $1', [termId]);
 

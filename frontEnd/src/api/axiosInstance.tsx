@@ -26,39 +26,80 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    // Skip interceptor for authentication routes (like /login) which intentionally return 401 on bad credentials
+    const isAuthRoute = originalRequest.url?.includes('authentication/login') || originalRequest.url?.includes('authentication/refresh');
+
     // Handle 401 Unauthorized (Token expired)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         const userdata = LocalStorage.get('userdata');
         if (!userdata || !userdata.refreshToken) {
           throw new Error("No refresh token available");
         }
 
-        // Call refresh endpoint
-        const { data } = await refreshAccessAndRefreshToken(userdata.refreshToken)
+        // Call refresh endpoint using the clean refreshClient
+        const { data } = await refreshAccessAndRefreshToken(userdata.refreshToken);
 
         // Update userdata with new tokens
         const updatedData = { 
           ...userdata, 
           accessToken: data.accessToken,
-          refreshToken: data.refreshToken || userdata.refreshToken // Fallback to old if not rotated
+          refreshToken: data.refreshToken || userdata.refreshToken
         };
         LocalStorage.set("userdata", updatedData);
+
+        // Process any other waiting requests with the new token
+        processQueue(null, data.accessToken);
 
         // Retry original request
         originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
         return apiClient(originalRequest);
       } catch (err) {
+        processQueue(err, null);
         // Refresh failed → logout
-        localStorage.removeItem("userdata");
-        window.location.href = "/login";
+        LocalStorage.remove("userdata");
+        
+        // Prevent redirect loop if already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = "/login?expired=true";
+        }
         return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
 
@@ -67,10 +108,15 @@ apiClient.interceptors.response.use(
 );
 
 
+// Create a separate instance for refresh to avoid interceptor recursion
+const refreshClient = axios.create({
+  baseURL: import.meta.env.VITE_SERVER_URI,
+});
+
 // API functions for refresh both access and refresh token
- const refreshAccessAndRefreshToken = (refreshToken: any)=>{
-  return apiClient.post("authentication/refresh" , {refreshToken});    
-}
+const refreshAccessAndRefreshToken = (refreshToken: string) => {
+  return refreshClient.post("authentication/refresh", { refreshToken });
+};
 
 // API functions for generating and saving question to the database
  export const generateAndSaveQuestions = (data: { topic: string }) => {
@@ -88,14 +134,19 @@ export const  fetchJumuiyaComparisonData = () =>{
   return apiClient.get("/csa/jumuiya-comparison");
 }
 
+// Api for fetching gallery teaser images (unprotected)
+export const fetchGalleryTeaser = () => {
+  return apiClient.get("/gallery/teaser");
+};
+
 // Api for fetching user specific progress data
-export const memberProgressData = ()=>{
- return apiClient.get("/member/:id/progress");
+export const memberProgressData = (id: string | number) => {
+ return apiClient.get(`/member/${id}/progress`);
 }
 
 // Api for fetching user specific summary data of the progress
-export const memberSummaryData = ()=>{
-  return apiClient.get("/member/:id/summary")
+export const memberSummaryData = (id: string | number) => {
+  return apiClient.get(`/member/${id}/summary`)
 }
 
 // Api for fetching user specific progress data

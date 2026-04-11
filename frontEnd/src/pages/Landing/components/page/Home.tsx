@@ -1,5 +1,5 @@
 import ImageSlider from "../ImageSlider";
-import { AboutSection, SupportSection } from "../sections";
+import { AboutSection, CommunitySection, SupportSection, SuggestionBox, GalleryTeaser } from "../sections";
 
 export const Home: React.FC = () => {
 
@@ -8,6 +8,9 @@ export const Home: React.FC = () => {
       <main className="flex-grow">
         <ImageSlider />
         <AboutSection />
+        <GalleryTeaser />
+        <CommunitySection />
+        <SuggestionBox />
         <SupportSection />
       </main>
     </div>

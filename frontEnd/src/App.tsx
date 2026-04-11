@@ -1,24 +1,22 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 
-// Standard imports (Optimized for performance)
+// Core Infrastructure & Critical Pillars (Standard Imports)
 import { Home } from "./pages/Landing/components/page/Home";
 import { PublicRoute, ProtectedRoute } from "./Regulator";
 import { DataProvider } from "./pages/Jumuiya/context/DataContext";
 import Pageoulet from "./assets/Layouts/Pageoulet";
 import Authorisation from "./assets/Layouts/Authorisation";
 import Login from "./pages/Authorization/Login";
-import Reset from "./pages/Authorization/Reset";
-import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
-import PublicView from "./pages/officials/PublicView";
-import OfficialProfile from "./pages/officials/OfficialProfile";
 import GalleryPage from "./pages/Landing/components/page/GalleryPage";
 
-// Layouts (Complex ones stay lazy)
+// Adaptive Discovery Paths (Lazy Loading for Performance)
+const Reset = lazy(() => import("./pages/Authorization/Reset"));
+const ResetPasswordPage = lazy(() => import("./pages/Authorization/ResetPasswordPage"));
+const PublicView = lazy(() => import("./pages/officials/PublicView"));
+const OfficialProfile = lazy(() => import("./pages/officials/OfficialProfile"));
 const Layout = lazy(() => import("./pages/Devotions/components/Layout"));
 const UniversalAdmin = lazy(() => import("./pages/Admin/UniversalAdmin"));
-
-// Landing standalone pages
 const ProjectsPage = lazy(() => import("./pages/Landing/components/page/ProjectsPage"));
 const ActivitiesPage = lazy(() => import("./pages/Landing/components/page/ActivitiesPage"));
 
@@ -115,7 +113,7 @@ const App: React.FC = () => {
           <Route path="officials/history" element={<PublicHistoryView />} />
 
           {/* Standalone Landing Pages */}
-          <Route path="gallery" element={<GalleryPage />} />
+          <Route path="gallery" element={<ProtectedRoute><GalleryPage /></ProtectedRoute>} />
           <Route path="projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
           <Route path="activities" element={<ProtectedRoute><ActivitiesPage /></ProtectedRoute>} />
           
@@ -179,7 +177,7 @@ const App: React.FC = () => {
           />
 
           {/* 404 - Catch-all for unmatched routes */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="/*" element={<NotFound />} />
         </Route>
       </Routes>
     </Suspense>

@@ -76,12 +76,10 @@ const Headers = () => {
             className="relative cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-colors"
             onClick={() => navigate("/Notification")}
           >
-            <FaBell className={`text-xl ${unreadCount > 0 ? 'text-blue-600' : 'text-gray-500'}`} />
-            {unreadCount > 0 && (
-              <span className={`absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white shadow-sm flex items-center justify-center min-w-[16px] h-[16px] ${animateBadge ? 'animate-bounce' : ''}`}>
-                {unreadCount}
-              </span>
-            )}
+            <FaBell className={`text-xl ${unreadCount > 0 ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
+            <span className={`absolute -top-1 -right-1 bg-red-500 shadow-red-200 text-white text-[9px] font-black px-1 rounded-full border-[1.5px] border-white shadow-sm flex items-center justify-center min-w-[18px] h-[18px] ${animateBadge ? 'animate-bounce' : ''} transition-colors`}>
+              {unreadCount}
+            </span>
           </div>
 
           {user ? (
@@ -218,14 +216,12 @@ const Headers = () => {
                   onClick={() => { navigate("/Notification"); setIsMobileMenuOpen(false); }}
                 >
                   <div className="flex items-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-200 mr-3"></span>
+                    <span className="w-1.5 h-1.5 rounded-full mr-3 bg-red-500"></span>
                     Notifications
                   </div>
-                  {unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg pulse-animation">
-                      {unreadCount}
-                    </span>
-                  )}
+                  <span className={`bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-md font-black ${unreadCount > 0 ? 'pulse-animation' : ''}`}>
+                    {unreadCount}
+                  </span>
                 </button>
 
                 {user ? (

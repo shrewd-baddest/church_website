@@ -34,19 +34,15 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const [user, setUser] = useState<UserData | null>(null);
-console.log(user)
   // Check for stored user on initial load
   useEffect(() => {
     const storedData = LocalStorage.get('userdata');
     if (storedData) {
-      try {
-        const parsedData =  LocalStorage.get('userdata');
-        if (parsedData && parsedData.status === 'success') {
-          setUser(parsedData);
-        }
-      } catch (error) {
-        console.error("Error parsing userdata from localStorage", error);
-        localStorage.removeItem('userdata');
+      if (storedData.status === 'success') {
+        setUser(storedData);
+      } else {
+        // Clear invalid session
+        LocalStorage.remove('userdata');
       }
     }
   }, []);

@@ -83,42 +83,42 @@ const OfficialProfile: React.FC = () => {
     return (
         <div className="h-full bg-white">
             {/* Header / Hero Section */}
-            <div className={`relative h-[350px] sm:h-[450px] ${themeGradient} overflow-hidden`}>
+            <div className={`relative min-h-[480px] sm:h-[450px] ${themeGradient} overflow-hidden flex flex-col`}>
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                    <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/3 translate-y-1/2"></div>
                 </div>
                 
-                <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex flex-col pt-24 sm:pt-32">
+                <div className="relative z-10 max-w-7xl mx-auto px-6 w-full flex-1 flex flex-col pt-20 sm:pt-32">
                     <Link 
                         to="/officials"
-                        className="flex items-center gap-2 text-white/90 hover:text-white transition-colors w-fit mb-8 cursor-pointer group no-underline"
+                        className="flex items-center gap-2 text-white/90 hover:text-white transition-colors w-fit mb-6 sm:mb-8 cursor-pointer group no-underline"
                     >
                         <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" /> 
                         <span className="font-bold">Back to Officials</span>
                     </Link>
                     
-                    <div className="flex flex-col md:flex-row items-center md:items-end gap-8 md:gap-12 mt-auto pb-16">
-                        <div className="relative group">
+                    <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-12 mt-auto pb-10 sm:pb-16">
+                        <div className="relative group shrink-0">
                             <div className="absolute -inset-1 bg-white/30 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                             <img 
                                 src={official.photo ? (official.photo.startsWith('http') ? official.photo : `${UPLOAD_BASE}${official.photo}`) : 'https://via.placeholder.com/180'} 
                                 alt={official.name}
-                                className="relative w-40 h-40 sm:w-52 sm:h-52 rounded-full object-cover border-4 border-white shadow-2xl"
+                                className="relative w-36 h-36 sm:w-52 sm:h-52 rounded-full object-cover border-4 border-white shadow-2xl"
                             />
                         </div>
                         
-                        <div className="text-center md:text-left text-white">
-                            <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-4">
-                                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider border border-white/30">
+                        <div className="text-center md:text-left text-white flex-1 pb-2">
+                            <div className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-3 mb-4">
+                                <span className="px-3 sm:px-4 py-1 sm:py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-white/30">
                                     {category}
                                 </span>
-                                <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider border border-white/30">
+                                <span className="px-3 sm:px-4 py-1 sm:py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-white/30">
                                     {official.term_of_service || '2024–2026'}
                                 </span>
                             </div>
-                            <h1 className="text-4xl sm:text-6xl font-black mb-2 drop-shadow-lg">{official.name}</h1>
-                            <p className="text-xl sm:text-2xl font-medium text-white/90 flex items-center justify-center md:justify-start gap-3 italic">
+                            <h1 className="text-3xl sm:text-6xl font-black mb-2 drop-shadow-lg leading-tight">{official.name}</h1>
+                            <p className="text-lg sm:text-2xl font-medium text-white/90 flex items-center justify-center md:justify-start gap-3 italic">
                                 {official.position} <span className="not-italic opacity-50">/</span> {category}
                             </p>
                         </div>

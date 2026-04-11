@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_JUMUIYA_BASE } from '../utils/officialsApi';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import apiService from '../pages/Landing/services/api';
 
 export interface JumuiyaOfficial {
   id: number;
@@ -53,6 +54,7 @@ export function useJumuiyaOfficials(filters: { termId?: number | string; categor
       return res.json();
     },
     onSuccess: () => {
+      apiService.clearAllCache();
       queryClient.invalidateQueries({ queryKey: ['jumuiya-officials'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });
       queryClient.invalidateQueries({ queryKey: ['terms'] });
@@ -79,6 +81,7 @@ export function useJumuiyaOfficials(filters: { termId?: number | string; categor
       return res.json();
     },
     onSuccess: () => {
+      apiService.clearAllCache();
       queryClient.invalidateQueries({ queryKey: ['jumuiya-officials'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });
       queryClient.invalidateQueries({ queryKey: ['terms'] });
@@ -104,6 +107,7 @@ export function useJumuiyaOfficials(filters: { termId?: number | string; categor
       return res.json();
     },
     onSuccess: () => {
+      apiService.clearAllCache();
       queryClient.invalidateQueries({ queryKey: ['jumuiya-officials'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });
       queryClient.invalidateQueries({ queryKey: ['terms'] });

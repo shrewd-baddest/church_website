@@ -3,6 +3,7 @@ import { API_BASE } from '../utils/officialsApi';
 import toast from 'react-hot-toast';
 
 import { useAuth } from '../context/AuthContext';
+import apiService from '../pages/Landing/services/api';
 
 export interface Official {
   id: number;
@@ -47,6 +48,7 @@ export function useOfficials() {
       return res.json();
     },
     onSuccess: () => {
+      apiService.clearAllCache();
       queryClient.invalidateQueries({ queryKey: ['officials'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });
       toast.success('Official added successfully!');
@@ -72,6 +74,7 @@ export function useOfficials() {
       return res.json();
     },
     onSuccess: () => {
+      apiService.clearAllCache();
       queryClient.invalidateQueries({ queryKey: ['officials'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });
       queryClient.invalidateQueries({ queryKey: ['terms'] });
@@ -97,6 +100,7 @@ export function useOfficials() {
       return res.json();
     },
     onSuccess: () => {
+      apiService.clearAllCache();
       queryClient.invalidateQueries({ queryKey: ['officials'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });
       queryClient.invalidateQueries({ queryKey: ['terms'] });
@@ -124,6 +128,7 @@ export function useOfficials() {
       return res.json();
     },
     onSuccess: () => {
+      apiService.clearAllCache();
       queryClient.invalidateQueries({ queryKey: ['officials'] });
       queryClient.invalidateQueries({ queryKey: ['terms'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });

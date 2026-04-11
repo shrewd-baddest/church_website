@@ -41,7 +41,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       setLoading(true);
       const res = await fetchNotifications();
-      setNotifications(res.data);
+      if (res.data) {
+        setNotifications(res.data);
+      }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
     } finally {
@@ -118,11 +120,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [socket, user]);
 
-  const markAllAsRead = (category: "csa" | "jumuiya") => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.category === category ? { ...n, read: true } : n))
-    );
-  };
+  const markAllAsRead = useCallback((category: "csa" | "jumuiya") => {
+    setNotifications((prev) => {
+      const hasUnread = prev.some((n) => n.category === category && !n.read);
+      if (!hasUnread) return prev;
+      return prev.map((n) => (n.category === category ? { ...n, read: true } : n));
+    });
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

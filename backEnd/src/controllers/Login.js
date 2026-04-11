@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import { testDb } from "../Configs/dbConfig.js";
+import { db as pool } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 import jwt from "jsonwebtoken";
 dotenv.config();
@@ -16,7 +16,7 @@ export const Login = async (req, res) => {
     return res.status(400).json({ status: false, message: "Username and password required" });
   }
  try {
-    const result = await testDb?.query(
+    const result = await pool.query(
       `SELECT m.member_id, m.password, m.jumuiya_id, m.first_name, m.last_name, m.email, 
               ARRAY_AGG(r.role_name) as roles
        FROM members m 
@@ -48,7 +48,7 @@ export const Login = async (req, res) => {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 20); // Matches generateRefreshtoken expiresIn: "20h"
 
-    await testDb.query(
+    await pool.query(
       `INSERT INTO refresh_tokens (member_id, token, expires_at) VALUES ($1, $2, $3)`,
       [user.member_id, hashedToken, expiresAt]
     );
@@ -63,8 +63,13 @@ export const Login = async (req, res) => {
       jumuiya_id: user.jumuiya_id
     });
   } catch (err) {
-    logger.error("Server error", err);
-    res.status(500).json({ status: false, message: "Server error" });
+    logger.error("Server error during login:", err);
+    console.error("Login Error Details:", err);
+    res.status(500).json({ 
+      status: false, 
+      message: "Server internal error",
+      detail: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
@@ -90,10 +95,8 @@ export const refreshAccessToken = async (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
 
     //  Check if any active tokens exist for this user in DB
-    const result = await testDb.query(
-      `SELECT * FROM refresh_tokens WHERE member_id = $1 
-AND revoked = FALSE 
-AND expires_at > NOW()`,
+    const result = await pool.query(
+      `SELECT * FROM refresh_tokens WHERE member_id = $1 AND expires_at > NOW()`,
       [decoded.id],
     );
 
@@ -115,7 +118,7 @@ AND expires_at > NOW()`,
       return res.status(403).json({ error: "Invalid refresh token" });
     }
     //  Generate new access token
-    const userResult = await testDb.query(
+    const userResult = await pool.query(
       `SELECT m.member_id, m.jumuiya_id, m.first_name, m.last_name, m.email, 
               ARRAY_AGG(r.role_name) as roles
        FROM members m 
@@ -141,15 +144,20 @@ AND expires_at > NOW()`,
 
     // Update existing token record or insert new one (simplest is to insert and we keep the rotation logic)
     // Here we choose to delete old ones for this user to keep DB clean
-    await testDb.query(`DELETE FROM refresh_tokens WHERE member_id = $1`, [user.member_id]);
-    await testDb.query(
+    // Update existing token record or insert new one (rotation)
+    await pool.query(`DELETE FROM refresh_tokens WHERE member_id = $1`, [user.member_id]);
+    await pool.query(
       `INSERT INTO refresh_tokens (member_id, token, expires_at) VALUES ($1, $2, $3)`,
       [user.member_id, hashedToken, expiresAt]
     );
 
     res.status(200).json({ accessToken, refreshToken: newRefreshToken });
   } catch (error) {
-    logger.error("Refresh error", error);
-    return res.status(403).json({ error: error.message });
+    logger.error("Refresh error:", error);
+    console.error("Refresh Error Details:", error);
+    return res.status(error.status || 403).json({ 
+      error: error.message,
+      detail: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };

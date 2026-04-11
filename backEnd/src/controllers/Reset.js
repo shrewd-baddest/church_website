@@ -1,13 +1,12 @@
 import crypto from "crypto";
 import sendMail from "../Configs/emailConfig.js";
 import bcrypt from "bcrypt";
-// import { db, testDb } from "../Configs/dbConfig.js";
+import { db as pool } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
 export const Reset = async (req, res) => {
   const { email, password, purpose } = req.body;
 
-  logger.debug("Received reset request for user: " + userName);
 
   if (!email || !password || !purpose) {
     logger.warn("Reset attempt with missing fields");
@@ -21,7 +20,7 @@ export const Reset = async (req, res) => {
 
     if (purpose === "email") {
       userName = req.body.userReg;
-      const emailCheck = await testDb.query(
+      const emailCheck = await pool.query(
         `SELECT 1 FROM members WHERE email = $1`,
         [email],
       );
@@ -29,7 +28,7 @@ export const Reset = async (req, res) => {
         return res.status(400).json({ error: "Email already in use" });
       }
     } else if (purpose === "password") {
-      const userCheck = await testDb.query(
+      const userCheck = await pool.query(
         `SELECT * FROM members WHERE email = $1`,
         [email],
       );
@@ -47,7 +46,7 @@ export const Reset = async (req, res) => {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     //   Insert or update password_resets
-    await testDb.query(
+    await pool.query(
       `INSERT INTO password_resets (member_id, email, otp, otp_expires, temp_password)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (member_id) DO UPDATE 

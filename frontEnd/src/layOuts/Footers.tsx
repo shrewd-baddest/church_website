@@ -45,16 +45,17 @@ const Footers = () => {
         {/* Social Icons - Centered below all categories */}
         <div className="col-span-2 lg:col-span-4 flex flex-col items-center gap-6 mt-8">
            <div className="h-[1px] w-full max-w-xs bg-gray-100"></div>
-           <div className="flex justify-center gap-6">
+           <div className="flex justify-center gap-4 sm:gap-6">
             {footerSocialMedia.map((platform, index) => (
               <a 
                 key={index} 
                 href={platform.url} 
                 target="_blank" 
                 rel="noreferrer"
-                className="w-11 h-11 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center hover:bg-gray-950 hover:text-white hover:shadow-2xl transition-all duration-500 group"
+                aria-label={platform.name}
+                className={`w-11 h-11 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center ${platform.hoverBg} hover:text-white hover:border-transparent hover:shadow-lg transition-all duration-300 group`}
               >
-                <span className="text-lg transform group-hover:scale-125 transition-transform">
+                <span className={`text-lg ${platform.color} group-hover:text-white transform group-hover:scale-125 transition-all duration-300`}>
                   <platform.icon />
                 </span>
               </a>
@@ -65,12 +66,14 @@ const Footers = () => {
       </div>
 
       {/* Copyright Bar */}
-      <div className="max-w-7xl mx-auto pt-16 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
-        <p>© {currentYear}. Crafted for the Catholic Community.</p>
-        <div className="flex gap-6">
-           <a href="#" className="hover:text-gray-950 transition-colors">Privacy</a>
-           <a href="#" className="hover:text-gray-900 transition-colors text-gray-200">•</a>
-           <a href="#" className="hover:text-gray-900 transition-colors text-gray-200">Terms</a>
+      <div className="max-w-7xl mx-auto pt-10 mt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+          © {currentYear} St. Thomas Aquinas CSA — Crafted for the Catholic Community.
+        </p>
+        <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+          <a href="#" className="hover:text-gray-700 transition-colors duration-200">Privacy</a>
+          <span className="text-gray-300">·</span>
+          <a href="#" className="hover:text-gray-700 transition-colors duration-200">Terms</a>
         </div>
       </div>
     </footer>

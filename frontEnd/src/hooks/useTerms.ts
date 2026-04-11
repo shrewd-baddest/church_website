@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_TERMS, API_ARCHIVE, API_JUMUIYA_ARCHIVE } from '../utils/officialsApi';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import apiService from '../pages/Landing/services/api';
 
 export interface ElectionTerm {
   id: number;
@@ -82,6 +83,9 @@ export function useTerms() {
       return json;
     },
     onSuccess: (json, variables) => {
+      // Clear persistence-level caches to ensure landing page and public views refresh
+      apiService.clearAllCache();
+      
       queryClient.invalidateQueries({ queryKey: variables.isJumuiya ? ['jumuiya_officials'] : ['officials'] });
       queryClient.invalidateQueries({ queryKey: ['terms'] });
       queryClient.invalidateQueries({ queryKey: ['currentTerm'] });

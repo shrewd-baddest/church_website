@@ -41,12 +41,12 @@ export async function createFile(req, res) {
     }
 
     // Partial success
-    if (result.failures.length > 0) {
+    if (result.faildeToUploadFiles && result.faildeToUploadFiles.length > 0) {
       logger.warn("Some files failed to upload");
       throw new ApiError(
         502,
         "Some files uploaded successfully and the following failed",
-        result.failures,
+        result.faildeToUploadFiles,
       );
     }
 
@@ -56,8 +56,8 @@ export async function createFile(req, res) {
       .json(new ApiResponse(201, result, "files uploade successifully"));
     // Catch unexpected errors
   } catch (error) {
-    logger.error(error.error, "CreateFile controller");
-    throw new ApiError(500, "Internal server error ", error.error, error.stack);
+    logger.error(error.message || error, "CreateFile controller");
+    throw new ApiError(500, "Internal server error ", error.message, error.stack);
   }
 }
 // Delete one or many files

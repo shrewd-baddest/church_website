@@ -15,10 +15,23 @@ import { errorHandler } from "./middlewares/error.middlewares.js";
 import { initializeSocketIO, setSocketInstance } from "./socket/index.js";
 
 
+import helmet from "helmet";
+import hpp from "hpp";
+import compression from "compression";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Secure App with Helmet (Security Headers)
+app.use(helmet());
+
+// Performance: Compression for high-efficiency response delivery
+app.use(compression());
+
+// Prevent Parameter Pollution
+app.use(hpp());
 
 // app midlewares
 app.use(express.json({ limit: "16kb" }));
@@ -62,13 +75,15 @@ const limiter = rateLimit({
   },
 });
 
-// app.use(limiter);
+// Rate limiter activation for DDoS protection
+app.use(limiter);
 app.use(morganMiddleware);
 
 app.use("/api", apiRoutes)
 
-// Organized Static Route for locally uploaded media files
+// Organized Static Routes for locally uploaded media files
 app.use("/uploads", express.static(path.join(__dirname, "../localFileUploads")));
+app.use("/gallery-images", express.static(path.join(__dirname, "../galleryImages")));
 
 
 // Initialize Backend Data Service

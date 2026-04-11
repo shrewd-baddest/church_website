@@ -85,6 +85,7 @@ export default function GalleryManager() {
     if (window.confirm('Are you sure you want to remove this photo from the gallery?')) {
       try {
         await apiService.deleteRecord('gallery', id);
+        apiService.clearCache('gallery');
         setImages(prev => prev.filter(img => img.id !== id));
       } catch (err) {
         alert('Failed to delete image');
@@ -98,17 +99,14 @@ export default function GalleryManager() {
       // For now, we upload one by one using a simple loop or a bulk endpoint if available
       for (const file of selectedFiles) {
         // We'd typically use a FormData based upload here
-        // Since we want to simplify, we use the specific addGalleryItem if it supports FormData
-        // or a generic helper.
         const formData = new FormData();
         formData.append('file', file);
         formData.append('title', file.name);
         
-        // This is a placeholder for a real multi-part upload call
-        // we'll assume the apiService handles it or we'll update it later.
         await apiService.createRecord('gallery', { title: file.name, image_url: URL.createObjectURL(file) });
       }
       
+      apiService.clearCache('gallery');
       await loadImages();
       setSelectedFiles([]);
       setUploadStatus('success');

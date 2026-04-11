@@ -1,64 +1,64 @@
 function AboutSection() {
   return (
-    <section
-      id="about"
-      className="max-w-7xl mx-auto px-3 py-8 md:px-6 md:py-16 lg:px-8"
-    >
-      <div className="text-center max-w-4xl mx-auto mb-8 md:mb-16">
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-blue-700 mb-4 md:mb-6">
+    <section id="about" className="max-w-7xl mx-auto px-4 py-12 md:px-6 md:py-20 lg:px-8 relative">
+      {/* Background ambient light - Subtler near-white */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[400px] bg-slate-50/20 blur-[120px] -z-10 rounded-full hidden md:block" />
+
+      <div className="text-center max-w-3xl mx-auto mb-12 md:mb-20">
+        <h2 className="text-slate-400 font-bold tracking-[0.2em] uppercase text-[10px] mb-4">Who We Are</h2>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-6 tracking-tight">
           Welcome to CSA Kirinyaga University
         </h1>
-        <p className="text-gray-600 text-sm md:text-lg leading-relaxed">
+        <p className="text-slate-500 text-base md:text-lg leading-relaxed font-medium max-w-2xl mx-auto">
           St. Thomas Aquinas welcomes you to our Catholic movement which is
-          aimed at spreading the Gospel and enriching Catholic faith to members
-          through prayers and upholding Catholic principles
+          aimed at spreading the Gospel and enriching the Catholic faith to members
+          through prayers and upholding Catholic principles.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mt-8 md:mt-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mt-8 max-w-5xl mx-auto">
         {/* Mission */}
-        <div id="mission" className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300">
-          <div className="text-blue-600 mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 rounded-full">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="40"
-              height="40"
-              fill="currentColor"
-              className="bi bi-journal"
-              viewBox="0 0 16 16"
-            >
-              <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2" />
-              <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z" />
-            </svg>
+        <div id="mission" className="group relative bg-slate-50 hover:bg-white p-8 md:p-12 rounded-[2rem] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border border-transparent hover:border-slate-100 hover:shadow-[0_30px_70px_-20px_rgba(0,0,0,0.04)] cursor-default overflow-hidden">
+          {/* Faded Background Depth Accent */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-100/20 rounded-full blur-3xl group-hover:bg-blue-100/30 transition-colors duration-1000"></div>
+          
+          {/* Intense Lightning Light Sweep */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-[1200ms] skew-x-12"></div>
+
+          <div className="flex flex-col items-center text-center relative z-10">
+            <div className="text-white mb-8 p-5 bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#60a5fa] rounded-2xl shadow-lg shadow-blue-500/10 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500">
+               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <span className="inline-block px-3 py-1 bg-blue-50 text-blue-500 rounded-full text-[9px] font-black tracking-[0.2em] uppercase mb-3">PURPOSE</span>
+            <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight group-hover:text-primary transition-colors duration-300">
+              Our Mission
+            </h3>
+            <p className="text-slate-500 font-medium text-base md:text-lg leading-relaxed max-w-sm">
+              Achieving greater heights spiritually in the Catholic faith through prayers as an instrument of hope to humanity.
+            </p>
           </div>
-          <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4">
-            Our Mission
-          </h3>
-          <p className="text-gray-600 text-sm md:text-base">
-            Achiving grater heights spiritually in Catholic faith through prayers as an instrument of hope to human
-          </p>
         </div>
 
         {/* Vision */}
-        <div id="vision" className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300">
-          <div className="text-blue-600 mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 rounded-full">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="40"
-              height="40"
-              fill="currentColor"
-              className="bi bi-send"
-              viewBox="0 0 16 16"
-            >
-              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z" />
-            </svg>
+        <div id="vision" className="group relative bg-slate-50 hover:bg-white p-8 md:p-12 rounded-[2rem] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border border-transparent hover:border-slate-100 hover:shadow-[0_30px_70px_-20px_rgba(0,0,0,0.04)] cursor-default overflow-hidden">
+          {/* Faded Background Depth Accent */}
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-100/20 rounded-full blur-3xl group-hover:bg-emerald-100/30 transition-colors duration-1000"></div>
+          
+          {/* Intense Lightning Light Sweep */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-[1200ms] skew-x-12"></div>
+
+          <div className="flex flex-col items-center text-center relative z-10">
+            <div className="text-white mb-8 p-5 bg-gradient-to-br from-[#059669] via-[#10b981] to-[#34d399] rounded-2xl shadow-lg shadow-emerald-500/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-500 rounded-full text-[9px] font-black tracking-[0.2em] uppercase mb-3">FUTURE</span>
+            <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight group-hover:text-primary transition-colors duration-300">
+              Our Vision
+            </h3>
+            <p className="text-slate-500 font-medium text-base md:text-lg leading-relaxed max-w-sm">
+              To produce spiritually and morally upright Christians who will actively spread the Gospel throughout the world.
+            </p>
           </div>
-          <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4">
-            Our Vision
-          </h3>
-          <p className="text-gray-600 text-sm md:text-base">
-            To produce spiritually and morally upright christians who will spread the Gospel throughout the world
-          </p>
         </div>
       </div>
     </section>

@@ -20,13 +20,17 @@ class ApiService {
 
     try {
       const response = await apiClient.get(`/${tableName}`);
-      
-      // Update cache on success
-      if (response.data && Array.isArray(response.data)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(response.data));
+      // Extract the actual array from { success: true, data: [...] } or use raw if already array
+      const rawData = response.data;
+      const dataArray = Array.isArray(rawData) ? rawData : (rawData?.data && Array.isArray(rawData.data) ? rawData.data : null);
+
+      // Update cache on success if we found an array
+      if (dataArray) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(dataArray));
+        return dataArray;
       }
       
-      return response.data;
+      return rawData;
     } catch (error) {
       console.warn(`Error fetching ${tableName}, using fallback content:`, error);
       
@@ -252,6 +256,24 @@ class ApiService {
    */
   async deleteContribution(contributionId: string | number): Promise<any> {
     return this.deleteRecord('contributions', contributionId);
+  }
+  /**
+   * Clears the local cache for a specific table.
+   */
+  clearCache(tableName: string): void {
+    const CACHE_KEY = `csa_cache_${tableName}`;
+    localStorage.removeItem(CACHE_KEY);
+  }
+
+  /**
+   * Clears all CSA related caches.
+   */
+  clearAllCache(): void {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('csa_cache_')) {
+        localStorage.removeItem(key);
+      }
+    });
   }
 }
 
