@@ -34,7 +34,6 @@ const menuItems = [
 
 export default function UniversalAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -96,6 +95,8 @@ export default function UniversalAdmin() {
     setNotifications([]);
     setIsNotificationsOpen(false);
   };
+
+const {user , logout} = useAuth()
 
   const handleLogout = () => {
     logout();
@@ -174,7 +175,7 @@ export default function UniversalAdmin() {
 
           <div className="flex-1 hidden md:block">
             <div className="relative max-w-md">
-                   <h2 className='text-slate-800 font-bold text-lg'>Welcome back, {user?.username || 'Admin'}</h2>
+                   <h2 className='text-slate-800 font-bold text-lg'>Welcome back, {user?.name || 'Admin'}</h2>
                    <p className='text-xs text-slate-500'>Here's what's happening with the church today.</p>
             </div>
           </div>
@@ -200,11 +201,10 @@ export default function UniversalAdmin() {
             )}
             <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-800">{user?.username}</p>
-                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{user?.role || 'Administrator'}</p>
+                <p className="text-sm font-bold text-slate-800">{user?.name}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden">
-                   <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`} alt="avatar" />
+                   <img src={"image/1.png"} alt="avatar" />
               </div>
             </div>
           </div>

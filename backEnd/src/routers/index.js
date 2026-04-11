@@ -1,16 +1,14 @@
+import { Router } from "express";
+import v1Routes from "./v1/index.js";
+
+const router = Router();
+
+// Primary API Versions
+router.use("/v1", v1Routes);
+
+// Backward compatibility for non-versioned routes
+router.use("/", v1Routes);
+
+export default router;
 
 
-import authRoutes from "./v1/Authorization.js"
-import generateQuestions from "./v1/GenerateQuestions.js"
-import uploadMedia from "./v1/mediaRoutes.js"
-import communityView from "./communityRouter.js"
-import {Router} from "express"
-
-const route = Router()
-
-route.use("/v1" , authRoutes)
-route.use("/v1" , generateQuestions)
-route.use("/v1" , uploadMedia)
-route.use("/" , communityView)
-
-export default route

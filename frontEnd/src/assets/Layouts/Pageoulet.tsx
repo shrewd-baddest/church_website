@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import Headers from "../../pages/Landing/components/Navigation/Navigation";
+import Headers from "../../layOuts/Headers";
 import Footers from "../../layOuts/Footers";
 const Pageoulet = () => {
   return (

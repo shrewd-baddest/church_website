@@ -18,7 +18,7 @@ export interface ElectionTerm {
 
 export function useTerms() {
   const queryClient = useQueryClient();
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   const termsQuery = useQuery({
     queryKey: ['terms'],
@@ -46,7 +46,7 @@ export function useTerms() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         },
         body: JSON.stringify(termData),
       });
@@ -73,7 +73,7 @@ export function useTerms() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         },
         body: JSON.stringify(payload),
       });

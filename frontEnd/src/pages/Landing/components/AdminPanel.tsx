@@ -164,7 +164,7 @@ function AdminPanel({ onClose }: AdminPanelProps) {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('/authentication/register', {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URI}/authentication/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

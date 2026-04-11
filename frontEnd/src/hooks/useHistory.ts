@@ -17,7 +17,7 @@ export interface HistoryResponse {
 
 export function useHistory(filters: { termId?: string; onlyArchived?: boolean; page?: number; limit?: number; mode?: 'csa' | 'jumuiya' }) {
   const queryClient = useQueryClient();
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { termId, onlyArchived, page = 1, limit = 20, mode = 'csa' } = filters;
 
   const getBaseUrl = () => mode === 'jumuiya' ? API_JUMUIYA_HISTORY : API_HISTORY;
@@ -49,7 +49,7 @@ export function useHistory(filters: { termId?: string; onlyArchived?: boolean; p
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         },
         body: JSON.stringify({ officialIds }),
       });
@@ -74,7 +74,7 @@ export function useHistory(filters: { termId?: string; onlyArchived?: boolean; p
       const res = await fetch(`${getBaseUrl()}/${officialId}`, { 
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         }
       });
       if (!res.ok) {
@@ -98,7 +98,7 @@ export function useHistory(filters: { termId?: string; onlyArchived?: boolean; p
         method: 'DELETE',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         },
         body: JSON.stringify({ officialIds }),
       });

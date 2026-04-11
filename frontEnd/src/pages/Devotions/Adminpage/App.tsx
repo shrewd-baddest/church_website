@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { FaUserCircle, FaCheckCircle , FaUsers } from "react-icons/fa";
+import { FaUserCircle, FaCheckCircle, FaUsers } from "react-icons/fa";
 import { generateAndSaveQuestions } from "../../../api/axiosInstance";
+import type { Member } from "../../../interface/api";
+import JumuiyaDashboard from "../jumuiyaStatus/JumuiyaDashboard";
 
 const members = [
   { id: 1, jumuiaName: "St. Augustin" },
@@ -88,7 +90,9 @@ function AIEngine() {
       if (response.status === 201) {
         setSuccess(true);
       } else {
-        setErrorMessage("Unexpected response . Please try again. or find attachment ");
+        setErrorMessage(
+          "Unexpected response . Please try again. or find attachment ",
+        );
       }
     } catch (error) {
       console.error("Error generating insights:", error);
@@ -118,7 +122,8 @@ function AIEngine() {
             AI Question Engine : Ai generates questions based on your insights
           </h2>
           <p className="text-stone-500 text-xs">
-            Generate thoughtful discussion questions only one simple step , prompt , and see the magic
+            Generate thoughtful discussion questions only one simple step ,
+            prompt , and see the magic
           </p>
         </div>
       </div>
@@ -136,7 +141,8 @@ function AIEngine() {
                 className="w-full h-24 border border-stone-200 rounded-lg p-2 text-sm text-stone-700 placeholder-stone-400 resize-none focus:outline-none focus:ring-1 focus:ring-green-400 bg-stone-50"
               />
               <p className="text-right text-xs text-stone-400">
-                Suggested length: 1–2 sentences Example : "let the members know about the book of Daniel"
+                Suggested length: 1–2 sentences Example : "let the members know
+                about the book of Daniel"
               </p>
               <button
                 onClick={generate}
@@ -215,24 +221,27 @@ function AIEngine() {
       </div>
 
       {/* Footer */}
-     <div className="flex flex-wrap items-center gap-3 mt-4 border-t border-stone-200 pt-3">
-  <span className="text-sm font-medium text-stone-500">
-    Recent Topics:
-  </span>
-  {recentTopics.map((t) => (
-    <button
-      key={t}
-      onClick={() => setTopic(t)}
-      className="px-2 py-1 text-xs rounded-md bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 transition-colors"
-    >
-      {t}
-    </button>
-  ))}
-<span className="ml-auto flex items-center text-xs text-stone-400 italic">
-  Powered by <span className="ml-1 font-semibold text-green-600">Ascension AI</span>
-  <span className="ml-1 inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-</span>
-</div>
+      <div className="flex flex-wrap items-center gap-3 mt-4 border-t border-stone-200 pt-3">
+        <span className="text-sm font-medium text-stone-500">
+          Recent Topics:
+        </span>
+        {recentTopics.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTopic(t)}
+            className="px-2 py-1 text-xs rounded-md bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 transition-colors"
+          >
+            {t}
+          </button>
+        ))}
+        <span className="ml-auto flex items-center text-xs text-stone-400 italic">
+          Powered by{" "}
+          <span className="ml-1 font-semibold text-green-600">
+            Ascension AI
+          </span>
+          <span className="ml-1 inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        </span>
+      </div>
     </div>
   );
 }
@@ -262,80 +271,74 @@ function Carousel() {
   };
   const cur = carouselSlides[slide];
 
-   return(
+  return (
     <div className="relative rounded-2xl overflow-hidden h-52 md:h-60 shadow-lg">
-  <img
-    key={slide}
-    src={cur.image}
-    alt="slide"
-    className="absolute inset-0 w-full h-full object-cover"
-    style={{ transition: "opacity 0.6s" }}
-  />
-  <div className={`absolute inset-0 bg-gradient-to-r ${cur.bg}`} />
+      <img
+        key={slide}
+        src={cur.image}
+        alt="slide"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ transition: "opacity 0.6s" }}
+      />
+      <div className={`absolute inset-0 bg-gradient-to-r ${cur.bg}`} />
 
-  {/* Badge */}
-  <div className="absolute top-4 left-4">
-    <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest uppercase">
-      ★ New Feature
-    </span>
-  </div>
+      {/* Badge */}
+      <div className="absolute top-4 left-4">
+        <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest uppercase">
+          ★ New Feature
+        </span>
+      </div>
 
-  {/* Text container with margin from nav buttons */}
-  <div className="absolute inset-y-0 left-14 right-14 flex flex-col justify-center px-6 py-6">
-    <h1 className="text-white font-black text-xl md:text-3xl leading-tight drop-shadow-lg max-w-xs">
-      {cur.title}
-    </h1>
-    <p className="text-white/80 text-xs md:text-sm mt-2 max-w-xs leading-relaxed">
-      {cur.subtitle}
-    </p>
-    <div className="flex gap-3 mt-5">
-      <button className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-5 py-2 rounded-lg transition-all">
-        Get Started
+      {/* Text container with margin from nav buttons */}
+      <div className="absolute inset-y-0 left-14 right-14 flex flex-col justify-center px-6 py-6">
+        <h1 className="text-white font-black text-xl md:text-3xl leading-tight drop-shadow-lg max-w-xs">
+          {cur.title}
+        </h1>
+        <p className="text-white/80 text-xs md:text-sm mt-2 max-w-xs leading-relaxed">
+          {cur.subtitle}
+        </p>
+        <div className="flex gap-3 mt-5">
+          <button className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-5 py-2 rounded-lg transition-all">
+            Get Started
+          </button>
+          <button className="bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-5 py-2 rounded-lg backdrop-blur-sm transition-all">
+            Learn More
+          </button>
+        </div>
+      </div>
+
+      {/* Dots */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        {carouselSlides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              i === slide ? "bg-orange-400 w-5" : "bg-white/50 w-2"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Back button */}
+      <button
+        onClick={() =>
+          goTo((slide - 1 + carouselSlides.length) % carouselSlides.length)
+        }
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white text-lg leading-none transition-all duration-300 shadow-md"
+      >
+        ‹
       </button>
-      <button className="bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-5 py-2 rounded-lg backdrop-blur-sm transition-all">
-        Learn More
+
+      {/* Forward button */}
+      <button
+        onClick={() => goTo((slide + 1) % carouselSlides.length)}
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white text-lg leading-none transition-all duration-300 shadow-md"
+      >
+        ›
       </button>
     </div>
-  </div>
-
-  {/* Dots */}
-  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-    {carouselSlides.map((_, i) => (
-      <button
-        key={i}
-        onClick={() => goTo(i)}
-        className={`h-2 rounded-full transition-all duration-300 ${
-          i === slide ? "bg-orange-400 w-5" : "bg-white/50 w-2"
-        }`}
-      />
-    ))}
-  </div>
-
-  {/* Back button */}
-  <button
-    onClick={() =>
-      goTo((slide - 1 + carouselSlides.length) % carouselSlides.length)
-    }
-    className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white text-lg leading-none transition-all duration-300 shadow-md"
-  >
-    ‹
-  </button>
-
-  {/* Forward button */}
-  <button
-    onClick={() => goTo((slide + 1) % carouselSlides.length)}
-    className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white text-lg leading-none transition-all duration-300 shadow-md"
-  >
-    ›
-  </button>
-</div>
-
-   )
-}
-
-interface Member {
-  id: number;
-  jumuiaName: string;
+  );
 }
 
 function MemberProfile({ member }: { member: Member }) {
@@ -356,7 +359,7 @@ function MemberProfile({ member }: { member: Member }) {
           <p className="text-stone-400 text-sm">Jumui Member #{member.id}</p>
         </div>
       </div>
-      <AIEngine />
+      <JumuiyaDashboard jumuiyaId={member.id} />
     </div>
   );
 }
@@ -364,6 +367,7 @@ function MemberProfile({ member }: { member: Member }) {
 export default function Appadmin() {
   const [view, setView] = useState<string | number>("dashboard");
   const activeMember = members.find((m) => m.id === view);
+  
 
   return (
     <div className="min-h-screen bg-stone-100 flex font-sans">
@@ -475,9 +479,7 @@ export default function Appadmin() {
             <Carousel />
             <AIEngine />
           </div>
-        ) : activeMember ? (
-          <MemberProfile member={activeMember} />
-        ) : null}
+        ) : activeMember ? ( <MemberProfile member={activeMember} /> ) : null}
       </main>
 
       {/* Bottom nav mobile */}

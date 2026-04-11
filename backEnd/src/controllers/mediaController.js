@@ -1,7 +1,9 @@
 import logger from "../logger/winston.js";
 import { testDb } from "../Configs/dbConfig.js";
-import cloudinary from "../Configs/cloudinaryConfigs.js"
+import cloudinary from "../Configs/cloudinaryConfigs.js";
 import { uploadOneFile, uploadManyFiles } from "../utils/index.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 // Upload one or many files
 
@@ -10,76 +12,54 @@ export async function createFile(req, res) {
     // Always expect an array of files (middleware normalizes this)
     const files = req.files || [];
 
+    if (files.length === 0) {
+      logger.warn("No files uploaded");
+      throw new ApiError(400, "No file(s) uploaded");
+    }
 
-     if (files.length === 0) {
-        logger.warn("No files uploaded");
-        return res.status(400).json({
-          success: false,
-          message: "No file(s) uploaded",
-          data: [],
-        });
-      }
-
-    // Handle single file upload
+    //check if only one file in the req.files
+    //if so just call the uploadone function
     if (files.length === 1) {
       try {
         const result = await uploadOneFile(files[0]);
-        return res.status(201).json({
-          success: true,
-          message: "File uploaded successfully",
-          data: [result],
-          failures: [],
-        });
+        return res
+          .status(201)
+          .json(new ApiResponse(201, result, "File uploaded successfully"));
       } catch (err) {
-        logger.error(`Single file upload failed: ${err.message}`);
-        return res.status(502).json({
-          success: false,
-          message: "File upload failed",
-          error: err.message,
-        });
+        logger.error(`Single file upload failed: ${err.error}`);
+        throw new ApiError(502, "File upload failed");
       }
     }
 
     // Handle multiple file uploads
     const result = await uploadManyFiles(files);
 
-    
     if (result.data.length === 0) {
       // All uploads failed
       logger.error("All file uploads failed");
-      return res.status(502).json({
-        success: false,
-        message: "All file uploads failed",
-        data: [],
-        failures,
-      });
+      throw new ApiError(502, "All file uploads failed", result.data);
     }
 
+    // Partial success
     if (result.failures.length > 0) {
-      // Partial success
       logger.warn("Some files failed to upload");
-      return res.status(207).json({
-        success: true,
-        message: "Some files uploaded successfully",
-        data: successes,
-        failures,
-      });
+      throw new ApiError(
+        502,
+        "Some files uploaded successfully and the following failed",
+        result.failures,
+      );
     }
 
     // All succeeded
-    return res.status(201).json(result);
+    return res
+      .status(201)
+      .json(new ApiResponse(201, result, "files uploade successifully"));
     // Catch unexpected errors
   } catch (error) {
-    logger.error(error.message, "CreateFile");
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error yyyy",
-      error: error.message,
-      errorStack : error.stack
-    });
+    logger.error(error.error, "CreateFile controller");
+    throw new ApiError(500, "Internal server error ", error.error, error.stack);
   }
 }
-
 // Delete one or many files
 export async function deleteFile(req, res) {
   try {
@@ -87,7 +67,7 @@ export async function deleteFile(req, res) {
     const ids = Array.isArray(publicIds) ? publicIds : [publicIds]; // normalize
 
     if (!ids || ids.length === 0) {
-      return res.status(400).json({ error: "No publicId(s) provided" });
+      throw new ApiError(400 ,"No publicId(s) provided" )
     }
 
     const results = [];
@@ -96,29 +76,31 @@ export async function deleteFile(req, res) {
       const result = await cloudinary.uploader.destroy(publicId);
 
       if (result.result !== "ok" && result.result !== "not found") {
-         logger.warn("No publicId(s) provided");
-      return res.status(400).json({ error: "No publicId(s) provided" });
-
+        logger.warn("No publicId(s) provided");
+        return res.status(400).json({ error: "No publicId(s) provided" });
       }
 
       const deleteQuery = "DELETE FROM uploads WHERE public_id=$1 RETURNING *";
       const dbResult = await testDb.query(deleteQuery, [publicId]);
 
-      results.push(dbResult.rows[0] || { message: `No record found for ${publicId}` });
+      results.push(
+        dbResult.rows[0] || { message: `No record found for ${publicId}` },
+      );
     }
 
     return res.json(results.length === 1 ? results[0] : results);
   } catch (error) {
-    logger.error(error, "DeleteFile");
-    return res.status(500).json({ error: error.message });
+    logger.error("error deleting a mdia file ", error.error || error.mssage);
+    return res.status(500).json({ error: error.error });
   }
 }
 
-export async function getAllfiles(req , res){
+export async function getAllfiles(req, res) {
   try {
     // Query only the required columns
-    const getallQuery = " SELECT url, format, resource_type, created_at ,  public_id FROM uploads  ORDER BY created_at DESC"
-   const dbResult = await testDb.query(getallQuery);
+    const getallQuery =
+      " SELECT url, format, resource_type, created_at ,  public_id FROM uploads  ORDER BY created_at DESC";
+    const dbResult = await testDb.query(getallQuery);
 
     // Handle case where no files exist
     if (!dbResult.rows || dbResult.rows.length === 0) {

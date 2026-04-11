@@ -1,8 +1,0 @@
-[
-  { "id": 1, "day": "Monday", "time": "7:30 PM – 8:00 PM", "activity": "Rosary", "venue": "Church" },
-  { "id": 2, "day": "Tuesday", "time": "6:00 PM – 8:00 PM", "activity": "Choir Practice", "venue": "Church" },
-  { "id": 3, "day": "Wednesday", "time": "7:00 PM – 8:00 PM", "activity": "Bible Study", "venue": "Church" },
-  { "id": 4, "day": "Thursday", "time": "7:30 PM – 8:00 PM", "activity": "Rosary", "venue": "Church" },
-  { "id": 5, "day": "Friday", "time": "7:00 PM – 9:00 PM", "activity": "Mass", "venue": "Church" },
-  { "id": 6, "day": "Saturday", "time": "1:00 PM – 4:00 PM", "activity": "Choir Practice", "venue": "School" }
-]

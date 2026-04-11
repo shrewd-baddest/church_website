@@ -17,6 +17,8 @@ interface GalleryItem {
   event_date: string;
 }
 
+const UPLOAD_BASE = (import.meta.env.VITE_SERVER_URI || '').split('/api')[0];
+
 const GallerySection: React.FC = () => {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,7 @@ const GallerySection: React.FC = () => {
                 <div className="relative overflow-hidden aspect-[4/3]">
                   {item.image_url ? (
                     <img 
-                      src={item.image_url} 
+                      src={item.image_url.startsWith('http') ? item.image_url : `${UPLOAD_BASE}${item.image_url}`} 
                       alt={item.title}
                       className="w-full h-full object-cover"
                     />
@@ -138,7 +140,7 @@ const GallerySection: React.FC = () => {
             <div className="max-w-4xl w-full bg-white rounded-lg overflow-hidden relative max-h-[90vh] overflow-y-auto">
               {selectedImage.image_url && (
                 <img 
-                  src={selectedImage.image_url} 
+                  src={selectedImage.image_url.startsWith('http') ? selectedImage.image_url : `${UPLOAD_BASE}${selectedImage.image_url}`} 
                   alt={selectedImage.title}
                   className="w-full max-h-48 md:max-h-96 object-contain"
                 />

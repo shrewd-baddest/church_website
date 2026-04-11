@@ -9,7 +9,8 @@ interface AboutTabProps {
 }
 
 const AboutTab: React.FC<AboutTabProps> = ({ jumuiya }) => {
-
+    // const { isAuthenticated, user } = useAuth();
+ 
     return (
         <div className="tab-system-content" style={{ '--jumuiya-color': jumuiya.color } as React.CSSProperties}>
 

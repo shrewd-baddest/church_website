@@ -2,13 +2,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import logger from "../logger/winston.js";
-import { UploadError } from "../errorHandler/errorClass.js";
+import { UploadError } from "../utils/ApiError.js";
 
 // Ensure upload folder exists
-
-// custom error handler for uploadErrors nothing much
-
-
 function ensureUploadsFolder(uploadPath) {
   if (!fs.existsSync(uploadPath)) {
     fs.mkdirSync(uploadPath, { recursive: true });
@@ -34,7 +30,7 @@ const storage = multer.diskStorage({
       cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
     } catch (err) {
       logger.error("Failed to generate filename", err);
-      cb(new UploadError("Failed to generate filename", "FILENAME_ERROR"));
+      cb(new UploadError("Failed to generate filename", "FILENAME_GENERATION_ERROR"));
     }
   },
 });

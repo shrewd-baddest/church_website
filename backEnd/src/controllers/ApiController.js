@@ -1,11 +1,16 @@
 import { testDb } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
-
-// Explicit sort column overrides for tables without a standard 'id' column
 const TABLE_SORT_COLUMNS = {
-  members: 'member_id',
-  mpesa_request: 'created_at',
+  events: "event_date",
+  contributions: "date",
+  gallery: "event_date",
+  activities: "activity_date",
+  members: "join_date",
+  officials: "id",
+  projects: "id",
+  jumuiya: "id",
+  mpesa_request: "created_at",
 };
 
 // Get all records from a table

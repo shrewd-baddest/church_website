@@ -1,84 +1,77 @@
 import { lazy, Suspense } from "react";
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  RouterProvider,
-  Route
-} from "react-router-dom";
-// import Authorisation from "./assets/Layouts/Authorisation";
-// import Reset from "./pages/Authorization/Reset";
-// import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
+import { Routes, Route } from "react-router-dom";
+
+// Standard imports (Optimized for performance)
+import { Home } from "./pages/Landing/components/page/Home";
+import { PublicRoute, ProtectedRoute } from "./Regulator";
+import { DataProvider } from "./pages/Jumuiya/context/DataContext";
+import Pageoulet from "./assets/Layouts/Pageoulet";
 import Authorisation from "./assets/Layouts/Authorisation";
+import Login from "./pages/Authorization/Login";
 import Reset from "./pages/Authorization/Reset";
 import ResetPasswordPage from "./pages/Authorization/ResetPasswordPage";
-import Pageoulet from "./assets/Layouts/Pageoulet";
-import Challenge from "./pages/Devotions/pages/Challenge";
-import Rosary from "./pages/Devotions/pages/Rosary";
-import Liturgy from "./pages/Devotions/pages/Liturgy";
-import Prayer from "./pages/Devotions/pages/Prayer";
-import Readings from "./pages/Devotions/pages/Readings";
-import Dashboard from "./pages/Devotions/pages/Dashboard";
-import Layout from "./pages/Devotions/components/Layout";
-import Appadmin from "./pages/Devotions/Adminpage/App"
-import AdminPanel from "./pages/officials/AdminPanel";
 import PublicView from "./pages/officials/PublicView";
 import OfficialProfile from "./pages/officials/OfficialProfile";
-import PublicHistoryView from "./pages/officials/PublicHistoryView";
-import {
-  AboutSection,
-  CommunitySection,
-  SupportSection,
-} from "./pages/Landing/components/sections";
-// Removed unused static sections
-import ImageSlider from "./pages/Landing/components/ImageSlider";
-import JumuiyaLanding from "./pages/Jumuiya/JumuiyaLanding";
-import JumuiyaDetail from "./pages/Jumuiya/JumuiyaDetail";
-import Community from "./pages/sacramental/Community";
-import CommunityDetail from "./pages/sacramental/CommunityDetail";
+import GalleryPage from "./pages/Landing/components/page/GalleryPage";
+
+// Layouts (Complex ones stay lazy)
+const Layout = lazy(() => import("./pages/Devotions/components/Layout"));
+const UniversalAdmin = lazy(() => import("./pages/Admin/UniversalAdmin"));
+
+// Landing standalone pages
+const ProjectsPage = lazy(() => import("./pages/Landing/components/page/ProjectsPage"));
+const ActivitiesPage = lazy(() => import("./pages/Landing/components/page/ActivitiesPage"));
+
+// Utility pages
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Devotions
+const Dashboard = lazy(() => import("./pages/Devotions/pages/Dashboard"));
+const Readings = lazy(() => import("./pages/Devotions/pages/Readings"));
+const Prayer = lazy(() => import("./pages/Devotions/pages/Prayer"));
+const Liturgy = lazy(() => import("./pages/Devotions/pages/Liturgy"));
+const Rosary = lazy(() => import("./pages/Devotions/pages/Rosary"));
+const Challenge = lazy(() => import("./pages/Devotions/pages/Challenge"));
+const Appadmin = lazy(() => import("./pages/Devotions/Adminpage/App"));
+
+// Officials
+const AdminPanel = lazy(() => import("./pages/officials/AdminPanel"));
+const PublicHistoryView = lazy(() => import("./pages/officials/PublicHistoryView"));
+
+// Jumuiya
+const JumuiyaLanding = lazy(() => import("./pages/Jumuiya/JumuiyaLanding"));
+const JumuiyaDetail = lazy(() => import("./pages/Jumuiya/JumuiyaDetail"));
+
+// Admin
+const AdminDashboard = lazy(() => import("./pages/Admin/pages/AdminDashboard"));
+const RecordsExplorer = lazy(() => import("./pages/Admin/pages/RecordsExplorer"));
+const DonationMonitor = lazy(() => import("./pages/Admin/pages/DonationMonitor"));
+const CommunityManager = lazy(() => import("./pages/Admin/pages/CommunityManager"));
+const CommunityDetailEditor = lazy(() => import("./pages/Admin/pages/CommunityDetailEditor"));
+const AdminSuggestions = lazy(() => import("./pages/Admin/pages/AdminSuggestions"));
+const GalleryManager = lazy(() => import("./pages/Admin/pages/GalleryManager"));
+
+// Sacramental / Community
 import { CommunityProvider } from "./pages/sacramental/context/CommunityDataContext";
-import UniversalAdmin from "./pages/Admin/UniversalAdmin";
-import AdminDashboard from "./pages/Admin/pages/AdminDashboard";
-import AdminSuggestions from "./pages/Admin/pages/AdminSuggestions";
-import RecordsExplorer from "./pages/Admin/pages/RecordsExplorer";
-import DonationMonitor from "./pages/Admin/pages/DonationMonitor";
-import CommunityManager from "./pages/Admin/pages/CommunityManager";
-import CommunityDetailEditor from "./pages/Admin/pages/CommunityDetailEditor";
-import SuggestionBox from "./pages/Landing/components/sections/SuggestionBox";
-import GalleryManager from "./pages/Admin/pages/GalleryManager";
-import GalleryPage from "./pages/Gallery/index";
-import { DataProvider } from "./pages/Jumuiya/context/DataContext";
-
-
-
-
-import { PublicRoute, ProtectedRoute } from "./Regulator";
-
-// Lazy-loaded component
-const Login = lazy(() => import("./pages/Authorization/Login"));
+const Community = lazy(() => import("./pages/sacramental/Community"));
+const CommunityDetail = lazy(() => import("./pages/sacramental/CommunityDetail"));
+const NotificationPage = lazy(() => import("./pages/Devotions/pages/NotificationPage"));
 
 // Fallback component
-const FallBack: React.FC = () => <div>🍷 Please wait ...</div>;
-
-const Home: React.FC = () => {
-  return (
-    <div className="flex flex-col h-full bg-gray-50">
-      <main className="w-full">
-        <ImageSlider />
-        <AboutSection />
-        <CommunitySection />
-        <CommunitySection />
-        <SuggestionBox />
-        <SupportSection />
-      </main>
+const FallBack: React.FC = () => (
+  <div className="flex items-center justify-center min-h-screen bg-slate-50">
+    <div className="text-xl font-medium text-slate-600 animate-pulse">
+      🍷 Please wait ...
     </div>
-  );
-};
+  </div>
+);
 
 
 const App: React.FC = () => {
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <>
+  return (
+    <Suspense fallback={<FallBack />}>
+      <Routes>
+        {/* Authentication Routes */}
         <Route
           path="/login"
           element={
@@ -91,6 +84,8 @@ const App: React.FC = () => {
           <Route path="reset" element={<Reset />} />
           <Route path="otp/:reg" element={<ResetPasswordPage />} />
         </Route>
+
+        {/* Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -111,14 +106,23 @@ const App: React.FC = () => {
           <Route path="settings" element={<div className="p-8 bg-white rounded-2xl shadow-sm border border-slate-200">Settings Page Coming Soon</div>} />
         </Route>
 
+        {/* Public Routes with Page Layout */}
         <Route path="/" element={<Pageoulet />}>
           <Route index element={<Home />} />
           <Route path="officials" element={<PublicView />} />
           <Route path="officials/:id" element={<OfficialProfile />} />
           <Route path="officials/history" element={<PublicHistoryView />} />
 
+          {/* Standalone Landing Pages */}
+          <Route path="gallery" element={<GalleryPage />} />
+          <Route path="projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+          <Route path="activities" element={<ProtectedRoute><ActivitiesPage /></ProtectedRoute>} />
+          
+          {/* show notification to all */}
+          <Route path="Notification" element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
+          {/* Devotions (Protected) */}
           <Route
-            path="/devotions"
+            path="devotions"
             element={
               <ProtectedRoute>
                 <Layout />
@@ -133,8 +137,9 @@ const App: React.FC = () => {
             <Route path="challenge" element={<Challenge />} />
           </Route>
 
+          {/* Jumuiya (Protected) */}
           <Route
-            path="/jumuiya"
+            path="jumuiya"
             element={
               <ProtectedRoute>
                 <DataProvider>
@@ -144,7 +149,7 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/jumuiya/:id"
+            path="jumuiya/:id"
             element={
               <ProtectedRoute>
                 <DataProvider>
@@ -153,8 +158,10 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+
+          {/* Community Hub */}
           <Route
-            path="/community"
+            path="community"
             element={
               <CommunityProvider>
                 <Community />
@@ -162,23 +169,18 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/community/:moduleId"
+            path="community/:moduleId"
             element={
               <CommunityProvider>
                 <CommunityDetail />
               </CommunityProvider>
             }
           />
-          <Route path="/gallery" element={<GalleryPage />} />
+
+          {/* 404 - Catch-all for unmatched routes */}
+          <Route path="*" element={<NotFound />} />
         </Route>
-
-      </>,
-    ),
-  );
-
-  return (
-    <Suspense fallback={<FallBack />}>
-      <RouterProvider router={router} />
+      </Routes>
     </Suspense>
   );
 };

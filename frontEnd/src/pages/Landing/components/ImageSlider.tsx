@@ -11,6 +11,14 @@ interface GalleryItem {
   event_date: string
 }
 
+// Default fallback images pulled outside component to prevent recreation
+const DEFAULT_SLIDES = [
+  "https://picsum.photos/1200/800?random=1",
+  "https://picsum.photos/1200/800?random=2",
+  "https://picsum.photos/1200/800?random=3"
+];
+
+
 function ImageSlider() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [slides, setSlides] = useState<GalleryItem[]>([])
@@ -41,16 +49,14 @@ function ImageSlider() {
     }
   }
 
+  const totalSlides = slides.length > 0 ? slides.length : DEFAULT_SLIDES.length
+
   const nextSlide = () => {
-    if (slides.length > 0) {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }
+    setCurrentSlide((prev) => (prev + 1) % totalSlides)
   }
 
   const prevSlide = () => {
-    if (slides.length > 0) {
-      setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-    }
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)
   }
 
   const goToSlide = (index: number) => {
@@ -68,19 +74,12 @@ function ImageSlider() {
     }
   }, [slides.length])
 
-  // Default fallback images
-  const defaultSlides = [
-    "https://picsum.photos/1200/800?random=1",
-    "https://picsum.photos/1200/800?random=2",
-    "https://picsum.photos/1200/800?random=3"
-  ]
-
   // Get current image to display
   const getCurrentImage = (): string => {
     if (slides.length > 0 && slides[currentSlide]) {
       return slides[currentSlide].image_url
     }
-    return defaultSlides[currentSlide % defaultSlides.length]
+    return DEFAULT_SLIDES[currentSlide % DEFAULT_SLIDES.length]
   }
 
 
@@ -105,49 +104,26 @@ function ImageSlider() {
           alt={slides[currentSlide]?.title || `CSA Image ${currentSlide + 1}`}
           className="object-cover w-full h-full transition-opacity duration-500"
         />
-        {/* Navigation Buttons - Hidden on very small screens, visible on mobile */}
-        {/* <button 
-          onClick={prevSlide} 
-          className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-1.5 md:p-2 rounded-full transition-all duration-300 hover:scale-110"
+        {/* Navigation Buttons */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-blue-600/80 hover:bg-blue-700 text-white p-2 md:p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 shadow-lg group"
           aria-label="Previous slide"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 md:w-6 md:h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-         </svg>
+          <FaArrowLeft className="text-xl md:text-2xl group-hover:-translate-x-0.5 transition-transform" />
         </button>
-        <button 
-          onClick={nextSlide} 
-          className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-1.5 md:p-2 rounded-full transition-all duration-300 hover:scale-110"
+
+        <button
+          onClick={nextSlide}
+          className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 bg-blue-600/80 hover:bg-blue-700 text-white p-2 md:p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 shadow-lg group"
           aria-label="Next slide"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 md:w-6 md:h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button> */}
-
-        <button
-        >
-
-          <FaArrowRight className="text-2xl absolute right-2 md:right-4 hover:cursor-pointer top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white p-1.5 md:p-2 rounded-full transition-all duration-300 hover:scale-110 "
-            onClick={nextSlide}
-            aria-label="Next slide"
-          />
-
-        </button
-        >
-        <button
-        >
-
-          <FaArrowLeft className="text-2xl absolute left-2 md:left-4 hover:cursor-pointer top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white p-1.5 md:p-2 rounded-full transition-all duration-300 hover:scale-110"
-            onClick={prevSlide}
-            aria-label="Previous slide"
-          />
-        </button
-        >
+          <FaArrowRight className="text-xl md:text-2xl group-hover:translate-x-0.5 transition-transform" />
+        </button>
 
         {/* Indicators */}
-        <div className="absolute flex space-x-2 transform -translate-x-1/2 bottom-2 md:bottom-4 left-1/2">
-          {(slides.length > 0 ? slides : defaultSlides).map((_, index) => (
+        <div className="absolute flex space-x-2 transform -translate-x-1/2 bottom-2 md:bottom-4 left-1/2 z-20">
+          {(slides.length > 0 ? slides : DEFAULT_SLIDES).map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
@@ -159,8 +135,8 @@ function ImageSlider() {
         </div>
       </div>
 
-      {/* Text Overlay */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-3 text-center text-white bg-gradient-to-b from-black/70 via-black/50 to-black/70 md:px-4">
+      {/* Text Overlay - added pointer-events-none so it doesn't block button clicks */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-3 text-center text-white bg-gradient-to-b from-black/70 via-black/50 to-black/70 md:px-4 pointer-events-none">
         <h1 className="mb-3 text-2xl font-extrabold tracking-tight md:text-4xl lg:text-5xl xl:text-6xl md:mb-6 drop-shadow-xl">
           St Thomas Aquinas - CSA
         </h1>

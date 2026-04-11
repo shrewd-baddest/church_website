@@ -1,6 +1,0 @@
-[
-  { "id": 1, "title": "Recollection Day", "datetime": "2026-01-31T08:00:00", "venue": "Church Hall", "description": "A day of prayer, reflection, and spiritual renewal for all CSA members." },
-  { "id": 2, "title": "Charity Work", "datetime": "2026-02-21T08:00:00", "venue": "Bethlehem Children's Home", "description": "Outreach and service project — bringing hope to those in need." },
-  { "id": 3, "title": "Fun Day", "datetime": "2026-03-14T07:30:00", "venue": "School Grounds", "description": "A day of games, fellowship, and community bonding for all students." },
-  { "id": 4, "title": "4th Years' Bash", "datetime": "2026-04-11T08:00:00", "venue": "Church", "description": "A farewell celebration honouring our graduating fourth-year members." }
-]

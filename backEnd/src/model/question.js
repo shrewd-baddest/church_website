@@ -1,22 +1,3 @@
-// this is the structure of  a single question based on the model described below
-// {
-//   "_id": "65f1c2a9e4b0f123456789ab",
-//   "questionText": "What does the parable of the Prodigal Son teach us?",
-//   "answers": [
-//     { "option": "a)", "text": "God’s unconditional love" },
-//     { "option": "b)", "text": "Strict punishment for sin" },
-//     { "option": "c)", "text": "Wealth leads to happiness" },
-//     { "option": "d)", "text": "Family unity above all" }
-//   ],
-//   "correctAnswer": {
-//     "option": "a)",
-//     "text": "God’s unconditional love",
-//     "explanation": "The parable emphasizes forgiveness and mercy, showing God’s love for repentant sinners."
-//   },
-//   "createdAt": "2026-03-12T10:30:00.000Z",
-//   "__v": 0
-// }
-
 import logger from "../logger/winston.js";
 import mongoose from "mongoose";
 

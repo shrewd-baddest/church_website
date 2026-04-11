@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { FaPhoneAlt, FaWhatsapp } from 'react-icons/fa'
 
-const API_BASE = '/api/officials/list'
-const UPLOAD_BASE = ''
+import apiService from '../../pages/Landing/services/api'
+// Extract only the domain from the versioned API URI for image assets
+const UPLOAD_BASE = (import.meta.env.VITE_SERVER_URI || '').split('/api')[0]
 
 const CATEGORY_ORDER = [
   'Executive','Jumuiya Coordinators','Bible Coordinators','Rosary',
@@ -40,10 +41,8 @@ export default function PublicView() {
   async function fetchOfficials() {
     setLoading(true); setFetchError('')
     try {
-      const res = await fetch(API_BASE)
-      if (!res.ok) throw new Error(`Server responded ${res.status}`)
-      const json = await res.json()
-      setData(json.data || [])
+      const officials = await apiService.getOfficials();
+      setData(officials || [])
     } catch (e) {
       setFetchError((e as Error).message || 'Failed to load officials')
     } finally { setLoading(false) }
@@ -60,7 +59,7 @@ export default function PublicView() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-16 text-center relative">
-          {user?.role === 'admin' && (
+          {user?.role.includes('admin') && (
             <button
               onClick={() => navigate('/admin/officials')}
               className="absolute top-0 right-0 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 active:scale-95"

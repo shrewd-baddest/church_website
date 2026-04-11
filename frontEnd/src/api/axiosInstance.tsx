@@ -1,7 +1,8 @@
 
-
 import axios from "axios";
 import { LocalStorage } from "../utils";
+import type { fileUpload } from "../interface/api";
+import { normalizeFiles } from "../pages/Devotions/utitlty";
 
 // Create an Axios instance for API requests
 export const apiClient = axios.create({
@@ -10,19 +11,17 @@ export const apiClient = axios.create({
   timeout: 120000,
 });
 
-// Add an interceptor to set authorization header with user token before requests
+
+// Add an interceptor to set authorization header
 apiClient.interceptors.request.use(
-  function (config) {
-    // Retrieve user token from local storage
-    const token = LocalStorage.get("token");
-    // Set authorization header with bearer token
-    config.headers.Authorization = `Bearer ${token}`;
+  (config) => {
+    const userdata =LocalStorage.get('userdata');
+    if (userdata && userdata.accessToken) {
+      config.headers.Authorization = `Bearer ${userdata.accessToken}`;
+    }
     return config;
   },
-
-  function (error) {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 apiClient.interceptors.response.use(
@@ -30,26 +29,32 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Only retry once to avoid infinite loop
+    // Handle 401 Unauthorized (Token expired)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) throw new Error("No refresh token found");
+        const userdata = LocalStorage.get('userdata');
+        if (!userdata || !userdata.refreshToken) {
+          throw new Error("No refresh token available");
+        }
 
         // Call refresh endpoint
-        const { data } = await axios.post(`${import.meta.env.VITE_SERVER_URI}/authentication/v1/refresh`, { refreshToken });
+        const { data } = await refreshAccessAndRefreshToken(userdata.refreshToken)
 
-        // Save new access token
-        localStorage.setItem("accessToken", data.accessToken);
+        // Update userdata with new tokens
+        const updatedData = { 
+          ...userdata, 
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken || userdata.refreshToken // Fallback to old if not rotated
+        };
+        LocalStorage.set("userdata", updatedData);
 
-        // Retry original request with new token
+        // Retry original request
         originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
         return apiClient(originalRequest);
       } catch (err) {
-        // Refresh failed → logout user
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        // Refresh failed → logout
+        localStorage.removeItem("userdata");
         window.location.href = "/login";
         return Promise.reject(err);
       }
@@ -60,20 +65,98 @@ apiClient.interceptors.response.use(
 );
 
 
+// API functions for refresh both access and refresh token
+ const refreshAccessAndRefreshToken = (refreshToken: any)=>{
+  return apiClient.post("authentication/refresh" , {refreshToken});    
+}
 
-// API functions for different actions
-export const generateAndSaveQuestions = (data: { topic: string }) => {
-  return apiClient.post("/questions/v1", data);
+// API functions for generating and saving question to the database
+ export const generateAndSaveQuestions = (data: { topic: string }) => {
+  return apiClient.post("/questions", data);
+};
+
+// Api for fetching daily questions with a limit
+export const fetchDailyQuestions = (limit: number = 10) => {
+  return apiClient.get(`/questions/?limit=${limit}`);
+};
+
+
+// Api for fetching comparison data for the 7 jumuiyas
+export const  fetchJumuiyaComparisonData = () =>{
+  return apiClient.get("/csa/jumuiya-comparison");
+}
+
+// Api for fetching user specific progress data
+export const memberProgressData = ()=>{
+ return apiClient.get("/member/:id/progress");
+}
+
+// Api for fetching user specific summary data of the progress
+export const memberSummaryData = ()=>{
+  return apiClient.get("/member/:id/summary")
+}
+
+// Api for fetching user specific progress data
+export const individualJumuiAttemptsData =( jumuiyaId : number)=>{
+  return apiClient.get(`/attempts/jumuiya/${jumuiyaId}`)
+}
+
+// Api for fetching notification data either at csa or jumuiya level
+export const fetchNotifications = () =>{
+  return apiClient.get( `/notifications`)
+} 
+
+export const createNotificationEventApi= (payload: { title: string; message: string; images?: fileUpload[]; posted_To?: string; status?: string;}) => {
+  return apiClient.post("/notifications", payload);
+};
+
+// Api for uploading one or many files this may include images and videos, 
+export const uploadFile = (files: File[] | File) => {
+  const formData = new FormData();
+  normalizeFiles(files).forEach((file) => formData.append("files", file));
+
+  return apiClient.post("/files", formData, {headers: {"Content-Type": "multipart/form-data", },
+  });
+};
+
+
+// ?api to handle fetching all uploaded files this
+//  is useful for the admin to view all the uploaded files and manage them if needed
+export const fetchAllUploadedFiles = () => {
+  return apiClient.post("/files");
+};
+
+
+
+// Delete one or many files by publicId(s)
+export const deleteOneOrMoreFiles = (publicIds: string | string[]) => {
+  const ids = Array.isArray(publicIds) ? publicIds : [publicIds];
+  return apiClient.delete("/files", {
+    data: { publicIds: ids }, 
+  });
+};
+
+
+export const loginApi = (data: { userReg: string; password: string }) => {
+  return apiClient.post("/authentication/login", data);
 };
 
 export const initiateSTKPush = (data: { amount: number; phoneNumber: string }) => {
-  return apiClient.post("/authentication/v1/stk-push", data);
+  return apiClient.post("/authentication/stk-push", data);
 };
 
 export const initiateGuestSTKPush = (data: { amount: number; phoneNumber: string }) => {
-  return apiClient.post("/authentication/v1/stk-push-guest", data);
+  return apiClient.post("/authentication/stk-push-guest", data);
 };
 
 export const getSTKPushStatus = (checkoutId: string) => {
-  return apiClient.get(`/authentication/v1/stk-push-status/${checkoutId}`);
+  return apiClient.get(`/authentication/stk-push-status/${checkoutId}`);
+};
+
+export const resetEmailApi = (data: { email: string; password?: string; purpose: string }) => {
+  return apiClient.post("/authentication/reset-email", data);
+};
+
+export const resetPasswordApi = (data: { email: string; password?: string; purpose: string }) => {
+  return apiClient.post("/authentication/reset", data);
 };

@@ -3,7 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaPhoneAlt, FaWhatsapp, FaEnvelope, FaArrowLeft, FaCheckCircle, FaStar, FaQuoteLeft } from 'react-icons/fa';
 import { POSITION_INFO, DEFAULT_POSITION_INFO } from './constants/positionInfo';
 
-const API_BASE = '/api/officials/list';
+import apiService from '../Landing/services/api'
+// Extract only the domain from the versioned API URI for image assets
+const UPLOAD_BASE = (import.meta.env.VITE_SERVER_URI || '').split('/api')[0]
 
 const CATEGORY_COLORS: Record<string, string> = {
     'Executive': 'from-purple-600 to-purple-800',
@@ -41,13 +43,12 @@ const OfficialProfile: React.FC = () => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchOfficial = async () => {
+        const fetchOfficialDetails = async () => {
+            if (!id) return;
             try {
-                const res = await fetch(API_BASE);
-                const json = await res.json();
-                const found = json.data.find((o: any) => o.id.toString() === id);
-                if (found) {
-                    setOfficial(found);
+                const data = await apiService.getOfficialById(id);
+                if (data) {
+                    setOfficial(data);
                 } else {
                     setError('Official not found');
                 }
@@ -57,7 +58,7 @@ const OfficialProfile: React.FC = () => {
                 setLoading(false);
             }
         };
-        fetchOfficial();
+        fetchOfficialDetails();
     }, [id]);
 
     if (loading) return (
@@ -101,7 +102,7 @@ const OfficialProfile: React.FC = () => {
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-white/30 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                             <img 
-                                src={official.photo || 'https://via.placeholder.com/180'} 
+                                src={official.photo ? (official.photo.startsWith('http') ? official.photo : `${UPLOAD_BASE}${official.photo}`) : 'https://via.placeholder.com/180'} 
                                 alt={official.name}
                                 className="relative w-40 h-40 sm:w-52 sm:h-52 rounded-full object-cover border-4 border-white shadow-2xl"
                             />

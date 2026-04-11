@@ -16,7 +16,7 @@ export interface JumuiyaOfficial {
 
 export function useJumuiyaOfficials(filters: { termId?: number | string; category?: string } = {}) {
   const queryClient = useQueryClient();
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { termId, category } = filters;
 
   const officialsQuery = useQuery({
@@ -43,7 +43,7 @@ export function useJumuiyaOfficials(filters: { termId?: number | string; categor
         method: 'POST', 
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         }
       });
       if (!res.ok) {
@@ -69,7 +69,7 @@ export function useJumuiyaOfficials(filters: { termId?: number | string; categor
         method: 'PUT', 
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         }
       });
       if (!res.ok) {
@@ -94,7 +94,7 @@ export function useJumuiyaOfficials(filters: { termId?: number | string; categor
       const res = await fetch(`${API_JUMUIYA_BASE}/${id}`, { 
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${user?.accessToken}`
         }
       });
       if (!res.ok) {

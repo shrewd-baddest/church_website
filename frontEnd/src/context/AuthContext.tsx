@@ -1,69 +1,79 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import {  LocalStorage } from '../utils';
 
-// Define the shape of the context data
-interface AuthContextType {
-  user: { user_id: number; username: string; role: string } | null;
-  token: string | null;
-  login: (userData: { user_id: number; username: string; role: string }, token: string) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
-  getAuthToken: () => string | null;
+// Define the shape of User Data arriving from API and stored in localStorage
+interface UserData {
+  accessToken: string;
+  refreshToken: string;
+  role: string[];
+  name: string; // Combined firstName and lastName as per backend change
+  email: string;
+  status: string; // e.g. "success"
+  jumuiya_id: string;
 }
 
-// Create the context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthContextType {
+  user: UserData | null;
+  login: (data: UserData) => void;
+  logout: () => void;
+  register: () => void;
+  isAuthenticated: boolean;
+}
+
+// Create the context with defaults
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  login: () => {},
+  logout: () => {},
+  register: () => {},
+  isAuthenticated: false,
+});
 
 // Create the provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<{ user_id: number; username: string; role: string } | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
-  // Check for stored user/token on initial load
+  const [user, setUser] = useState<UserData | null>(null);
+console.log(user)
+  // Check for stored user on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-
-    if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
-      setUser(JSON.parse(storedUser));
-    }
-    if (storedToken && storedToken !== "undefined" && storedToken !== "null") {
-      setToken(storedToken);
+    const storedData = LocalStorage.get('userdata');
+    if (storedData) {
+      try {
+        const parsedData =  LocalStorage.get('userdata');
+        if (parsedData && parsedData.status === 'success') {
+          setUser(parsedData);
+        }
+      } catch (error) {
+        console.error("Error parsing userdata from localStorage", error);
+        localStorage.removeItem('userdata');
+      }
     }
   }, []);
 
-  const login = (userData: { user_id: number; username: string; role: string }, authToken: string) => {
-    console.log("AuthContext login called with:", userData, authToken);
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', authToken);
-    console.log("AuthContext user state after login:", userData);
+  const login = (data: UserData) => {
+      setUser(data);
+      LocalStorage.set('userdata', data);
   };
 
   const logout = () => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    LocalStorage.remove('userdata');
   };
 
-  const getAuthToken = () => {
-    return token || localStorage.getItem('token');
-  };
+  const register = () => {};
 
-  // Compute isAuthenticated based on user state
-  const isAuthenticated = !!user && !!token;
+  // Compute isAuthenticated based on user status
+  const isAuthenticated = !!user && user.status === 'success';
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
         login,
         logout,
+        register,
         isAuthenticated,
-        getAuthToken
       }}
     >
       {children}
@@ -71,7 +81,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-// Create a custom hook for easy access to the context
+// Custom hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

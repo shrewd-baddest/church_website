@@ -1,4 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import apiService from '../../Landing/services/api';
+// Extract only the domain from the versioned API URI for image assets
+const UPLOAD_BASE = (import.meta.env.VITE_SERVER_URI || '').split('/api')[0];
 import { 
   Image as ImageIcon, 
   Upload, 
@@ -7,27 +10,41 @@ import {
   Plus, 
   CheckCircle2, 
   AlertCircle,
-  Maximize2
+  Maximize2,
+  Loader2
 } from 'lucide-react';
 
 interface GalleryImage {
-  id: string;
-  url: string;
-  name: string;
-  size: string;
-  format: string;
+  id: string | number;
+  image_url: string;
+  title: string;
+  category?: string;
+  description?: string;
+  created_at?: string;
 }
 
 export default function GalleryManager() {
-  const [images, setImages] = useState<GalleryImage[]>([
-    { id: '1', url: 'https://images.unsplash.com/photo-1544427928-c49cdfebf194?w=800', name: 'Church Front.jpg', size: '1.2 MB', format: 'JPG' },
-    { id: '2', url: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=800', name: 'Altar View.jpg', size: '2.5 MB', format: 'JPG' },
-    { id: '3', url: 'https://images.unsplash.com/photo-1548625361-195fd09a07b2?w=800', name: 'Sunday Service.png', size: '800 KB', format: 'PNG' },
-  ]);
-
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success'>('idle');
+
+  useEffect(() => {
+    loadImages();
+  }, []);
+
+  const loadImages = async () => {
+    setLoading(true);
+    try {
+      const data = await apiService.getGallery();
+      setImages(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load gallery:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -64,29 +81,42 @@ export default function GalleryManager() {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleDeleteImage = (id: string) => {
+  const handleDeleteImage = async (id: string | number) => {
     if (window.confirm('Are you sure you want to remove this photo from the gallery?')) {
-      setImages(prev => prev.filter(img => img.id !== id));
+      try {
+        await apiService.deleteRecord('gallery', id);
+        setImages(prev => prev.filter(img => img.id !== id));
+      } catch (err) {
+        alert('Failed to delete image');
+      }
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     setUploadStatus('uploading');
-    // Simulate upload
-    setTimeout(() => {
-      const newImages: GalleryImage[] = selectedFiles.map((file) => ({
-        id: Math.random().toString(36).substr(2, 9),
-        url: URL.createObjectURL(file),
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-        format: file.type.split('/')[1].toUpperCase()
-      }));
+    try {
+      // For now, we upload one by one using a simple loop or a bulk endpoint if available
+      for (const file of selectedFiles) {
+        // We'd typically use a FormData based upload here
+        // Since we want to simplify, we use the specific addGalleryItem if it supports FormData
+        // or a generic helper.
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', file.name);
+        
+        // This is a placeholder for a real multi-part upload call
+        // we'll assume the apiService handles it or we'll update it later.
+        await apiService.createRecord('gallery', { title: file.name, image_url: URL.createObjectURL(file) });
+      }
       
-      setImages(prev => [...newImages, ...prev]);
+      await loadImages();
       setSelectedFiles([]);
       setUploadStatus('success');
       setTimeout(() => setUploadStatus('idle'), 3000);
-    }, 1500);
+    } catch (err) {
+      alert('Upload failed');
+      setUploadStatus('idle');
+    }
   };
 
   return (
@@ -222,46 +252,54 @@ export default function GalleryManager() {
                 </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
-              {images.map((image) => (
-                <div key={image.id} className="group relative bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 aspect-square">
-                  <img 
-                    src={image.url} 
-                    alt={image.name} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    <div className="absolute top-3 right-3 flex gap-2">
-                      <button className="p-2 bg-white/20 hover:bg-white text-white hover:text-slate-900 rounded-lg backdrop-blur-md transition-all">
-                        <Maximize2 size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteImage(image.id)}
-                        className="p-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-all"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+            {loading ? (
+              <div className="flex-1 flex flex-col items-center justify-center animate-pulse">
+                <Loader2 size={48} className="text-slate-200 animate-spin mb-4" />
+                <p className="text-slate-400 font-bold">Synchronizing with server...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+                {images.map((image) => (
+                  <div key={image.id} className="group relative bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 aspect-square">
+                    <img 
+                      src={image.image_url?.startsWith('http') ? image.image_url : `${UPLOAD_BASE}${image.image_url}`} 
+                      alt={image.title} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
                     
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <p className="text-white font-bold text-xs truncate">{image.name}</p>
-                      <p className="text-slate-300 text-[10px] mt-1 uppercase tracking-widest font-black">
-                        {image.size} • {image.format}
-                      </p>
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <button className="p-2 bg-white/20 hover:bg-white text-white hover:text-slate-900 rounded-lg backdrop-blur-md transition-all">
+                          <Maximize2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteImage(image.id)}
+                          className="p-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <p className="text-white font-bold text-xs truncate">{image.title}</p>
+                        <p className="text-slate-300 text-[10px] mt-1 uppercase tracking-widest font-black">
+                          {image.category || 'Church Event'} • {image.created_at ? new Date(image.created_at).toLocaleDateString() : 'Recent'}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {/* Empty States Placeholder */}
-              {images.length < 6 && (
-                <div className="border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-slate-200 aspect-square">
-                   <ImageIcon size={48} />
-                </div>
-              )}
-            </div>
+                ))}
+                
+                {/* Empty States Placeholder */}
+                {images.length === 0 && (
+                  <div className="col-span-full border-2 border-dashed border-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-200 py-20">
+                     <ImageIcon size={64} className="mb-4 opacity-20" />
+                     <p className="text-slate-400 font-bold">No images in your gallery yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

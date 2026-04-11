@@ -5,9 +5,7 @@ import { useOfficials } from '../../hooks/useOfficials';
 import type { Official } from '../../hooks/useOfficials';
 import { useJumuiyaOfficials } from '../../hooks/useJumuiyaOfficials';
 import { useTerms } from '../../hooks/useTerms';
-import { useDarkMode } from '../../hooks/useDarkMode';
 import { API_BASE, API_JUMUIYA_BASE } from '../../utils/officialsApi';
-import { Sun, Moon } from 'lucide-react';
 
 import { DashboardStats } from './components/DashboardStats';
 import { OfficialsTable } from './components/OfficialsTable';
@@ -32,7 +30,6 @@ export default function AdminPanel() {
 
   const jumuiyaApi = useJumuiyaOfficials({ termId: currentTerm?.id });
 
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   // Local UI State
   const [adminMode, setAdminMode] = useState<'csa' | 'jumuiya'>(() => {
@@ -122,37 +119,30 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 pb-20 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50/50 pb-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
           <div>
-            <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
-              <LayoutDashboard className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+              <LayoutDashboard className="w-10 h-10 text-blue-600" />
               Admin Dashboard
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Church Symbols Association Official Management System</p>
+            <p className="text-gray-500 font-medium mt-1">Church Symbols Association Official Management System</p>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3">
             <button 
-              onClick={toggleDarkMode}
-              className="p-2 sm:p-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all active:scale-95"
-              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            >
-              {isDarkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-blue-600" />}
-            </button>
-            <button 
               onClick={() => setIsHistoryOpen(true)}
-              className="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md transition-all active:scale-95 text-xs sm:text-base"
+              className="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 bg-white text-gray-700 font-bold rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 hover:shadow-md transition-all active:scale-95 text-xs sm:text-base"
             >
-              <History className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400" />
+              <History className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
               <span>History</span>
             </button>
             <button 
               onClick={() => setIsArchiveOpen(true)}
-              className="flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all active:scale-95 text-sm sm:text-base"
+              className="flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 text-sm sm:text-base"
             >
               <Archive className="w-5 h-5" />
               <span className="xs:hidden">Archive</span>
@@ -174,16 +164,16 @@ export default function AdminPanel() {
 
         {/* Mode Switcher */}
         <div className="flex items-center justify-center mb-8">
-           <div className="bg-white dark:bg-gray-800 p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-1 overflow-hidden transition-colors">
+           <div className="bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-1 overflow-hidden transition-colors">
               <button 
                 onClick={() => handleModeChange('csa')}
-                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${adminMode === 'csa' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'}`}
+                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${adminMode === 'csa' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
               >
                  CSA Officials
               </button>
               <button 
                 onClick={() => handleModeChange('jumuiya')}
-                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${adminMode === 'jumuiya' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'}`}
+                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${adminMode === 'jumuiya' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
               >
                  Jumuiya Officials
               </button>
@@ -204,7 +194,7 @@ export default function AdminPanel() {
           />
 
           {/* Table Controls (Search & Export) */}
-          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col xl:flex-row xl:items-center justify-between gap-6 transition-colors">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col xl:flex-row xl:items-center justify-between gap-6 transition-colors">
             <div className="relative flex-1 max-w-full xl:max-w-md">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input 
@@ -212,11 +202,11 @@ export default function AdminPanel() {
                 placeholder="Search officials..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-transparent dark:border-gray-700 rounded-xl focus:bg-white dark:focus:bg-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 dark:focus:ring-blue-900/20 text-gray-900 dark:text-white transition-all outline-none font-medium"
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 text-gray-900 transition-all outline-none font-medium"
               />
             </div>
             
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 xl:gap-8 bg-gray-50/50 dark:bg-gray-900/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 xl:gap-8 bg-gray-50/50 p-3 rounded-xl border border-gray-100/50">
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                 {Object.entries(downloadFields).map(([key, value]) => (
                   <label key={key} className="flex items-center gap-2.5 cursor-pointer group select-none">
@@ -227,18 +217,18 @@ export default function AdminPanel() {
                         onChange={e => setDownloadFields({...downloadFields, [key]: e.target.checked})}
                         className="peer w-5 h-5 opacity-0 absolute cursor-pointer" 
                       />
-                      <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-all flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 text-white scale-0 peer-checked:scale-100 transition-transform" />
+                      <div className={`w-5 h-5 border-2 rounded-md bg-white transition-all flex items-center justify-center ${value ? 'border-blue-600' : 'border-gray-300'}`}>
+                        <Check className={`w-4 h-4 text-blue-600 transition-all duration-200 stroke-[3] ${value ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tight group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">{key}</span>
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-tight group-hover:text-gray-900 transition-colors">{key}</span>
                   </label>
                 ))}
               </div>
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <button 
                   onClick={handleDownload}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-bold rounded-xl border border-green-100 dark:border-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all text-xs sm:text-sm active:scale-95"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 bg-green-50 text-green-700 font-bold rounded-xl border border-green-100 hover:bg-green-100 transition-all text-xs sm:text-sm active:scale-95"
                 >
                   <Download className="w-4 h-4" />
                   <span>Export</span>
@@ -246,7 +236,7 @@ export default function AdminPanel() {
                 </button>
                 <button 
                   onClick={() => setIsShareOpen(true)}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-bold rounded-xl border border-blue-100 dark:border-blue-900/30 hover:bg-blue-100 dark:hover:hover:bg-blue-900/40 transition-all text-xs sm:text-sm active:scale-95"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl border border-blue-100 hover:bg-blue-100 transition-all text-xs sm:text-sm active:scale-95"
                 >
                   <Share2 className="w-4 h-4" />
                   <span>Share</span>

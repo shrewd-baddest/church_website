@@ -1,7 +1,6 @@
 import { testDb as pool } from "../Configs/dbConfig.js";
 import ExcelJS from 'exceljs';
 import path from 'path';
-import fs from 'fs';
 import { 
   normalizePhone, 
   isValidPhone, 

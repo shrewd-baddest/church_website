@@ -1,8 +1,8 @@
 import axios from 'axios';
 import logger from '../logger/winston.js';
 
-const PING_URL = 'https://csa-church-website.onrender.com';
-const INTERVAL_MS = 13 * 60 * 1000; // 13 minutes
+const PING_URL = 'https://csa-church-website-rosy.vercel.app/';
+const INTERVAL_MS = 15 * 60 * 1000; // 13 minutes
 
 export const startKeepAliveWorker = () => {
     logger.info(`🚀 Keep-alive worker started. Pinging ${PING_URL} every 13 minutes.`);
