@@ -18,7 +18,7 @@ const SuggestionBox: React.FC = () => {
 
     setStatus('submitting');
     
-    const submissionData: any = {
+    const submissionData: Record<string, string> = {
       suggestion: formData.suggestion.trim()
     };
     
@@ -34,10 +34,11 @@ const SuggestionBox: React.FC = () => {
         setStatus('idle');
         setIsOpen(false);
       }, 4000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting suggestion:', error);
       setStatus('error');
-      setErrorMessage(error.response?.data?.error || 'Failed to submit suggestion. Please try again.');
+      const msg = error instanceof Error ? error.message : 'Failed to submit suggestion. Please try again.';
+      setErrorMessage((error as { response?: { data?: { error?: string } } })?.response?.data?.error ?? msg);
       setTimeout(() => setStatus('idle'), 5000);
     }
   };
@@ -169,6 +170,12 @@ const SuggestionBox: React.FC = () => {
                           </>
                         )}
                       </button>
+
+                      {status === 'error' && errorMessage && (
+                        <div className="mt-4 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+                          {errorMessage}
+                        </div>
+                      )}
                     </div>
                   </form>
                 )}

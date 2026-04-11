@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Camera, ArrowRight, Lock, Image as ImageIcon } from 'lucide-react';
+import { Camera, ArrowRight, Image as ImageIcon } from 'lucide-react';
 import { fetchGalleryTeaser } from '../../../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface GalleryItem {
   id: number;

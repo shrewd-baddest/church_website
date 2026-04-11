@@ -140,13 +140,13 @@ export const fetchGalleryTeaser = () => {
 };
 
 // Api for fetching user specific progress data
-export const memberProgressData = (id: string | number) => {
- return apiClient.get(`/member/${id}/progress`);
+export const memberProgressData = () => {
+ return apiClient.get(`/member/progress`);
 }
 
 // Api for fetching user specific summary data of the progress
-export const memberSummaryData = (id: string | number) => {
-  return apiClient.get(`/member/${id}/summary`)
+export const memberSummaryData = () => {
+  return apiClient.get(`/member/summary`);
 }
 
 // Api for fetching user specific progress data

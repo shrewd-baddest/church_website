@@ -7,21 +7,13 @@ import {
   X,
   MessageSquare,
   Heart,
-  Share2,
   Smile,
   Send,
   Calendar,
-  Clock,
-  User,
   Search,
-  Filter,
-  MoreHorizontal,
-  Plus
 } from 'lucide-react';
 import { apiClient } from '../../../../../api/axiosInstance';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LuSnowflake } from "react-icons/lu"; // For seasonal themes if needed
-import { GiMapleLeaf } from "react-icons/gi";
 
 interface GalleryItem {
   id: number;
@@ -33,11 +25,7 @@ interface GalleryItem {
   is_anniversary?: boolean;
 }
 
-interface GalleryResponse {
-  items: GalleryItem[];
-  theme: string;
-  userContext: { jumuiyaId: string } | null;
-}
+
 
 const GallerySection: React.FC = () => {
   const [items, setItems] = useState<GalleryItem[]>([]);
@@ -88,11 +76,6 @@ const GallerySection: React.FC = () => {
     }
   };
 
-  const prevImage = () => {
-    if (selectedIdx !== null) {
-      setSelectedIdx((selectedIdx - 1 + filteredItems.length) % filteredItems.length);
-    }
-  };
 
   if (loading) {
     return (

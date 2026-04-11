@@ -1,20 +1,34 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FaBell, FaPlus, FaCheckCircle, FaInbox, FaUsers, FaChurch, FaRegClock } from "react-icons/fa";
+import { FaPlus, FaCheckCircle, FaInbox, FaUsers, FaChurch, FaRegClock } from "react-icons/fa";
 import { MdUpdate, MdHistory } from "react-icons/md";
-import type { fileUpload } from "../../../interface/api";
 import { useNotifications } from "../../../context/NotificationContext";
 import { useAuth } from "../../../context/AuthContext";
 import { createNotificationEventApi } from "../../../api/axiosInstance";
 import NotificationModal from "../components/NotificationModal";
 import { timeAgo } from "../../../utils";
+import type { NotificationPayload, fileUpload, Event as BaseEvent } from "../../../interface/api";
+
+// Extend the base Event with fields the card actually uses
+type NotificationEvent = BaseEvent & {
+  status?: string;
+  posted_by?: string;
+  images?: (string | fileUpload)[];
+};
+
+// images from backend can be a URL string OR a full fileUpload object
+type NotificationImage = string | fileUpload;
+
+// Helper: normalise any image variant to a URL string
+const resolveImageUrl = (img: NotificationImage): string =>
+  typeof img === "string" ? img : img.url;
 
 // --- Components ---
 
-const EmptyState: React.FC<{ 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string; 
-  gradient: string; 
+const EmptyState: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  gradient: string;
 }> = ({ icon, title, description, gradient }) => (
   <div className="flex flex-col items-center justify-center py-16 px-6 text-center animate-in fade-in zoom-in duration-700">
     <div className={`w-20 h-20 rounded-2xl ${gradient} flex items-center justify-center text-white text-3xl shadow-xl mb-6 relative border-2 border-white/50 backdrop-blur-sm group`}>
@@ -28,7 +42,7 @@ const EmptyState: React.FC<{
   </div>
 );
 
-const NotificationCard: React.FC<{ event: any }> = ({ event }) => {
+const NotificationCard: React.FC<{ event: NotificationEvent }> = ({ event }) => {
   const isJumuiya = event.category === "jumuiya";
   const avatarBg = isJumuiya ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-blue-50 text-blue-600 border-blue-100";
   const Icon = isJumuiya ? FaUsers : FaChurch;
@@ -41,7 +55,7 @@ const NotificationCard: React.FC<{ event: any }> = ({ event }) => {
             New
          </div>
        )}
-       
+
        <div className="flex flex-col sm:flex-row gap-6">
           {/* Avatar Area */}
           <div className="relative shrink-0 flex items-start justify-center">
@@ -60,7 +74,7 @@ const NotificationCard: React.FC<{ event: any }> = ({ event }) => {
                 <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${isJumuiya ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
                    {event.category}
                 </span>
-                {event.status === 'urgent' && (
+                {event?.status === 'urgent' && (
                   <span className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-red-100 text-red-700 flex items-center gap-1">
                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                      Urgent
@@ -71,11 +85,11 @@ const NotificationCard: React.FC<{ event: any }> = ({ event }) => {
                    {timeAgo(event.createdAt)}
                 </span>
              </div>
-             
+
              <h4 className="text-lg font-black text-gray-900 leading-tight mb-2 pr-12 group-hover:text-blue-600 transition-colors">
                 {event.text}
              </h4>
-             
+
              <p className="text-sm text-gray-500 font-medium mb-5 leading-relaxed">
                 {event.posted_by} shared an update to the community.
              </p>
@@ -84,7 +98,11 @@ const NotificationCard: React.FC<{ event: any }> = ({ event }) => {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                    {event.images.slice(0, 3).map((img, i) => (
                       <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 group/img shadow-sm">
-                         <img src={img} alt="attachment" className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700" />
+                         <img
+                           src={resolveImageUrl(img)}
+                           alt={`attachment-${i + 1}`}
+                           className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
+                         />
                          <div className="absolute inset-0 bg-black/5 group-hover/img:bg-transparent transition-colors" />
                       </div>
                    ))}
@@ -97,14 +115,15 @@ const NotificationCard: React.FC<{ event: any }> = ({ event }) => {
 };
 
 const Notifications: React.FC = () => {
-  const { notifications, markAllAsRead, refreshNotifications, isConnected, socketError } = useNotifications();
+  const { notifications, markAllAsRead, refreshNotifications, isConnected } = useNotifications();
   const { user } = useAuth();
 
   const [activeCategory, setActiveCategory] = useState<"csa" | "jumuiya" | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const roles = useMemo(() => user?.role ?? [], [user?.role]);
-  const isAdmin = true; // Hardcoded true as per previous logic
+  // roles is always an array (string[]) from UserData
+  const roles = useMemo(() => (Array.isArray(user?.role) ? user.role : []), [user?.role]);
+  const isAdmin = true;
 
   useEffect(() => {
     if (activeCategory) {
@@ -113,7 +132,7 @@ const Notifications: React.FC = () => {
     }
   }, [activeCategory, markAllAsRead, notifications]);
 
-  const createNotification = useCallback(async (data: any) => {
+  const createNotification = useCallback(async (data: NotificationPayload) => {
     try {
       await createNotificationEventApi(data);
       refreshNotifications();
@@ -165,8 +184,8 @@ const Notifications: React.FC = () => {
                <button
                   onClick={() => setActiveCategory("csa")}
                   className={`flex-1 py-2 px-6 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
-                     activeCategory === "csa" 
-                     ? "bg-white text-blue-600 shadow-lg shadow-gray-200/50 scale-[1.02]" 
+                     activeCategory === "csa"
+                     ? "bg-white text-blue-600 shadow-lg shadow-gray-200/50 scale-[1.02]"
                      : "text-gray-500 hover:bg-white/40"
                   }`}
                >
@@ -175,8 +194,8 @@ const Notifications: React.FC = () => {
                <button
                   onClick={() => setActiveCategory("jumuiya")}
                   className={`flex-1 py-2 px-6 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
-                     activeCategory === "jumuiya" 
-                     ? "bg-white text-emerald-600 shadow-lg shadow-gray-200/50 scale-[1.02]" 
+                     activeCategory === "jumuiya"
+                     ? "bg-white text-emerald-600 shadow-lg shadow-gray-200/50 scale-[1.02]"
                      : "text-gray-500 hover:bg-white/40"
                   }`}
                >
@@ -188,14 +207,14 @@ const Notifications: React.FC = () => {
           {/* Main Content Area */}
           <div className="space-y-4 min-h-[400px]">
              {!activeCategory ? (
-                <EmptyState 
+                <EmptyState
                    icon={<FaInbox />}
                    title="Select a Channel"
                    description="Choose between CSA or your Jumuiya to see the latest announcements and events."
                    gradient="bg-gradient-to-br from-indigo-500 to-blue-600"
                 />
              ) : filteredEvents.length === 0 ? (
-                <EmptyState 
+                <EmptyState
                    icon={<FaCheckCircle />}
                    title="All caught up!"
                    description={`There are no new notifications for ${activeCategory.toUpperCase()} right now.`}
@@ -219,8 +238,8 @@ const Notifications: React.FC = () => {
             <button
                onClick={() => setShowModal(true)}
                className={`fixed z-50 flex items-center justify-center bg-black text-white shadow-2xl hover:bg-gray-900 transition-all duration-300 ease-out border border-gray-800 backdrop-blur-md group overflow-hidden ${
-                 !!activeCategory 
-                   ? "top-20 right-4 sm:top-24 sm:right-6 w-12 h-12 rounded-full hover:scale-110 active:scale-95 shadow-blue-900/20" 
+                 !!activeCategory
+                   ? "top-20 right-4 sm:top-24 sm:right-6 w-12 h-12 rounded-full hover:scale-110 active:scale-95 shadow-blue-900/20"
                    : "top-[calc(100vh-6rem)] right-8 sm:top-[calc(100vh-7rem)] sm:right-10 px-8 h-14 rounded-full gap-3 hover:scale-105 active:scale-95"
                }`}
             >
@@ -235,7 +254,7 @@ const Notifications: React.FC = () => {
 
         </div>
 
-        {/* Modal - Moved outside relative z-10 container to float over Header */}
+        {/* Modal */}
         {showModal && (
           <NotificationModal
              roles={roles}
