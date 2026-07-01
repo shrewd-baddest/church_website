@@ -1,0 +1,50 @@
+[33me264c35[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: pull origin main: Fast-forward
+[33mbc7f824[m HEAD@{1}: pull: Fast-forward
+[33m32f58cd[m HEAD@{2}: reset: moving to origin/main
+[33m4e1549f[m HEAD@{3}: commit: fixed the callback url
+[33m56e9dff[m HEAD@{4}: pull origin main: Fast-forward
+[33m54a8bdb[m HEAD@{5}: commit (merge): completed the pull
+[33me874126[m HEAD@{6}: commit: fixed the unrejected promise
+[33m1fde56f[m HEAD@{7}: commit (merge): resolved stk conflict
+[33m868d8a1[m HEAD@{8}: checkout: moving from main to main
+[33m868d8a1[m HEAD@{9}: commit: skt endpoint controller
+[33m9edc37b[m HEAD@{10}: commit: stkpush controllers
+[33m47dec59[m HEAD@{11}: checkout: moving from main to main
+[33m47dec59[m HEAD@{12}: commit: changed the sendmail arguments
+[33mbde65ce[m HEAD@{13}: commit: refreshTokens added
+[33m075b721[m HEAD@{14}: commit (merge): feat :modifiy files
+[33m590cb71[m HEAD@{15}: commit (merge): feat :modifiy files
+[33m1f60c02[m HEAD@{16}: commit: added interceptors
+[33mf3afef7[m HEAD@{17}: commit: changes made on the userReg
+[33m21a3e71[m HEAD@{18}: commit (merge): resolved conflicts
+[33m29a2b3c[m HEAD@{19}: checkout: moving from login_features to main
+[33m388a47c[m[33m ([m[1;31morigin/login_features[m[33m, [m[1;32mlogin_features[m[33m)[m HEAD@{20}: commit (merge): pushing the login features to main branch
+[33m2f3204e[m HEAD@{21}: commit: WIP: my current changes
+[33mc8afd96[m HEAD@{22}: commit: changes on the reset eamil and password logic
+[33m29a2b3c[m HEAD@{23}: checkout: moving from main to login_features
+[33m29a2b3c[m HEAD@{24}: commit (merge): save my commits before merging
+[33m2733c29[m HEAD@{25}: commit: new reset logic
+[33mdd7023f[m HEAD@{26}: pull: updating HEAD
+[33mdd7023f[m HEAD@{27}: pull: updating HEAD
+[33mdd7023f[m HEAD@{28}: checkout: moving from main to main
+[33mdd7023f[m HEAD@{29}: commit: changed the login logic
+[33m784b430[m HEAD@{30}: commit (merge): new version of reset
+[33mfb0bbf9[m HEAD@{31}: commit: new login logic
+[33m403efc7[m HEAD@{32}: commit: changes on reset api's
+[33m9c406d7[m HEAD@{33}: pull: Fast-forward
+[33m02630fe[m HEAD@{34}: pull: Fast-forward
+[33m5ba5ad5[m HEAD@{35}: commit (merge): replace true prevents the user from going back after loging in
+[33m6728b44[m HEAD@{36}: commit: added a replace navigate
+[33m1e3a4d6[m HEAD@{37}: commit: general login styling
+[33md2425e7[m HEAD@{38}: commit: fotters added
+[33mea8271b[m HEAD@{39}: commit: Add .env file to .gitIgnore
+[33mf51bf2e[m HEAD@{40}: reset: moving to HEAD~1
+[33m8bd19f2[m HEAD@{41}: reset: moving to HEAD~1
+[33m8cb85f2[m HEAD@{42}: commit: headers
+[33m8bd19f2[m HEAD@{43}: commit: env files added
+[33mf51bf2e[m HEAD@{44}: commit: new file structure
+[33m4d57348[m HEAD@{45}: commit: added readME file
+[33meeac9ec[m HEAD@{46}: commit: fix on otp api
+[33mc554c9d[m HEAD@{47}: commit: fixes on smtp
+[33m625f454[m HEAD@{48}: Branch: renamed refs/heads/master to refs/heads/main
+[33m625f454[m HEAD@{50}: commit (initial): church login page
