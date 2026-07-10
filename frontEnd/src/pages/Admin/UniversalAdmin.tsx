@@ -44,9 +44,7 @@ const menuItems = [
   { id: 'gallery', name: 'Gallery Manager', icon: ImageIcon, path: '/admin/gallery' },
   { id: 'jumuiya-members', name: 'Members', icon: UserPlus, path: '/admin/jumuiya-members' },
   { id: 'registered-members', name: 'Registered Members', icon: ClipboardList, path: '/admin/registered-members' },
-  { id: 'forms-distribution', name: 'Forms Distribution', icon: MessageSquare, path: '/admin/forms-distribution' },
   { id: 'projects', name: 'Project Management', icon: LayoutGrid, path: '/admin/projects' },
-  { id: 'records', name: 'Records Explorer', icon: Database, path: '/admin/records' },
   { id: 'settings', name: 'Settings', icon: Settings, path: '/admin/settings' }
 ];
 
@@ -163,6 +161,7 @@ export default function UniversalAdmin() {
           allowedPrefixes.add("/admin/orders");
           allowedPrefixes.add("/admin/hire-requests");
           allowedPrefixes.add("/admin/projects");
+          // records explorer and forms distribution intentionally removed
           break;
         case "INSTRUMENT_MANAGER":
           allowedPrefixes.add("/admin/projects");

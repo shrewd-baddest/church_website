@@ -62,7 +62,6 @@ const JumuiyaDetail = lazy(() => import("./pages/Jumuiya/JumuiyaDetail"));
 
 // Admin
 const AdminDashboard = lazy(() => import("./pages/Admin/pages/AdminDashboard"));
-const RecordsExplorer = lazy(() => import("./pages/Admin/pages/RecordsExplorer"));
 const ProjectsManager = lazy(() =>
   import("./pages/Admin/pages/ProjectsManager")
 );
@@ -84,7 +83,6 @@ const CommunityDetailEditor = lazy(() => import("./pages/Admin/pages/CommunityDe
 const AdminSuggestions = lazy(() => import("./pages/Admin/pages/AdminSuggestions"));
 const GalleryManager = lazy(() => import("./pages/Admin/pages/GalleryManager"));
 const SacramentalsBannerManager = lazy(() => import("./pages/Admin/pages/SacramentalsBannerManager"));
-const FormsDistribution = lazy(() => import("./pages/Jumuiya/admin/FormsDistribution"));
 const JumuiyaMembersAdmin = lazy(() => import("./pages/Admin/pages/JumuiyaMembersAdmin"));
 const SettingsPage = lazy(() => import("./pages/Admin/pages/Settings"));
 const CsaSecretaryDashboard = lazy(() => import("./pages/Admin/pages/CsaSecretaryDashboard"));
@@ -149,7 +147,6 @@ const App: React.FC = () => {
           <Route path="announcements" element={<AnnouncementsAdmin />} />
           <Route path="officials" element={<AdminPanel />} />
           <Route path="devotions" element={<Appadmin />} />
-          <Route path="records" element={<RecordsExplorer />} />
           <Route path="donations" element={<DonationMonitor />} />
           <Route path="community-management" element={<CommunityManager />} />
           <Route path="community-management/:categoryId" element={<CommunityDetailEditor />} />
@@ -157,7 +154,6 @@ const App: React.FC = () => {
           <Route path="gallery" element={<GalleryManager />} />
           <Route path="sacramentals-banners" element={<SacramentalsBannerManager />} />
           <Route path="projects" element={<ProjectsManager />} />
-          <Route path="forms-distribution" element={<FormsDistribution />} />
           <Route path="jumuiya-members" element={<JumuiyaMembersAdmin />} />
           <Route path="jumuiya-members/:id" element={<JumuiyaMembersAdmin />} />
           <Route path="registered-members" element={<CsaSecretaryDashboard />} />
