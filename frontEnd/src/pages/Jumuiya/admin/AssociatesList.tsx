@@ -45,7 +45,7 @@ const AssociatesList: React.FC<Props> = ({ jumuiyaId, jumuiyaName }) => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [graduationFilter, setGraduationFilter] = useState<Record<string, boolean>>({});
+  const [graduationFilter, setGraduationFilter] = useState<string>("");
   const [genderFilter, setGenderFilter] = useState({ Male: true, Female: true });
 
   useEffect(() => {
@@ -81,7 +81,6 @@ const AssociatesList: React.FC<Props> = ({ jumuiyaId, jumuiyaName }) => {
   }, [associates]);
 
   const filtered = useMemo(() => {
-    const activeYears = Object.entries(graduationFilter).filter(([, v]) => v).map(([k]) => parseInt(k));
     const activeGenders = Object.entries(genderFilter).filter(([, v]) => v).map(([k]) => k);
     return associates.filter(a => {
       if (debouncedSearch) {
@@ -89,7 +88,7 @@ const AssociatesList: React.FC<Props> = ({ jumuiyaId, jumuiyaName }) => {
         if (!(a.name || "").toLowerCase().includes(q) &&
             !(a.member_id || "").toLowerCase().includes(q)) return false;
       }
-      if (activeYears.length > 0 && !activeYears.includes(a.graduation_year)) return false;
+      if (graduationFilter && a.graduation_year !== parseInt(graduationFilter)) return false;
       const g = (a.gender || "").toLowerCase();
       if (!((g === "male") && activeGenders.includes("Male")) &&
           !((g === "female") && activeGenders.includes("Female")) &&
@@ -148,30 +147,29 @@ const AssociatesList: React.FC<Props> = ({ jumuiyaId, jumuiyaName }) => {
 
       {graduationYears.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Filter by Graduation Year</p>
-            <div className="flex flex-wrap gap-2">
-              {graduationYears.map(y => (
-                <label key={y} className="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" checked={graduationFilter[String(y)] ?? false}
-                    onChange={() => setGraduationFilter(prev => ({ ...prev, [y]: !prev[y] }))}
-                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                  <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{y}</span>
-                </label>
-              ))}
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[180px]">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Graduation Year</p>
+              <select value={graduationFilter} onChange={e => setGraduationFilter(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white">
+                <option value="">All Years</option>
+                {graduationYears.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
             </div>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Filter by Gender</p>
-            <div className="flex gap-3">
-              {Object.entries(genderFilter).map(([g, v]) => (
-                <label key={g} className="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" checked={v}
-                    onChange={() => setGenderFilter(prev => ({ ...prev, [g]: !prev[g] }))}
-                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                  <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g}</span>
-                </label>
-              ))}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Gender</p>
+              <div className="flex gap-3">
+                {Object.entries(genderFilter).map(([g, v]) => (
+                  <label key={g} className="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" checked={v}
+                      onChange={() => setGenderFilter(prev => ({ ...prev, [g]: !prev[g] }))}
+                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                    <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
           <p className="text-xs text-slate-400">{filtered.length} of {associates.length} shown</p>
