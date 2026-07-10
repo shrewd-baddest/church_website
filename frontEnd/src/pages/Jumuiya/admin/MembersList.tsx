@@ -108,7 +108,7 @@ const MembersList: React.FC<Props> = ({ jumuiyaId, jumuiyaName }) => {
         <div>
           <h3 className="text-lg font-bold text-slate-800">All Members</h3>
           <p className="text-xs text-slate-500">
-            {members.length} total member(s) in <span className="font-semibold text-indigo-600">{jumuiyaName}</span>
+            {members.length} member(s) in <span className="font-semibold text-indigo-600">{jumuiyaName}</span>
             {debouncedSearch && <span> • {filtered.length} matching</span>}
           </p>
         </div>

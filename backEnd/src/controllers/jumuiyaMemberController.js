@@ -733,13 +733,14 @@ export const getStatistics = async (req, res) => {
     );
     const jumuiyaUUID = sgResult.rows.length ? sgResult.rows[0].group_id : null;
 
-    const [jumMembers, csaMembers, genderBrkdwn, groupStats, activeSeason] = await Promise.all([
+    const [jumMembers, csaMembers, activeCountRow, genderBrkdwn, groupStats, activeSeason] = await Promise.all([
       jumuiyaUUID
         ? pool.query(
             `SELECT COUNT(*)::int as total,
                     COALESCE(SUM(CASE WHEN LOWER(gender) = 'male' THEN 1 ELSE 0 END), 0)::int as male_count,
                     COALESCE(SUM(CASE WHEN LOWER(gender) = 'female' THEN 1 ELSE 0 END), 0)::int as female_count
-             FROM members WHERE jumuiya_id = $1 AND source = 'jum'`,
+             FROM members WHERE jumuiya_id = $1 AND source = 'jum'
+             AND (migrated_to_associates IS NULL OR migrated_to_associates = false)`,
             [jumuiyaUUID]
           )
         : Promise.resolve({ rows: [{ total: 0, male_count: 0, female_count: 0 }] }),
@@ -749,15 +750,27 @@ export const getStatistics = async (req, res) => {
             `SELECT COUNT(*)::int as total,
                     COALESCE(SUM(CASE WHEN LOWER(gender) = 'male' THEN 1 ELSE 0 END), 0)::int as male_count,
                     COALESCE(SUM(CASE WHEN LOWER(gender) = 'female' THEN 1 ELSE 0 END), 0)::int as female_count
-             FROM members WHERE jumuiya_id = $1 AND source = 'csa'`,
+             FROM members WHERE jumuiya_id = $1 AND source = 'csa'
+             AND (migrated_to_associates IS NULL OR migrated_to_associates = false)`,
             [jumuiyaUUID]
           )
         : Promise.resolve({ rows: [{ total: 0, male_count: 0, female_count: 0 }] }),
+
+      jumuiyaUUID
+        ? pool.query(
+            `SELECT COUNT(*)::int as active_count
+             FROM members WHERE jumuiya_id = $1
+             AND (migrated_to_associates IS NULL OR migrated_to_associates = false)
+             AND (is_active IS NULL OR is_active = true)`,
+            [jumuiyaUUID]
+          )
+        : Promise.resolve({ rows: [{ active_count: 0 }] }),
 
       jumuiyaUUID
         ? pool.query(
             `SELECT LOWER(gender) as gender, COUNT(*)::int as count
              FROM members WHERE jumuiya_id = $1 AND source IN ('jum', 'csa')
+             AND (migrated_to_associates IS NULL OR migrated_to_associates = false)
              GROUP BY LOWER(gender)`,
             [jumuiyaUUID]
           )
@@ -784,6 +797,7 @@ export const getStatistics = async (req, res) => {
 
     const jumRow = jumMembers.rows[0] || { total: 0, male_count: 0, female_count: 0 };
     const csaRow = csaMembers.rows[0] || { total: 0, male_count: 0, female_count: 0 };
+    const activeCount = activeCountRow.rows[0]?.active_count || 0;
 
     res.json({
       status: "success",
@@ -791,6 +805,7 @@ export const getStatistics = async (req, res) => {
         jum: jumRow,
         csa: csaRow,
         totalMembers: (jumRow.total || 0) + (csaRow.total || 0),
+        activeMembers: activeCount,
         genderBreakdown: genderBrkdwn.rows,
         groups: groupStats.rows,
         activeSeason: activeSeason.rows[0] || null,
@@ -821,7 +836,7 @@ export const getBatchStatistics = async (req, res) => {
       );
       const uuid = sgResult.rows.length ? sgResult.rows[0].group_id : null;
 
-      const [jumMembers, csaMembers, groupStats, activeSeason] = await Promise.all([
+      const [jumMembers, csaMembers, activeCountRow, groupStats, activeSeason] = await Promise.all([
         uuid
           ? pool.query(`SELECT COUNT(*)::int as total,
                                COALESCE(SUM(CASE WHEN LOWER(gender)='male' THEN 1 ELSE 0 END),0)::int as male_count,
@@ -834,9 +849,16 @@ export const getBatchStatistics = async (req, res) => {
           ? pool.query(`SELECT COUNT(*)::int as total,
                                COALESCE(SUM(CASE WHEN LOWER(gender)='male' THEN 1 ELSE 0 END),0)::int as male_count,
                                COALESCE(SUM(CASE WHEN LOWER(gender)='female' THEN 1 ELSE 0 END),0)::int as female_count
-                        FROM members WHERE jumuiya_id = $1 AND source = 'csa'
-                        AND (migrated_to_associates IS NULL OR migrated_to_associates = false)`, [uuid])
+                         FROM members WHERE jumuiya_id = $1 AND source = 'csa'
+                         AND (migrated_to_associates IS NULL OR migrated_to_associates = false)`, [uuid])
           : Promise.resolve({ rows: [{ total: 0, male_count: 0, female_count: 0 }] }),
+
+        uuid
+          ? pool.query(`SELECT COUNT(*)::int as active_count
+                        FROM members WHERE jumuiya_id = $1
+                        AND (migrated_to_associates IS NULL OR migrated_to_associates = false)
+                        AND (is_active IS NULL OR is_active = true)`, [uuid])
+          : Promise.resolve({ rows: [{ active_count: 0 }] }),
 
         pool.query(`SELECT mg.id, mg.group_name, mg.group_type, mg.capacity,
                            COUNT(ga.id)::int as assigned_count
@@ -849,10 +871,12 @@ export const getBatchStatistics = async (req, res) => {
       const j = jumMembers.rows[0] || { total: 0, male_count: 0, female_count: 0 };
       const c = csaMembers.rows[0] || { total: 0, male_count: 0, female_count: 0 };
       const totalMembers = (j.total || 0) + (c.total || 0);
+      const activeMembers = activeCountRow.rows[0]?.active_count || 0;
 
       return {
         [slug]: {
           totalMembers,
+          activeMembers,
           jum: j,
           csa: c,
           groups: groupStats.rows,
@@ -920,9 +944,10 @@ export const getMembers = async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT m.member_id, m.first_name, m.last_name, m.gender, m.course, m.phone, m.year_of_study, m.join_date, m.source
+      `SELECT m.member_id, m.first_name, m.last_name, m.gender, m.course, m.phone, m.year_of_study, m.join_date, m.source, m.email, m.is_active,
+              CASE WHEN r.member_id IS NOT NULL THEN true ELSE false END as is_registered
        FROM members m
-       INNER JOIN registered r ON r.member_id = m.member_id AND r.status = 'active'
+       LEFT JOIN registered r ON r.member_id = m.member_id AND r.jumuiya_id = m.jumuiya_id AND r.status = 'active'
        WHERE m.jumuiya_id = $1 AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
        ORDER BY m.first_name`,
       [jumuiyaUUID]
@@ -938,6 +963,8 @@ export const getMembers = async (req, res) => {
       year_of_study: r.year_of_study || deriveYearFromReg(r.member_id),
       join_date: r.join_date || null,
       source: r.source,
+      is_registered: r.is_registered,
+      is_active: r.is_active,
     }));
 
     const seen = new Set();
@@ -1187,11 +1214,13 @@ export const csaGetJumuiyaStats = async (req, res) => {
 
       const totalResult = await pool.query(
         `SELECT COUNT(*)::int as total,
+                SUM(CASE WHEN (m.is_active IS NULL OR m.is_active = true) THEN 1 ELSE 0 END)::int as active_count,
                 SUM(CASE WHEN LOWER(m.gender) = 'male' THEN 1 ELSE 0 END)::int as male_count,
                 SUM(CASE WHEN LOWER(m.gender) = 'female' THEN 1 ELSE 0 END)::int as female_count
          FROM members m
          LEFT JOIN sub_groups sg ON sg.name = $1
-         WHERE m.jumuiya_id = sg.group_id`,
+         WHERE m.jumuiya_id = sg.group_id
+           AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)`,
         [name]
       );
 
@@ -1202,16 +1231,19 @@ export const csaGetJumuiyaStats = async (req, res) => {
          FROM members m
          LEFT JOIN sub_groups sg ON sg.name = $1
          LEFT JOIN member_imports mi ON mi.id = m.import_batch_id
-         WHERE m.jumuiya_id = sg.group_id AND m.source = 'csa' ${yearFilter}`,
+         WHERE m.jumuiya_id = sg.group_id AND m.source = 'csa'
+           AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
+           ${yearFilter}`,
         [name]
       );
 
-      const tRow = totalResult.rows[0] || { total: 0, male_count: 0, female_count: 0 };
+      const tRow = totalResult.rows[0] || { total: 0, active_count: 0, male_count: 0, female_count: 0 };
       const cRow = csaResult.rows[0] || { total: 0, male_count: 0, female_count: 0 };
       jumuiyaStats.push({
         slug,
         name,
         total: tRow.total,
+        active_count: tRow.active_count,
         male_count: tRow.male_count,
         female_count: tRow.female_count,
         csa: cRow,
@@ -1310,9 +1342,12 @@ export const csaDistributePreview = async (req, res) => {
     for (const name of JUMUIYA_NAMES) {
       const totalResult = await pool.query(
         `SELECT COUNT(*)::int as total,
+                SUM(CASE WHEN (m.is_active IS NULL OR m.is_active = true) THEN 1 ELSE 0 END)::int as active_count,
                 SUM(CASE WHEN LOWER(m.gender) = 'male' THEN 1 ELSE 0 END)::int as male_count,
                 SUM(CASE WHEN LOWER(m.gender) = 'female' THEN 1 ELSE 0 END)::int as female_count
-         FROM members m LEFT JOIN sub_groups sg ON sg.name = $1 WHERE m.jumuiya_id = sg.group_id`,
+         FROM members m LEFT JOIN sub_groups sg ON sg.name = $1
+         WHERE m.jumuiya_id = sg.group_id
+           AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)`,
         [name]
       );
       jumuiyaRows.push({
@@ -1320,6 +1355,7 @@ export const csaDistributePreview = async (req, res) => {
         name,
         existing: {
           total: totalResult.rows[0]?.total || 0,
+          active_count: totalResult.rows[0]?.active_count || 0,
           male_count: totalResult.rows[0]?.male_count || 0,
           female_count: totalResult.rows[0]?.female_count || 0,
         },
@@ -1330,7 +1366,7 @@ export const csaDistributePreview = async (req, res) => {
     const assignments = [];
     const jumuiyaSlots = jumuiyaRows.map(j => ({
       ...j,
-      currentTotal: j.existing.total,
+      currentTotal: j.existing.active_count,
       maleCount: j.existing.male_count,
       femaleCount: j.existing.female_count,
       newCount: 0,
@@ -1375,8 +1411,9 @@ export const csaDistributePreview = async (req, res) => {
         slug: j.slug,
         name: j.name,
         existingTotal: j.existing.total,
+        existingActive: j.existing.active_count,
         newMembers: j.newCount,
-        newTotal: j.existing.total + j.newCount,
+        newTotal: j.existing.active_count + j.newCount,
       })),
     };
 
@@ -1414,15 +1451,18 @@ export const csaDistributeMembers = async (req, res) => {
     for (const name of JUMUIYA_NAMES) {
       const totalResult = await pool.query(
         `SELECT COUNT(*)::int as total,
+                SUM(CASE WHEN (m.is_active IS NULL OR m.is_active = true) THEN 1 ELSE 0 END)::int as active_count,
                 SUM(CASE WHEN LOWER(m.gender) = 'male' THEN 1 ELSE 0 END)::int as male_count,
                 SUM(CASE WHEN LOWER(m.gender) = 'female' THEN 1 ELSE 0 END)::int as female_count
-         FROM members m LEFT JOIN sub_groups sg ON sg.name = $1 WHERE m.jumuiya_id = sg.group_id`,
+         FROM members m LEFT JOIN sub_groups sg ON sg.name = $1
+         WHERE m.jumuiya_id = sg.group_id
+           AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)`,
         [name]
       );
       jumuiyaRows.push({
         slug: JUMUIYA_SLUG_MAP[name],
         name,
-        existing: totalResult.rows[0] || { total: 0, male_count: 0, female_count: 0 },
+        existing: totalResult.rows[0] || { total: 0, active_count: 0, male_count: 0, female_count: 0 },
         imported: { total: 0 },
       });
     }
@@ -1431,7 +1471,7 @@ export const csaDistributeMembers = async (req, res) => {
     const jumuiyaSlots = jumuiyaRows.map(j => ({
       slug: j.slug,
       name: j.name,
-      currentTotal: j.existing?.total || 0,
+      currentTotal: j.existing?.active_count || 0,
       maleCount: j.existing?.male_count || 0,
       femaleCount: j.existing?.female_count || 0,
       newCount: 0,
@@ -1489,9 +1529,10 @@ export const csaDistributeMembers = async (req, res) => {
       perJumuiya: jumuiyaSlots.map(j => ({
         slug: j.slug,
         name: j.name,
-        existingTotal: j.currentTotal - j.newCount,
+        existingTotal: j.existing?.total || 0,
+        existingActive: j.existing?.active_count || 0,
         newMembers: j.newCount,
-        newTotal: j.currentTotal,
+        newTotal: (j.existing?.active_count || 0) + j.newCount,
       })),
     };
 

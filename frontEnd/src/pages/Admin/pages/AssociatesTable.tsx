@@ -19,7 +19,7 @@ export default function AssociatesTable({ refreshKey = 0 }: { refreshKey?: numbe
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [graduationFilter, setGraduationFilter] = useState<Record<string, boolean>>({});
+  const [graduationFilter, setGraduationFilter] = useState<string>("");
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportColumns, setExportColumns] = useState({
     RegNo: true, Name: true, Gender: true, Email: true,

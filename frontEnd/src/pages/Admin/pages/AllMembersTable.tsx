@@ -426,7 +426,7 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
                             ))}
                           </select>
                         ) : (
-                          <span className="text-xs text-slate-600">{m.jumuiya_name || formatJumuiyaName(m.jumuiya_id)}</span>
+                          <span className={`text-xs ${m.is_active === false ? 'text-red-500 font-semibold' : 'text-slate-600'}`}>{m.jumuiya_name || formatJumuiyaName(m.jumuiya_id)}</span>
                         )}
                       </td>
                       <td className="py-2.5 px-3">

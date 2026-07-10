@@ -87,7 +87,7 @@ const MembersTab: React.FC<MembersTabProps> = ({ jumuiyaId, jumuiyaName, jumuiya
                                                             width: '36px',
                                                             height: '36px',
                                                             borderRadius: '50%',
-                                                            background: member.is_registered ? jumuiyaColor : '#9ca3af',
+                                                            background: jumuiyaColor,
                                                             color: 'white',
                                                             display: 'flex',
                                                             alignItems: 'center',
@@ -99,35 +99,13 @@ const MembersTab: React.FC<MembersTabProps> = ({ jumuiyaId, jumuiyaName, jumuiya
                                                         {member.name.split(' ').map(n => n[0]).join('')}
                                                     </div>
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <span style={{ fontWeight: 600 }}>{member.name}</span>
-                                                    <span style={{
-                                                        fontSize: '0.65rem',
-                                                        background: member.is_registered ? jumuiyaColor : '#9ca3af',
-                                                        color: 'white',
-                                                        padding: '2px 6px',
-                                                        borderRadius: '10px',
-                                                        fontWeight: 700,
-                                                        letterSpacing: '0.05em'
-                                                    }}>
-                                                        {member.is_registered ? 'MEMBER' : 'PENDING'}
-                                                    </span>
-                                                </div>
+                                                <span style={{ fontWeight: 600 }}>{member.name}</span>
                                                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{member.id}</span>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{member.year || 'N/A'}</span>
-                                            <span style={{
-                                                fontSize: '0.75rem',
-                                                color: member.is_registered ? '#10b981' : '#9ca3af',
-                                                fontWeight: member.is_registered ? 700 : 400
-                                            }}>
-                                                {member.is_registered ? 'Registered' : 'Not Registered'}
-                                            </span>
-                                        </div>
+                                        <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{member.year || 'N/A'}</span>
                                     </td>
                                     <td>
                                         {member.jumuiya_name ? (

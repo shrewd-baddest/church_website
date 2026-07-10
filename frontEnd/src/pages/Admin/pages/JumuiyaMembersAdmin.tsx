@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Users, ArrowLeft, Church, CheckCircle, AlertTriangle, RefreshCw, UserPlus, BarChart3, Upload, Search, GitMerge, ClipboardList, ThumbsDown, Edit2, Save, Trash2, GraduationCap } from "lucide-react";
+import { Users, ArrowLeft, Church, CheckCircle, AlertTriangle, RefreshCw, UserPlus, BarChart3, Upload, Search, ClipboardList, ThumbsDown, Edit2, Save, Trash2, GraduationCap } from "lucide-react";
 import { memberService } from "../../../api/jumuiyaMemberService";
 import RegistrationDashboard from "../../Jumuiya/admin/RegistrationDashboard";
 import MemberImportForm from "../../Jumuiya/admin/MemberImportForm";
 import ValidationReview from "../../Jumuiya/admin/ValidationReview";
-import OrganizationPanel from "../../Jumuiya/admin/OrganizationPanel";
+import AssociatesList from "../../Jumuiya/admin/AssociatesList";
 import MembersList from "../../Jumuiya/admin/MembersList";
 import CSADistributionCenter from "./CSADistributionCenter";
 import CsaAllocationsApproval from "../../Jumuiya/components/CsaAllocationsApproval";
@@ -35,13 +35,13 @@ const JUMUIYAS = [
 
 type Tab = "admissions" | "jumuiyas" | "all-members" | "associates";
 
-type SubTab = "dashboard" | "import" | "review" | "organize" | "results" | "allocations";
+type SubTab = "dashboard" | "import" | "review" | "associates" | "results" | "allocations";
 
 const subTabMeta: Record<SubTab, { label: string; icon: React.ReactNode }> = {
   dashboard: { label: "Dashboard", icon: <BarChart3 size={16} /> },
   import: { label: "Import", icon: <Upload size={16} /> },
   review: { label: "Review", icon: <CheckCircle size={16} /> },
-  organize: { label: "Organize", icon: <GitMerge size={16} /> },
+  associates: { label: "Associates", icon: <GraduationCap size={16} /> },
   results: { label: "All Members", icon: <UserPlus size={16} /> },
   allocations: { label: "New Allocations", icon: <ClipboardList size={16} /> },
 };
@@ -130,7 +130,7 @@ const MemberManagementView: React.FC<{ jumuiyaId: string; jumuiyaName: string; j
       {activeTab === "dashboard" && <RegistrationDashboard jumuiyaId={jumuiyaId} jumuiyaName={jumuiyaName} jumuiyaColor={jumuiyaColor} />}
       {activeTab === "import" && <MemberImportForm jumuiyaId={jumuiyaId} />}
       {activeTab === "review" && <ValidationReview jumuiyaId={jumuiyaId} />}
-      {activeTab === "organize" && <OrganizationPanel jumuiyaId={jumuiyaId} />}
+      {activeTab === "associates" && <AssociatesList jumuiyaId={jumuiyaId} jumuiyaName={jumuiyaName} />}
       {activeTab === "results" && <MembersList jumuiyaId={jumuiyaId} jumuiyaName={jumuiyaName} />}
       {activeTab === "allocations" && <CsaAllocationsApproval jumuiyaId={jumuiyaId} jumuiyaName={jumuiyaName} jumuiyaColor={jumuiyaColor} />}
     </div>

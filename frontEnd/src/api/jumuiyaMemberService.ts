@@ -205,4 +205,8 @@ export const memberService = {
 
   updatePaymentStatus: (id: number, data: { status: string; mpesa_receipt?: string }) =>
     apiClient.patch(`/jumuiya-members/payments/${id}/status`, data).then(r => r.data),
+
+  // ── Semester History ──
+  getSemesterHistory: (params?: { from_year?: number; to_year?: number }) =>
+    apiClient.get(`/jumuiya-members/semester-history`, { params }).then(r => r.data),
 };

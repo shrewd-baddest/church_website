@@ -4,6 +4,7 @@ import { Users, Search, RefreshCw, Download, Church, GraduationCap, Calendar, Bo
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 import AnalyticsDashboard from "./AnalyticsDashboard";
+import SemesterHistoryTab from "./SemesterHistoryTab";
 
 const JUMUIYAS = [
   { id: "st-anthony", name: "St. Anthony", color: "#8b5cf6" },
@@ -55,19 +56,19 @@ function getYearSemLabel(m: any): string {
 }
 
 function getMemberCurrentSemCol(m: any): string | null {
-  const yos = parseInt(m.year_of_study);
+  const yos = parseInt(m.year_of_study ?? m.year);
   if (!yos || yos < 1 || yos > 4) return null;
   const month = new Date().getMonth();
-  const isSecondSem = month >= 5;
+  const isSecondSem = month < 4;
   const semIndex = (yos - 1) * 2 + (isSecondSem ? 2 : 1);
   return `sem_${semIndex}_reg`;
 }
 
 function getMemberCurrentYearSem(m: any): string {
-  const yos = parseInt(m.year_of_study);
+  const yos = parseInt(m.year_of_study ?? m.year);
   if (!yos || yos < 1 || yos > 4) return "—";
   const month = new Date().getMonth();
-  const isSecondSem = month >= 5;
+  const isSecondSem = month < 4;
   return `${yos}.${isSecondSem ? 2 : 1}`;
 }
 
@@ -90,7 +91,7 @@ export default function CsaSecretaryDashboard() {
   const [regSerialNo, setRegSerialNo] = useState("");
   const [regAmount, setRegAmount] = useState("");
   const [regSubmitting, setRegSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"members" | "analytics">("members");
+  const [activeTab, setActiveTab] = useState<"members" | "analytics" | "history">("members");
 
   const EXPORT_COLUMNS = [
     { key: "serial_no", label: "Serial No" },
@@ -208,7 +209,7 @@ export default function CsaSecretaryDashboard() {
         } else if (c.key === "name") {
           row[c.label] = fullName;
         } else if (c.key === "year_sem") {
-          row[c.label] = getYearSemLabel(m);
+          row[c.label] = getMemberCurrentYearSem(m);
         } else if (c.key === "course") {
           row[c.label] = m.course || "—";
         } else if (c.key === "serial_no") {
@@ -246,12 +247,13 @@ export default function CsaSecretaryDashboard() {
     setRegSubmitting(true);
     try {
       const newSemCount = regSemesters.filter(s => !selectedMember[s]).length;
+      const amountToSend = parseInt(regAmount) || (newSemCount * 50);
       await memberService.manualRegisterMember({
         member_id: selectedMember.member_id,
         jumuiya_id: regJumuiya,
         semesters: regSemesters,
         serial_no: regSerialNo ? parseInt(regSerialNo) : undefined,
-        amount: newSemCount * 50,
+        amount: amountToSend,
       });
       toast.success(`${selectedMember.first_name} registered successfully`);
       setShowRegister(false);
@@ -323,7 +325,7 @@ export default function CsaSecretaryDashboard() {
       <td className="px-4 py-3 text-slate-600 text-sm">{m.course || "—"}</td>
       <td className="px-4 py-3">
         <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
-          {getYearSemLabel(m)}
+          {getMemberCurrentYearSem(m)}
         </span>
       </td>
       <td className="px-4 py-3 text-slate-500 text-xs">
@@ -367,10 +369,22 @@ export default function CsaSecretaryDashboard() {
         >
           <BarChart3 size={16} /> Reports & Analytics
         </button>
+        <button
+          onClick={() => setActiveTab("history")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === "history"
+              ? "bg-white text-slate-800 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <BookOpen size={16} /> Semester History
+        </button>
       </div>
 
       {activeTab === "analytics" ? (
         <AnalyticsDashboard />
+      ) : activeTab === "history" ? (
+        <SemesterHistoryTab />
       ) : (
         <>
       {/* Stats */}
@@ -388,6 +402,20 @@ export default function CsaSecretaryDashboard() {
             </div>
           );
         })}
+      </div>
+
+      {/* Current Semester Badge */}
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg font-medium">
+          <Calendar size={13} />
+          Current Semester: {(() => {
+            const m = new Date().getMonth();
+            const isSecond = m < 4;
+            return isSecond ? "2nd Semester" : "1st Semester";
+          })()}
+        </span>
+        <span className="text-slate-300">|</span>
+        <span className="text-slate-400">Showing {filtered.length} members registered this semester</span>
       </div>
 
       {/* Search & Filters */}
@@ -655,10 +683,11 @@ export default function CsaSecretaryDashboard() {
 
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Amount Paid (KES)</label>
                 <input
-                  type="text"
-                  value={`KES ${regAmount}`}
-                  readOnly
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm mb-4 bg-slate-50 text-slate-700 font-semibold"
+                  type="number"
+                  value={regAmount}
+                  onChange={e => setRegAmount(e.target.value)}
+                  placeholder="Auto-calculated or enter manually"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
 
                 <div className="flex gap-3">

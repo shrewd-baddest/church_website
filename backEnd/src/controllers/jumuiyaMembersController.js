@@ -114,7 +114,8 @@ async function fetchAllMembers(jumuiya_id) {
       m.sem_5_reg, m.sem_6_reg, m.sem_7_reg, m.sem_8_reg,
       m.join_date,
       m.source,
-      m.status as import_status
+      m.status as import_status,
+      m.is_active
     FROM members m
     LEFT JOIN registered r ON m.member_id = r.member_id AND r.jumuiya_id = m.jumuiya_id
     LEFT JOIN sub_groups sg ON m.jumuiya_id = sg.group_id
@@ -157,6 +158,7 @@ async function fetchAllMembers(jumuiya_id) {
       join_date: row.join_date,
       source: row.source,
       import_status: row.import_status,
+      is_active: row.is_active,
       is_current_jumuiya: !!(resolvedUuid && row.jumuiya_uuid === resolvedUuid),
     };
   });
@@ -252,7 +254,7 @@ export const updateJumuiyaMember = async (req, res) => {
     const { id } = req.params;
     const {
       member_id, first_name, last_name, year_of_study, email, jumuiya_id,
-      phone, gender, course,
+      phone, gender, course, is_active,
     } = req.body;
 
     const newMemberId = member_id && member_id.trim() ? member_id.trim() : null;
@@ -297,9 +299,10 @@ export const updateJumuiyaMember = async (req, res) => {
              phone = COALESCE($5, phone),
              gender = COALESCE($6, gender),
              course = COALESCE($7, course),
-             jumuiya_id = COALESCE($8, jumuiya_id)
+             jumuiya_id = COALESCE($8, jumuiya_id),
+             is_active = COALESCE($10, is_active)
          WHERE member_id = $9`,
-        [first_name, last_name, year_of_study, email, phone, gender, course, jumuiyaUuid, effectiveId]
+        [first_name, last_name, year_of_study, email, phone, gender, course, jumuiyaUuid, effectiveId, is_active !== undefined ? is_active : null]
       );
 
       // Sync import_records
@@ -467,7 +470,7 @@ export const updateJumuiyaMember = async (req, res) => {
 /**
  * DELETE /api/jumuiya-members/:id
  * Permanently delete a member from ALL tables in the system.
- * Cleans up members, registered, import_records, group_assignments, allocation_approvals, associates.
+ * Cleans up all traces of a member across the entire system.
  */
 export const deleteJumuiyaMember = async (req, res) => {
   try {
@@ -480,6 +483,14 @@ export const deleteJumuiyaMember = async (req, res) => {
     await pool.query("DELETE FROM allocation_approvals WHERE member_id = $1", [id]);
     await pool.query("DELETE FROM import_records WHERE cleaned_reg_number = $1", [id]);
     await pool.query("DELETE FROM associates WHERE member_id = $1", [id]);
+    await pool.query("DELETE FROM refresh_tokens WHERE member_id = $1", [id]);
+    await pool.query("DELETE FROM password_resets WHERE member_id = $1", [id]);
+    await pool.query("DELETE FROM mpesa_request WHERE user_id = $1", [id]);
+    await pool.query("DELETE FROM member_roles WHERE member_id = $1", [id]);
+    await pool.query("DELETE FROM notifications WHERE member_id = $1", [id]);
+    await pool.query("DELETE FROM users WHERE username = $1", [id]);
+    await pool.query("DELETE FROM officials WHERE reg_number = $1", [id]);
+    await pool.query("DELETE FROM jumuiya_officials WHERE reg_number = $1", [id]);
 
     const result = await pool.query(
       "DELETE FROM members WHERE member_id = $1 RETURNING *",
@@ -615,7 +626,7 @@ export const bulkRegisterWithPayment = async (req, res) => {
     // Start Transaction
     await pool.query('BEGIN');
 
-    const isSecondSem = new Date().getMonth() >= 5 ? 1 : 0;
+    const isSecondSem = new Date().getMonth() < 4 ? 1 : 0;
 
     // Update members table — normalize year_of_study and set the correct sem_*_reg
     const updateResult = await pool.query(
@@ -737,6 +748,17 @@ export const getAllRegisteredMembers = async (req, res) => {
   try {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.setHeader("Pragma", "no-cache");
+
+    const currentMonth = new Date().getMonth() + 1;
+    const isSecondSem = currentMonth <= 4;
+
+    const semesterFilter = [1,2,3,4].map(yos => {
+      const colIdx = (yos - 1) * 2 + (isSecondSem ? 2 : 1);
+      return `(m.year_of_study = '${yos}' AND m.sem_${colIdx}_reg = true)`;
+    }).join(' OR ');
+
+    const currentSemLabel = isSecondSem ? "2nd Semester" : "1st Semester";
+
     const result = await pool.query(`
       SELECT
         r.id as registration_id,
@@ -759,12 +781,9 @@ export const getAllRegisteredMembers = async (req, res) => {
       LEFT JOIN sub_groups sg ON m.jumuiya_id = sg.group_id
       WHERE (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
         AND r.status = 'active'
+        AND (${semesterFilter})
       ORDER BY sg.name, m.first_name ASC
     `);
-
-    const allIds = result.rows.map(r => r.id);
-    const kimRow = allIds.find(id => id && id.includes('PA106/G/19920'));
-    logger.info(`getAllRegisteredMembers: totalRows=${result.rows.length}, kimFound=${!!kimRow}, allIds=${JSON.stringify(allIds)}`);
 
     const formatted = result.rows.map(row => ({
       ...row,
@@ -774,7 +793,16 @@ export const getAllRegisteredMembers = async (req, res) => {
                        .filter(Boolean).length,
     }));
 
-    res.json({ success: true, data: formatted, total: formatted.length });
+    res.json({
+      success: true,
+      data: formatted,
+      total: formatted.length,
+      current_semester: {
+        is_second_sem: isSecondSem,
+        label: currentSemLabel,
+        sem_col: isSecondSem ? 'sem_even' : 'sem_odd',
+      },
+    });
   } catch (error) {
     logger.error("Error fetching all registered members: " + error.message);
     res.status(500).json({ success: false, error: "Failed to fetch all registered members" });
@@ -830,6 +858,24 @@ export const manualRegisterMember = async (req, res) => {
       [member_id, jumuiya_id, serial_no || null]
     );
 
+    // 4. Record cash payment (best-effort, non-blocking)
+    if (amount && parseInt(amount) > 0) {
+      try {
+        const payAmount = parseInt(amount);
+        const cashCheckoutId = `CASH-${member_id}-${Date.now()}`;
+        await pool.query(
+          `INSERT INTO mpesa_request (user_id, checkout_id, amount, status, mpesa_receipt, created_at)
+           VALUES ($1, $2, $3, 'paid', 'CASH', CURRENT_TIMESTAMP)`,
+          [member_id, cashCheckoutId, payAmount]
+        );
+        logger.info(`Cash payment INSERT succeeded for ${member_id}, amount=${payAmount}`);
+      } catch (payErr) {
+        logger.warn("Cash payment INSERT failed (non-blocking): " + payErr.message);
+      }
+    } else {
+      logger.info(`Cash payment skipped: amount=${amount}`);
+    }
+
     await pool.query("COMMIT");
 
     // Debug: verify the registered row exists
@@ -838,27 +884,6 @@ export const manualRegisterMember = async (req, res) => {
       [member_id]
     );
     logger.info(`DEBUG registered rows for ${member_id}: count=${regDebug.rows.length}, rows=${JSON.stringify(regDebug.rows)}`);
-    const memberDebug = await pool.query(
-      "SELECT member_id, jumuiya_id, migrated_to_associates FROM members WHERE member_id = $1",
-      [member_id]
-    );
-    logger.info(`DEBUG members row for ${member_id}: ${JSON.stringify(memberDebug.rows[0] || null)}`);
-
-    // Record cash payment outside transaction (best-effort, non-blocking)
-    logger.info(`Cash payment check: amount=${amount}, truthy=${!!amount}`);
-    if (amount) {
-      try {
-        const cashCheckoutId = `CASH-${member_id}-${Date.now()}`;
-        const payResult = await pool.query(
-          `INSERT INTO mpesa_request (user_id, checkout_id, amount, status, mpesa_receipt, created_at)
-           VALUES ($1, $2, $3, 'success', 'CASH', CURRENT_TIMESTAMP)`,
-          [member_id, cashCheckoutId, amount]
-        );
-        logger.info(`Cash payment recorded: ${JSON.stringify(payResult.rows[0])}`);
-      } catch (payErr) {
-        logger.warn("Failed to record cash payment: " + payErr.message);
-      }
-    }
 
     const row = member.rows[0];
     res.status(200).json({
@@ -955,7 +980,7 @@ export const registerWithPayment = async (req, res) => {
       normalizedYos = normalizeYearOfStudy(memberInfo.rows[0].year_of_study);
       if (normalizedYos) {
         const month = new Date().getMonth();
-        const isSecondSem = month >= 5;
+        const isSecondSem = month < 4;
         const semIndex = (parseInt(normalizedYos) - 1) * 2 + (isSecondSem ? 1 : 0);
         semCol = SEMESTER_COLS[semIndex];
       }
@@ -1294,7 +1319,7 @@ export const getAnalytics = async (req, res) => {
           SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END)::int as pending,
           SUM(CASE WHEN status IN ('failed', 'cancelled') THEN 1 ELSE 0 END)::int as failed,
           COALESCE(SUM(amount) FILTER (WHERE (mpesa_receipt IS NULL OR mpesa_receipt != 'CASH') AND status IN ('success', 'paid')), 0)::numeric as mpesa_success_amount,
-          COALESCE(SUM(amount) FILTER (WHERE mpesa_receipt = 'CASH' AND status = 'success'), 0)::numeric as manual_success_amount
+          COALESCE(SUM(amount) FILTER (WHERE mpesa_receipt = 'CASH' AND status = 'paid'), 0)::numeric as manual_success_amount
         FROM mpesa_request
       `),
     ]);
@@ -1633,5 +1658,79 @@ export const getYearlyContribution = async (req, res) => {
   } catch (error) {
     logger.error("Error fetching yearly contribution: " + error.message);
     res.status(500).json({ success: false, error: "Failed to fetch yearly contribution" });
+  }
+};
+
+/**
+ * GET /api/jumuiya-members/semester-history
+ * Returns all active members with their semester registration flags in a grid format.
+ * Query params: from_year, to_year (admission year range filter)
+ */
+export const getSemesterHistory = async (req, res) => {
+  try {
+    const { from_year, to_year } = req.query;
+    const currentYear = new Date().getFullYear();
+
+    let query = `
+      SELECT
+        m.member_id as reg_number,
+        m.first_name,
+        m.last_name,
+        m.course,
+        COALESCE(m.year_of_study, '1') as year_of_study,
+        m.gender,
+        sg.name as jumuiya_name,
+        LOWER(REPLACE(REPLACE(sg.name, '.', ''), ' ', '-')) as jumuiya_slug,
+        ${currentYear} - CAST(COALESCE(NULLIF(m.year_of_study, ''), '1') AS integer) + 1 AS admission_year,
+        m.sem_1_reg, m.sem_2_reg, m.sem_3_reg, m.sem_4_reg,
+        m.sem_5_reg, m.sem_6_reg, m.sem_7_reg, m.sem_8_reg
+      FROM members m
+      LEFT JOIN sub_groups sg ON m.jumuiya_id = sg.group_id
+      WHERE m.jumuiya_id IS NOT NULL
+        AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
+    `;
+
+    const params = [];
+    let paramIdx = 1;
+
+    if (from_year) {
+      query += ` AND ${currentYear} - CAST(m.year_of_study AS integer) + 1 >= $${paramIdx++}`;
+      params.push(parseInt(from_year));
+    }
+    if (to_year) {
+      query += ` AND ${currentYear} - CAST(m.year_of_study AS integer) + 1 <= $${paramIdx++}`;
+      params.push(parseInt(to_year));
+    }
+
+    query += ` ORDER BY admission_year DESC, sg.name, m.first_name ASC`;
+
+    const result = await pool.query(query, params);
+
+    const formatted = result.rows.map(row => ({
+      reg_number: row.reg_number,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      name: `${row.first_name} ${row.last_name || ""}`.trim(),
+      course: row.course,
+      year_of_study: row.year_of_study,
+      gender: row.gender,
+      jumuiya_name: row.jumuiya_name,
+      jumuiya_slug: row.jumuiya_slug,
+      admission_year: row.admission_year,
+      semesters: {
+        sem_1: row.sem_1_reg, sem_2: row.sem_2_reg,
+        sem_3: row.sem_3_reg, sem_4: row.sem_4_reg,
+        sem_5: row.sem_5_reg, sem_6: row.sem_6_reg,
+        sem_7: row.sem_7_reg, sem_8: row.sem_8_reg,
+      },
+      total_semesters: [row.sem_1_reg, row.sem_2_reg, row.sem_3_reg, row.sem_4_reg,
+                        row.sem_5_reg, row.sem_6_reg, row.sem_7_reg, row.sem_8_reg]
+                        .filter(Boolean).length,
+    }));
+
+    res.json({ success: true, data: formatted, total: formatted.length });
+  } catch (error) {
+    logger.error("Error fetching semester history: " + error.message);
+    res.status(500).json({ success: false, error: "Failed to fetch semester history" });
   }
 };
