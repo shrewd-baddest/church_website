@@ -201,7 +201,7 @@ export default function AssociatesTable({ refreshKey = 0 }: { refreshKey?: numbe
                 <div className="flex-1 min-w-[180px]">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Graduation Year</p>
                   <select value={graduationFilter} onChange={e => setGraduationFilter(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white">
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white max-h-[200px]">
                     <option value="">All Years</option>
                     {graduationYears.map(y => (
                       <option key={y} value={y}>{y}</option>
