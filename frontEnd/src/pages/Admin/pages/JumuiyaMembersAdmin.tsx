@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Users, ArrowLeft, Church, CheckCircle, AlertTriangle, RefreshCw, UserPlus, BarChart3, Upload, Search, ClipboardList, ThumbsDown, Edit2, Save, Trash2, GraduationCap } from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
 import { memberService } from "../../../api/jumuiyaMemberService";
 import RegistrationDashboard from "../../Jumuiya/admin/RegistrationDashboard";
 import MemberImportForm from "../../Jumuiya/admin/MemberImportForm";
@@ -107,24 +108,37 @@ const SummaryBarMemo = memo(SummaryBar);
 
 const MemberManagementView: React.FC<{ jumuiyaId: string; jumuiyaName: string; jumuiyaColor: string }> = ({ jumuiyaId, jumuiyaName, jumuiyaColor }) => {
   const [activeTab, setActiveTab] = useState<SubTab>("dashboard");
+  const { user } = useAuth();
+  const roles = useMemo(() => (Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : []), [user?.role]);
+  const isJumuiyaOs = useMemo(() => roles.some(r => r.toUpperCase().includes("JUMUIYA_OS") || r.toUpperCase().includes("JUMUIYA_LEADER")), [roles]);
+  const allowedSubTabs = useMemo(() => {
+    if (isJumuiyaOs) {
+      const restricted: SubTab[] = ["dashboard", "review", "associates", "results"];
+      return restricted;
+    }
+    return Object.keys(subTabMeta) as SubTab[];
+  }, [isJumuiyaOs]);
 
   return (
     <div>
       <div className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
-        {(Object.entries(subTabMeta) as [SubTab, typeof subTabMeta[SubTab]][]).map(([id, meta]) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px ${
-              activeTab === id
-                ? "border-indigo-500 text-indigo-600"
-                : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300"
-            }`}
-          >
-            {meta.icon}
-            {meta.label}
-          </button>
-        ))}
+        {allowedSubTabs.map((id) => {
+          const meta = subTabMeta[id];
+          return (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                activeTab === id
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300"
+              }`}
+            >
+              {meta.icon}
+              {meta.label}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === "dashboard" && <RegistrationDashboard jumuiyaId={jumuiyaId} jumuiyaName={jumuiyaName} jumuiyaColor={jumuiyaColor} />}

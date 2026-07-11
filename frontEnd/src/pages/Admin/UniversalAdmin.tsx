@@ -154,6 +154,7 @@ export default function UniversalAdmin() {
           break;
         case "JUMUIYA_OS":
           allowedPrefixes.add("/admin/gallery");
+          allowedPrefixes.add("/admin/jumuiya-members");
           break;
         case "PROJECT_MANAGER":
           allowedPrefixes.add("/admin/sacramentals-banners");
