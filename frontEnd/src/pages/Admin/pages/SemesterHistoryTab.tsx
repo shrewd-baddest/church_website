@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { memberService } from "../../../api/jumuiyaMemberService";
-import { Search, RefreshCw, Loader2, Check, X } from "lucide-react";
+import { Search, RefreshCw, Loader2, Check, X, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
 const SEMESTERS = [
   { label: "1.1", dbCol: "sem_1", year: 1 },
@@ -72,6 +73,34 @@ export default function SemesterHistoryTab() {
     return isSecondSem ? "2nd Semester" : "1st Semester";
   }, []);
 
+  const handleExport = () => {
+    try {
+      const rows = filtered.map(m => {
+        const row: any = {
+          "Reg #": m.reg_number,
+          Name: m.name,
+          Course: m.course || "",
+          Jumuiya: m.jumuiya_name || "",
+          Year: m.year_of_study,
+          "Adm Year": m.admission_year,
+        };
+        SEMESTERS.forEach(s => { row[s.label] = m.semesters?.[s.dbCol] ? "✓" : ""; });
+        row.Total = m.total_semesters;
+        return row;
+      });
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws["!cols"] = [
+        { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 18 },
+        { wch: 6 }, { wch: 10 }, ...SEMESTERS.map(() => ({ wch: 6 })), { wch: 8 }
+      ];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Semester History");
+      XLSX.writeFile(wb, "semester-history.xlsx");
+    } catch (err: any) {
+      alert(err?.message || "Export failed");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -79,12 +108,16 @@ export default function SemesterHistoryTab() {
           <h3 className="text-lg font-bold text-slate-800">Semester Registration History</h3>
           <p className="text-xs text-slate-400">Current: {currentYear}</p>
         </div>
-        <button
-          onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors"
-        >
-          <RefreshCw size={15} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+            <Download size={15} /> Export
+          </button>
+          <button onClick={fetchData}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+            <RefreshCw size={15} /> Refresh
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

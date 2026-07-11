@@ -834,10 +834,6 @@ export default function CSADistributionCenter() {
                             const slug = SLUG_FROM_SHORT_NAME[j.name];
                             return slug ? (
                               <div className="flex gap-1">
-                                <button onClick={() => handleBatchReview(slug, 'approved', batch.id)} disabled={reviewingJumuiya[slug]}
-                                  className="text-[10px] font-semibold px-2 py-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 disabled:opacity-50 transition-colors">
-                                  {reviewingJumuiya[slug] ? "..." : "Approve"}
-                                </button>
                                 <button onClick={() => handleBatchReview(slug, 'rejected', batch.id)} disabled={reviewingJumuiya[slug]}
                                   className="text-[10px] font-semibold px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 disabled:opacity-50 transition-colors">
                                   {reviewingJumuiya[slug] ? "..." : "Reject"}

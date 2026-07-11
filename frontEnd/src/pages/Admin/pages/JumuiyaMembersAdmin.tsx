@@ -113,7 +113,7 @@ const MemberManagementView: React.FC<{ jumuiyaId: string; jumuiyaName: string; j
   const isJumuiyaOs = useMemo(() => roles.some(r => r.toUpperCase().includes("JUMUIYA_OS") || r.toUpperCase().includes("JUMUIYA_LEADER")), [roles]);
   const allowedSubTabs = useMemo(() => {
     if (isJumuiyaOs) {
-      const restricted: SubTab[] = ["dashboard", "review", "associates", "results"];
+      const restricted: SubTab[] = ["dashboard", "review", "associates", "results", "allocations"];
       return restricted;
     }
     return Object.keys(subTabMeta) as SubTab[];

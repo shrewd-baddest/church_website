@@ -27,7 +27,7 @@ function getYearOfStudy(reg: string): number {
   const now = new Date();
   const month = now.getMonth() + 1;
   const cy = now.getFullYear();
-  const acaStart = month >= 9 ? cy : cy - 1;
+  const acaStart = month >= 5 ? cy : cy - 1;
   const year = acaStart - admissionYear + 1;
   return year > 4 ? 4 : year;
 }
@@ -39,7 +39,7 @@ function isGraduated(reg: string): boolean {
   const now = new Date();
   const month = now.getMonth() + 1;
   const cy = now.getFullYear();
-  const acaStart = month >= 9 ? cy : cy - 1;
+  const acaStart = month >= 5 ? cy : cy - 1;
   return acaStart - admissionYear + 1 > 4;
 }
 
@@ -169,15 +169,17 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
   const handleEdit = (m: any) => {
     const nameStr = m.name || "";
     const nameParts = nameStr.split(" ");
+    const reg = (m.member_id || m.id || "").toString();
+    const yr = getYearOfStudy(reg) || parseInt(m.year) || "";
     setEditingId(m.member_id || m.id);
     setEditForm({
-      member_id: (m.member_id || m.id || "").toString(),
+      member_id: reg,
       first_name: m.first_name || nameParts[0] || "",
       last_name: m.last_name || nameParts.slice(1).join(" ") || "",
       course: m.course || "",
       phone: m.phone || "",
       gender: m.gender || "",
-      year_of_study: m.year || "",
+      year_of_study: yr,
       jumuiya_id: m.jumuiya_id || "",
     });
   };
@@ -229,13 +231,26 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
   };
 
   const filtered = useMemo(() => {
-    let result = debouncedSearch
-      ? members.filter(m =>
-          (m.name || "").toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          (m.course || "").toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          (m.member_id || "").toLowerCase().includes(debouncedSearch.toLowerCase())
-        )
-      : [...members];
+    const activeGenders = Object.entries(genderFilter).filter(([, v]) => v).map(([k]) => k);
+    const activeYears = Object.entries(yearFilter).filter(([, v]) => v).map(([k]) => k);
+    let result = members.filter(m => {
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
+        if (!(m.name || "").toLowerCase().includes(q) &&
+            !(m.course || "").toLowerCase().includes(q) &&
+            !(m.member_id || "").toLowerCase().includes(q)) return false;
+      }
+      const g = (m.gender || "").toLowerCase();
+      if (!((g === "male" || g === "Male") && activeGenders.includes("Male")) &&
+          !((g === "female" || g === "Female") && activeGenders.includes("Female")) &&
+          !(!g && activeGenders.length > 0)) return false;
+      const yr = getYearOfStudy(m.member_id || m.id || "");
+      const fallback = parseInt(m.year) || 0;
+      const effective = yr || fallback;
+      const label = effective >= 4 ? "4th+" : effective === 3 ? "3rd" : effective === 2 ? "2nd" : effective === 1 ? "1st" : null;
+      if (label && !activeYears.includes(label)) return false;
+      return true;
+    });
     result.sort((a, b) => {
       const aJ = jumuiyaOrder[a.jumuiya_name || a.jumuiya_id] ?? 99;
       const bJ = jumuiyaOrder[b.jumuiya_name || b.jumuiya_id] ?? 99;
@@ -255,7 +270,7 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
       return 0;
     });
     return result;
-  }, [members, debouncedSearch, sortBy, sortAsc]);
+  }, [members, debouncedSearch, sortBy, sortAsc, genderFilter, yearFilter]);
 
   const { paginatedMembers, totalPages } = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -323,6 +338,37 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
           <button onClick={fetchMembers} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
             <RefreshCw size={14} /> Refresh
           </button>
+        </div>
+      </div>
+
+      {/* Year & Gender Filters */}
+      <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center gap-4">
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Year of Study</p>
+          <div className="flex gap-2">
+            {Object.entries(yearFilter).map(([y, v]) => (
+              <label key={y} className="flex items-center gap-1.5 cursor-pointer group">
+                <input type="checkbox" checked={v}
+                  onChange={() => setYearFilter(prev => ({ ...prev, [y]: !prev[y] }))}
+                  className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                <span className="text-xs text-slate-600 group-hover:text-slate-800 font-medium">{y}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="w-px h-8 bg-slate-200" />
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Gender</p>
+          <div className="flex gap-2">
+            {Object.entries(genderFilter).map(([g, v]) => (
+              <label key={g} className="flex items-center gap-1.5 cursor-pointer group">
+                <input type="checkbox" checked={v}
+                  onChange={() => setGenderFilter(prev => ({ ...prev, [g]: !prev[g] }))}
+                  className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                <span className="text-xs text-slate-600 group-hover:text-slate-800 font-medium">{g}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -398,7 +444,10 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
                       <td className="py-2.5 px-3 text-slate-400 text-xs">{rowNumber}</td>
                       <td className="py-2.5 px-3">
                         {isEditing ? (
-                          <input value={editForm.member_id} onChange={e => setEditForm(p => ({ ...p, member_id: e.target.value }))}
+                          <input value={editForm.member_id} onChange={e => {
+                            const newReg = e.target.value;
+                            setEditForm(p => ({ ...p, member_id: newReg, year_of_study: getYearOfStudy(newReg) || p.year_of_study }));
+                          }}
                             className="text-xs border border-slate-200 rounded px-1.5 py-1 w-28 font-mono" />
                         ) : (
                           <span className="font-medium text-slate-800 text-xs">{memberId}</span>
@@ -469,12 +518,7 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
                         )}
                       </td>
                       <td className="py-2.5 px-3">
-                        {isEditing ? (
-                          <input value={editForm.year_of_study} onChange={e => setEditForm(p => ({ ...p, year_of_study: e.target.value }))}
-                            className="text-xs border border-slate-200 rounded px-1.5 py-1 w-16" />
-                        ) : (
-                          <span className="text-slate-500 text-xs">{m.year || "—"}</span>
-                        )}
+                        <span className="text-slate-500 text-xs">{isEditing ? editForm.year_of_study || "—" : m.year || "—"}</span>
                       </td>
                       <td className="py-2.5 px-3">
                         <div className="flex gap-1">

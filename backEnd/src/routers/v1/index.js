@@ -30,6 +30,7 @@ import categoryCardsRouter from "./categoryCardsRoutes.js";
 import hireAvailabilityRouter from "./hireAvailability.js";
 import hireSubmitRouter from "./hireSubmit.js";
 import hireStatusRouter from "./hireStatus.js";
+import activityLogRouter from "../activityLogRouter.js";
 
 router.use("/payments", paymentRouter);
 router.use("/stkPush", stkPushRouter);
@@ -100,6 +101,9 @@ router.use("/hire", hireSubmitRouter);
 
 // Hire status management & payment
 router.use("/hire", hireStatusRouter);
+
+// Activity logs (must be before generic tableApi catch-all)
+router.use("/", activityLogRouter);
 
 // Generic Table CRUD (should be last)
 router.use("/", tableApi);

@@ -1,4 +1,5 @@
 import express from 'express';
+import verifyToken from '../middlewares/Tokens.js';
 import {
   getAllJumuiyaMembers,
   getAllMembersAcrossJumuiyas,
@@ -53,7 +54,7 @@ router.post('/bulk-join', bulkJoinJumuiya);
 router.post('/bulk-register-with-payment', bulkRegisterWithPayment);
 router.post('/register-with-payment', registerWithPayment);
 router.post('/send-stamp-card', sendStampCard);
-router.put('/:id', updateJumuiyaMember);
+router.put('/:id', verifyToken, updateJumuiyaMember);
 router.delete('/:id', deleteJumuiyaMember);
 router.delete('/unregister/:id', unregisterJumuiyaMember);
 

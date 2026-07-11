@@ -5,6 +5,8 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createActivityLog } from "./activityLogController.js";
+import { generateStampCardPdf } from "../utils/stampCardPdf.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -367,6 +369,20 @@ export const updateJumuiyaMember = async (req, res) => {
 
       await pool.query('COMMIT');
 
+      const userId = req.user?.id || req.user?.member_id || 'system';
+      const userName = req.user ? `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'System' : 'System';
+
+      const targetReg = effectiveId;
+      const targetName = [first_name || oldFirstName, last_name || oldLastName].filter(Boolean).join(" ").trim() || targetReg;
+      const logJumuiya = jumuiyaName || (oldJumuiyaId ? (await pool.query("SELECT name FROM sub_groups WHERE group_id = $1", [oldJumuiyaId])).rows[0]?.name || null : null);
+
+      if (is_active !== undefined) {
+        await createActivityLog(targetReg, targetName, is_active === false ? 'member_flagged_inactive' : 'member_unflagged', 'member', targetReg, { acted_by: userId, acted_by_name: userName, jumuiya: logJumuiya });
+      }
+      if (memberIdChanged) {
+        await createActivityLog(targetReg, targetName, 'member_id_changed', 'member', targetReg, { acted_by: userId, acted_by_name: userName, old_id: id, new_id: newMemberId });
+      }
+
       const result = await pool.query(
         `SELECT m.*, sg.name as jumuiya_name
          FROM members m
@@ -441,6 +457,20 @@ export const updateJumuiyaMember = async (req, res) => {
 
     await pool.query('COMMIT');
 
+    const userId = req.user?.id || req.user?.member_id || 'system';
+    const userName = req.user ? `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'System' : 'System';
+
+    const targetReg = effectiveId;
+    const targetName = syncName || targetReg;
+    const logJumuiya = jumuiyaName || (jumuiyaUuid ? (await pool.query("SELECT name FROM sub_groups WHERE group_id = $1", [jumuiyaUuid])).rows[0]?.name || null : null);
+
+    if (is_active !== undefined) {
+      await createActivityLog(targetReg, targetName, is_active === false ? 'member_flagged_inactive' : 'member_unflagged', 'member', targetReg, { acted_by: userId, acted_by_name: userName, jumuiya: logJumuiya });
+    }
+    if (memberIdChanged) {
+      await createActivityLog(targetReg, targetName, 'member_id_changed', 'member', targetReg, { acted_by: userId, acted_by_name: userName, old_id: id, new_id: newMemberId });
+    }
+
     return res.json({
       success: true,
       data: {
@@ -503,6 +533,13 @@ export const deleteJumuiyaMember = async (req, res) => {
     }
 
     await pool.query('COMMIT');
+
+    const deletedMember = result.rows[0];
+    const targetReg = deletedMember.member_id;
+    const targetName = [deletedMember.first_name, deletedMember.last_name].filter(Boolean).join(" ").trim() || targetReg;
+    const userId = req.user?.id || req.user?.member_id || 'system';
+    const userName = req.user ? `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'System' : 'System';
+    await createActivityLog(targetReg, targetName, 'member_deleted', 'member', targetReg, { acted_by: userId, acted_by_name: userName });
 
     res.json({ success: true, message: "Member permanently removed from the system" });
   } catch (error) {
@@ -891,6 +928,51 @@ export const manualRegisterMember = async (req, res) => {
       message: `Member ${member_id} registered successfully`,
       data: { id: row.member_id, name: `${row.first_name} ${row.last_name || ""}`.trim() },
     });
+
+    // Send receipt email with stamp card PDF (non-blocking)
+    if (row.email && process.env.MAIL_USER && process.env.MAIL_PASS) {
+      (async () => {
+        try {
+          const pdfBuffer = await generateStampCardPdf({
+            memberName: `${row.first_name} ${row.last_name || ""}`.trim(),
+            memberId: member_id,
+            jumuiyaName: jumuiya_id,
+            amount: amount || 0,
+            semesterLabel: semesters ? semesters.filter(Boolean).join(", ") : 'Current Semester',
+          });
+          await mailTransporter.sendMail({
+            from: process.env.MAIL_USER,
+            to: row.email,
+            subject: `Registration Receipt — Payment Received`,
+            html: `
+              <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <h2 style="color: #16a34a; margin: 0;">Payment Receipt</h2>
+                  <p style="color: #64748b; font-size: 0.9rem;">Cash Registration</p>
+                </div>
+                <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">
+                  Hi ${row.first_name || ''}, your cash payment of <strong>KES ${amount || 0}</strong> has been recorded and your registration is confirmed.
+                </p>
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0;">
+                  <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Member:</strong> ${row.first_name} ${row.last_name || ""}</p>
+                  <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Registration ID:</strong> ${member_id}</p>
+                  <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Amount:</strong> KES ${amount || 0}</p>
+                  <p style="margin: 0; color: #166534; font-size: 0.85rem;"><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+                <p style="color: #94a3b8; font-size: 0.8rem; text-align: center; margin-top: 32px;">Your Semester Stamp Card is attached.</p>
+              </div>
+            `,
+            attachments: [{
+              filename: `stamp-card-${member_id}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            }],
+          });
+        } catch (err) {
+          logger.error("Failed to send receipt email: " + err.message);
+        }
+      })();
+    }
   } catch (error) {
     await pool.query("ROLLBACK");
     logger.error("Error in manualRegisterMember: " + error.message);
@@ -1021,39 +1103,55 @@ export const registerWithPayment = async (req, res) => {
     const memberName = `${row.first_name} ${row.last_name || ""}`.trim();
     const jumuiyaName = row.jumuiya_name || 'your community';
 
-    // Send confirmation email (non-blocking)
+    // Send confirmation email with stamp card PDF (non-blocking)
     if (row.email && process.env.MAIL_USER && process.env.MAIL_PASS) {
-      mailTransporter.sendMail({
-        from: process.env.MAIL_USER,
-        to: row.email,
-        subject: `Registration Confirmed — ${jumuiyaName}`,
-        html: `
-          <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-            <div style="text-align: center; margin-bottom: 24px;">
-              <h2 style="color: #16a34a; margin: 0;">Registration Confirmed</h2>
-              <p style="color: #64748b; font-size: 0.9rem;">${jumuiyaName}</p>
-            </div>
-            <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">
-              Hi ${memberName},
-            </p>
-            <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">
-              Your registration to <strong>${jumuiyaName}</strong> has been confirmed and your payment of <strong>KES ${amount}</strong> has been received.
-            </p>
-            <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">
-              You can now view and download your Semester Stamp Card from the community page.
-            </p>
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0;">
-              <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Member:</strong> ${memberName}</p>
-              <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Community:</strong> ${jumuiyaName}</p>
-              <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Registration ID:</strong> ${row.member_id}</p>
-              <p style="margin: 0; color: #166534; font-size: 0.85rem;"><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            </div>
-            <p style="color: #94a3b8; font-size: 0.8rem; text-align: center; margin-top: 32px;">
-              This is an automated message from the Campus Catholic Community registration system.
-            </p>
-          </div>
-        `,
-      }).catch(err => logger.error("Failed to send registration confirmation email: " + err.message));
+      (async () => {
+        try {
+          const pdfBuffer = await generateStampCardPdf({
+            memberName,
+            memberId: row.member_id,
+            jumuiyaName,
+            amount,
+            semesterLabel: semCol ? `Semester ${semCol.replace('sem_', '').replace('_reg', '')}` : 'Current Semester',
+          });
+          await mailTransporter.sendMail({
+            from: process.env.MAIL_USER,
+            to: row.email,
+            subject: `Registration Confirmed — ${jumuiyaName}`,
+            html: `
+              <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <h2 style="color: #16a34a; margin: 0;">Registration Confirmed</h2>
+                  <p style="color: #64748b; font-size: 0.9rem;">${jumuiyaName}</p>
+                </div>
+                <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">Hi ${memberName},</p>
+                <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">
+                  Your registration to <strong>${jumuiyaName}</strong> has been confirmed and your payment of <strong>KES ${amount}</strong> has been received.
+                </p>
+                <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">
+                  Your Semester Stamp Card is attached to this email. You can also view and download it from the community page.
+                </p>
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0;">
+                  <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Member:</strong> ${memberName}</p>
+                  <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Community:</strong> ${jumuiyaName}</p>
+                  <p style="margin: 0 0 8px; color: #166534; font-size: 0.85rem;"><strong>Registration ID:</strong> ${row.member_id}</p>
+                  <p style="margin: 0; color: #166534; font-size: 0.85rem;"><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+                <p style="color: #94a3b8; font-size: 0.8rem; text-align: center; margin-top: 32px;">
+                  This is an automated message from the Campus Catholic Community registration system.
+                </p>
+              </div>
+            `,
+            attachments: [{
+              filename: `stamp-card-${row.member_id}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            }],
+          });
+        } catch (err) {
+          logger.error("Failed to send registration confirmation email with stamp card: " + err.message);
+        }
+      })();
     }
 
     res.status(200).json({ 

@@ -45,6 +45,7 @@ const menuItems = [
   { id: 'jumuiya-members', name: 'Members', icon: UserPlus, path: '/admin/jumuiya-members' },
   { id: 'registered-members', name: 'Registered Members', icon: ClipboardList, path: '/admin/registered-members' },
   { id: 'projects', name: 'Project Management', icon: LayoutGrid, path: '/admin/projects' },
+  { id: 'activity-log', name: 'Activity Log', icon: ClipboardList, path: '/admin/activity-log' },
   { id: 'settings', name: 'Settings', icon: Settings, path: '/admin/settings' }
 ];
 
@@ -145,6 +146,7 @@ export default function UniversalAdmin() {
         case "JUMUIYA_COORDINATOR":
           allowedPrefixes.add("/admin/officials");
           allowedPrefixes.add("/admin/jumuiya-members");
+          allowedPrefixes.add("/admin/activity-log");
           break;
         case "OS":
           allowedPrefixes.add("/admin/announcements");

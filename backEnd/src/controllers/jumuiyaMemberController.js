@@ -3,6 +3,7 @@ import logger from "../logger/winston.js";
 import { validateMemberRow, parseExcelRow } from "../utils/memberValidation.js";
 import { distributeMembers } from "../utils/distributionAlgorithm.js";
 import bcrypt from "bcrypt";
+import { createActivityLog } from "./activityLogController.js";
 
 /**
  * Check for duplicate registration numbers, phones, and emails
@@ -1834,6 +1835,12 @@ export const csaBatchReviewApprovals = async (req, res) => {
       status: "success",
       data: { updated: result.rowCount, jumuiya: jumuiyaName, batch_status: result.rowCount > 0 ? "reviewed" : "none_pending" },
     });
+
+    const userId = req.user?.id || req.user?.member_id || 'system';
+    const userName = req.user ? `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'System' : 'System';
+    if (result.rowCount > 0) {
+      createActivityLog(userId, userName, `batch_${status}`, 'batch', String(updatedBatchIds[0] || ''), { jumuiya: jumuiyaName, status, count: result.rowCount, rejection_reason: rejection_reason || null });
+    }
   } catch (error) {
     logger.error("csaBatchReviewApprovals error:", error.message);
     res.status(500).json({ error: error.message });
@@ -1985,6 +1992,10 @@ export const csaFinalizeDistribution = async (req, res) => {
         message: `Finalized ${approved.rows.length} member(s) across Jumuiyas`,
       },
     });
+
+    const userId = req.user?.id || req.user?.member_id || 'system';
+    const userName = req.user ? `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'System' : 'System';
+    createActivityLog(userId, userName, 'batch_finalized', 'batch', batchId, { finalized_count: approved.rows.length });
   } catch (error) {
     logger.error("csaFinalizeDistribution error:", error.message);
     res.status(500).json({ error: error.message });
