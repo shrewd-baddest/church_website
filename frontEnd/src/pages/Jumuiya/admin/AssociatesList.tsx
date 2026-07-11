@@ -53,12 +53,6 @@ const AssociatesList: React.FC<Props> = ({ jumuiyaId, jumuiyaName }) => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    const years: Record<string, boolean> = {};
-    associates.forEach(a => { if (a.graduation_year) years[String(a.graduation_year)] = true; });
-    if (Object.keys(years).length > 0) setGraduationFilter(prev => Object.keys(prev).length === 0 ? years : prev);
-  }, [associates]);
-
   const fetchAssociates = useCallback(async () => {
     setLoading(true);
     setError(null);
