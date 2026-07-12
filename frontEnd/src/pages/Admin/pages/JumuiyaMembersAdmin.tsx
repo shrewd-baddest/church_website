@@ -298,6 +298,7 @@ export default function JumuiyaMembersAdmin() {
       await memberService.csaUpdateRejectedMember(id, editForm);
       setEditingRejected(null);
       fetchRejectedMembers();
+      fetchAllStats();
     } catch { /* ignore */ }
   };
 
@@ -306,6 +307,7 @@ export default function JumuiyaMembersAdmin() {
     try {
       await memberService.csaUpdateRejectedMember(id, { assign_jumuiya: jumuiyaName });
       fetchRejectedMembers();
+      fetchAllStats();
     } catch { /* ignore */ }
     finally { setAssigning(null); }
   };
@@ -315,6 +317,7 @@ export default function JumuiyaMembersAdmin() {
     try {
       await memberService.csaDeleteRejectedMember(id);
       setRejectedMembers(prev => prev.filter(m => m.id !== id));
+      fetchAllStats();
     } catch { /* ignore */ }
   };
 

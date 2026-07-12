@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, Fragment } from "react";
-import { memberService } from "../../../api/jumuiyaMemberService";
+import { memberService, invalidateMemberCache } from "../../../api/jumuiyaMemberService";
 import { Users, Search, RefreshCw, Download, Church, GraduationCap, Calendar, BookOpen, X, Check, UserPlus, Loader2, BarChart3, List, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
@@ -447,8 +447,49 @@ export default function CsaSecretaryDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+      <div className="space-y-6">
+        {/* Skeleton stat cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-xl p-3 bg-white border border-slate-200 animate-pulse">
+              <div className="h-7 w-12 bg-slate-200 rounded mb-2" />
+              <div className="h-3 w-16 bg-slate-200 rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Skeleton table */}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="p-4 border-b border-slate-200 flex gap-3">
+            <div className="h-9 flex-1 bg-slate-100 rounded-xl" />
+            <div className="h-9 w-28 bg-slate-100 rounded-xl" />
+            <div className="h-9 w-28 bg-slate-100 rounded-xl" />
+            <div className="h-9 w-24 bg-slate-100 rounded-xl" />
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <th key={i} className="px-4 py-3">
+                      <div className="h-3 w-16 bg-slate-200 rounded" />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-100">
+                    {Array.from({ length: 8 }).map((_, j) => (
+                      <td key={j} className="px-4 py-3">
+                        <div className={`h-4 bg-slate-100 rounded ${j === 0 ? 'w-6' : j === 1 ? 'w-14' : j === 2 ? 'w-32' : j === 3 ? 'w-20' : j === 4 ? 'w-24' : j === 5 ? 'w-12' : j === 6 ? 'w-20' : 'w-8'}`} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     );
   }
@@ -590,7 +631,7 @@ export default function CsaSecretaryDashboard() {
           <UserPlus size={16} /> Register Member
         </button>
         <button
-          onClick={fetchData}
+          onClick={() => { invalidateMemberCache(); fetchData(); }}
           className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors"
         >
           <RefreshCw size={16} /> Refresh

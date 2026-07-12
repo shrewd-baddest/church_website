@@ -826,6 +826,10 @@ export const getAllRegisteredMembers = async (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     res.setHeader("Pragma", "no-cache");
 
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(10000, Math.max(1, parseInt(req.query.limit) || 10000));
+    const offset = (page - 1) * limit;
+
     const currentMonth = new Date().getMonth() + 1;
     const isSecondSem = currentMonth <= 4;
 
@@ -835,6 +839,16 @@ export const getAllRegisteredMembers = async (req, res) => {
     }).join(' OR ');
 
     const currentSemLabel = isSecondSem ? "2nd Semester" : "1st Semester";
+
+    const countResult = await pool.query(`
+      SELECT COUNT(*) as total
+      FROM registered r
+      JOIN members m ON r.member_id = m.member_id
+      WHERE (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
+        AND r.status = 'active'
+        AND (${semesterFilter})
+    `);
+    const total = parseInt(countResult.rows[0].total);
 
     const result = await pool.query(`
       SELECT
@@ -860,7 +874,8 @@ export const getAllRegisteredMembers = async (req, res) => {
         AND r.status = 'active'
         AND (${semesterFilter})
       ORDER BY sg.name, m.first_name ASC
-    `);
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
 
     const formatted = result.rows.map(row => ({
       ...row,
@@ -873,7 +888,10 @@ export const getAllRegisteredMembers = async (req, res) => {
     res.json({
       success: true,
       data: formatted,
-      total: formatted.length,
+      total,
+      page,
+      limit,
+      total_pages: Math.ceil(total / limit),
       current_semester: {
         is_second_sem: isSecondSem,
         label: currentSemLabel,

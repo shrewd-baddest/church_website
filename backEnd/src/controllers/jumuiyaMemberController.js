@@ -221,6 +221,43 @@ export const importMembers = async (req, res) => {
       [validCount, errorCount, importId]
     );
 
+    // Immediately sync valid/warning import records into the members table
+    // so coordinators don't have to wait for the background sync job (every 5 min).
+    if (validCount > 0) {
+      try {
+        await pool.query(`
+          INSERT INTO members (
+            member_id, first_name, last_name, phone, gender,
+            source, status, import_batch_id, join_date, migrated_to_associates,
+            jumuiya_id, password
+          )
+          SELECT
+            ir.cleaned_reg_number,
+            split_part(ir.cleaned_name, ' ', 1),
+            substr(ir.cleaned_name, strpos(ir.cleaned_name || ' ', ' ') + 1),
+            NULLIF(ir.cleaned_phone, ''),
+            CASE WHEN LOWER(ir.cleaned_gender) IN ('male', 'female') THEN LOWER(ir.cleaned_gender) ELSE NULL END,
+            'jum',
+            ir.status,
+            mi.id,
+            mi.created_at,
+            COALESCE(ir.migrated_to_associates, false),
+            sg.group_id,
+            ir.cleaned_reg_number
+          FROM import_records ir
+          JOIN member_imports mi ON mi.id = ir.import_id
+          LEFT JOIN sub_groups sg ON sg.name = ir.cleaned_jumuiya OR sg.group_id::text = ir.cleaned_jumuiya
+          WHERE ir.import_id = $1
+            AND ir.status IN ('valid', 'warning')
+            AND ir.cleaned_reg_number IS NOT NULL AND ir.cleaned_reg_number != ''
+            AND NOT EXISTS (SELECT 1 FROM members WHERE member_id = ir.cleaned_reg_number)
+          ON CONFLICT (member_id) DO NOTHING
+        `, [importId]);
+      } catch (syncErr) {
+        logger.warn("Direct member sync after import failed (will be picked up by background sync):", syncErr.message);
+      }
+    }
+
     res.status(201).json({
       status: "success",
       data: {
@@ -928,6 +965,8 @@ function deriveYearFromReg(memberId) {
 export const getMembers = async (req, res) => {
   try {
     const { jumuiya_id } = req.params;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 200));
     const slugToName = {
       "st-anthony": "St. Anthony", "st-augustine": "St. Augustine",
       "st-catherine": "St. Catherine", "st-dominic": "St. Dominic",
@@ -941,8 +980,15 @@ export const getMembers = async (req, res) => {
     const jumuiyaUUID = sgResult.rows.length ? sgResult.rows[0].group_id : null;
 
     if (!jumuiyaUUID) {
-      return res.json({ status: "success", data: [] });
+      return res.json({ status: "success", data: [], total: 0 });
     }
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*) as total FROM members m
+       WHERE m.jumuiya_id = $1 AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)`,
+      [jumuiyaUUID]
+    );
+    const total = parseInt(countResult.rows[0].total);
 
     const result = await pool.query(
       `SELECT m.member_id, m.first_name, m.last_name, m.gender, m.course, m.phone, m.year_of_study, m.join_date, m.source, m.email, m.is_active,
@@ -950,8 +996,9 @@ export const getMembers = async (req, res) => {
        FROM members m
        LEFT JOIN registered r ON r.member_id = m.member_id AND r.jumuiya_id = m.jumuiya_id AND r.status = 'active'
        WHERE m.jumuiya_id = $1 AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
-       ORDER BY m.first_name`,
-      [jumuiyaUUID]
+       ORDER BY m.first_name
+       LIMIT $2 OFFSET $3`,
+      [jumuiyaUUID, limit, (page - 1) * limit]
     );
 
     const data = result.rows.map(r => ({
@@ -977,13 +1024,7 @@ export const getMembers = async (req, res) => {
       return true;
     });
 
-    deduped.sort((a, b) => {
-      if (!a.first_name) return 1;
-      if (!b.first_name) return -1;
-      return a.first_name.localeCompare(b.first_name);
-    });
-
-    res.json({ status: "success", data: deduped });
+    res.json({ status: "success", data: deduped, total, page, limit, total_pages: Math.ceil(total / limit) });
   } catch (error) {
     logger.error("getMembers error:", error.message);
     res.status(500).json({ error: error.message });
@@ -1142,6 +1183,42 @@ export const csaImportMembers = async (req, res) => {
       [validCount, errorCount, importId]
     );
 
+    // Immediately sync valid/warning CSA import records into the members table
+    // (jumuiya_id is NULL for CSA-level imports — assigned later via distribution)
+    if (validCount > 0) {
+      try {
+        await pool.query(`
+          INSERT INTO members (
+            member_id, first_name, last_name, phone, gender,
+            source, status, import_batch_id, join_date, migrated_to_associates,
+            jumuiya_id, password
+          )
+          SELECT
+            ir.cleaned_reg_number,
+            split_part(ir.cleaned_name, ' ', 1),
+            substr(ir.cleaned_name, strpos(ir.cleaned_name || ' ', ' ') + 1),
+            NULLIF(ir.cleaned_phone, ''),
+            CASE WHEN LOWER(ir.cleaned_gender) IN ('male', 'female') THEN LOWER(ir.cleaned_gender) ELSE NULL END,
+            'csa',
+            ir.status,
+            mi.id,
+            mi.created_at,
+            COALESCE(ir.migrated_to_associates, false),
+            NULL,
+            ir.cleaned_reg_number
+          FROM import_records ir
+          JOIN member_imports mi ON mi.id = ir.import_id
+          WHERE ir.import_id = $1
+            AND ir.status IN ('valid', 'warning')
+            AND ir.cleaned_reg_number IS NOT NULL AND ir.cleaned_reg_number != ''
+            AND NOT EXISTS (SELECT 1 FROM members WHERE member_id = ir.cleaned_reg_number)
+          ON CONFLICT (member_id) DO NOTHING
+        `, [importId]);
+      } catch (syncErr) {
+        logger.warn("Direct CSA member sync after import failed (will be picked up by background sync):", syncErr.message);
+      }
+    }
+
     res.status(201).json({
       status: "success",
       data: {
@@ -1163,6 +1240,10 @@ export const csaImportMembers = async (req, res) => {
 export const csaGetPendingMembers = async (req, res) => {
   try {
     const { academic_year, gender } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 100));
+    const offset = (page - 1) * limit;
+
     const conditions = [
       `m.source = 'csa'`,
       `m.jumuiya_id IS NULL`,
@@ -1178,6 +1259,14 @@ export const csaGetPendingMembers = async (req, res) => {
       conditions.push(`LOWER(m.gender) = LOWER($${params.length})`);
     }
 
+    const whereClause = conditions.join(" AND ");
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*) as total FROM members m LEFT JOIN member_imports mi ON mi.id = m.import_batch_id WHERE ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].total);
+
     const result = await pool.query(
       `SELECT m.member_id, 
               CONCAT_WS(' ', m.first_name, m.last_name) as name,
@@ -1187,12 +1276,13 @@ export const csaGetPendingMembers = async (req, res) => {
               mi.import_date, mi.file_name, mi.academic_year
        FROM members m
        LEFT JOIN member_imports mi ON mi.id = m.import_batch_id
-       WHERE ${conditions.join(" AND ")}
-       ORDER BY mi.import_date DESC, m.first_name`,
-      params
+       WHERE ${whereClause}
+       ORDER BY mi.import_date DESC, m.first_name
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset]
     );
 
-    res.json({ status: "success", data: result.rows });
+    res.json({ status: "success", data: result.rows, total, page, limit, total_pages: Math.ceil(total / limit) });
   } catch (error) {
     logger.error("csaGetPendingMembers error:", error.message);
     res.status(500).json({ error: error.message });

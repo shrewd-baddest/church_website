@@ -26,6 +26,8 @@ export const Login = async (req, res) => {
         m.first_name, 
         m.last_name, 
         m.email,
+        m.email_verified,
+        m.email_verification_token,
         COALESCE(
           ARRAY_AGG(r.role_name) FILTER (WHERE r.role_name IS NOT NULL),
           ARRAY[]::text[]
@@ -34,7 +36,7 @@ export const Login = async (req, res) => {
       LEFT JOIN member_roles mr ON m.member_id = mr.member_id AND mr.status = 'approved'
       LEFT JOIN roles r ON mr.role_id = r.role_id 
       WHERE m.member_id = $1
-      GROUP BY m.member_id, m.password, m.jumuiya_id, m.first_name, m.last_name, m.email`,
+      GROUP BY m.member_id, m.password, m.jumuiya_id, m.first_name, m.last_name, m.email, m.email_verified, m.email_verification_token`,
       [userReg],
     );
 
@@ -46,7 +48,22 @@ export const Login = async (req, res) => {
     const user = result.rows[0];
 
     const storedHash = typeof user.password === 'string' ? user.password.trim() : user.password;
-    const match = await bcrypt.compare(password, storedHash);
+
+    // Determine whether the stored password is a bcrypt hash or a legacy plaintext value
+    const isBcrypt = storedHash && (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$') || storedHash.startsWith('$2y$'));
+
+    let match = false;
+    if (isBcrypt) {
+      match = await bcrypt.compare(password, storedHash);
+      if (!match) {
+        // Default password is the uppercased registration number — the user
+        // may have typed it in a different case.
+        match = await bcrypt.compare(password.toUpperCase(), storedHash);
+      }
+    } else if (storedHash) {
+      // Legacy plaintext password — compare directly
+      match = password === storedHash || password.toUpperCase() === storedHash;
+    }
 
     if (!match) {
       logger.error(`Invalid username or password for '${userReg}'`);
@@ -57,8 +74,22 @@ export const Login = async (req, res) => {
     }
 
     // Detect first login: password matches their reg number, or missing email
-    const isDefaultPassword = await bcrypt.compare(userReg, storedHash);
+    let isDefaultPassword = false;
+    if (isBcrypt) {
+      isDefaultPassword = await bcrypt.compare(userReg, storedHash);
+    } else if (storedHash) {
+      isDefaultPassword = userReg === storedHash;
+    }
     const forcePasswordChange = isDefaultPassword || !user.email;
+
+    // Block login if user has an unverified email from a recent first-login-setup
+    // (email_verification_token is only set when firstLoginSetup added an email)
+    if (!forcePasswordChange && user.email && !user.email_verified && user.email_verification_token) {
+      return res.status(403).json({
+        status: false,
+        message: "Please verify your email before logging in. Check your inbox for the verification link we sent."
+      });
+    }
 
     const accessToken = generateAccesstoken(user.member_id, user.roles, user.first_name, user.last_name, user.email, user.jumuiya_id);
     const refreshToken = generateRefreshtoken(user.member_id, user.roles);
@@ -213,7 +244,13 @@ export const firstLoginSetup = async (req, res) => {
     }
 
     const storedHash = typeof member.rows[0].password === 'string' ? member.rows[0].password.trim() : member.rows[0].password;
-    const valid = await bcrypt.compare(currentPassword, storedHash);
+    const isBcrypt = storedHash && (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$') || storedHash.startsWith('$2y$'));
+    let valid = false;
+    if (isBcrypt) {
+      valid = await bcrypt.compare(currentPassword, storedHash);
+    } else if (storedHash) {
+      valid = currentPassword === storedHash;
+    }
     if (!valid) {
       return res.status(401).json({ status: false, message: "Current password is incorrect" });
     }
@@ -237,7 +274,7 @@ export const firstLoginSetup = async (req, res) => {
           email.trim()
         );
       } catch (mailErr) {
-        logger.error("Failed to send verification email:", mailErr.message);
+        logger.error("Failed to send verification email:", mailErr.message, mailErr.stack);
       }
     } else {
       await pool.query(
@@ -285,5 +322,58 @@ export const verifyEmail = async (req, res) => {
   } catch (error) {
     logger.error("verifyEmail error:", error.message);
     res.status(500).json({ status: false, message: "Server error" });
+  }
+};
+
+export const resendVerification = async (req, res) => {
+  try {
+    const { member_id } = req.body;
+    if (!member_id) {
+      return res.status(400).json({ status: false, message: "member_id is required" });
+    }
+
+    const result = await pool.query(
+      `SELECT email, email_verification_token, email_verification_expires, email_verified
+       FROM members WHERE member_id = $1`,
+      [member_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Member not found" });
+    }
+
+    const member = result.rows[0];
+
+    if (member.email_verified) {
+      return res.status(400).json({ status: false, message: "Email is already verified" });
+    }
+
+    if (!member.email) {
+      return res.status(400).json({ status: false, message: "No email on record to verify" });
+    }
+
+    // If token expired or missing, generate a new one
+    let token = member.email_verification_token;
+    let expires = member.email_verification_expires;
+    if (!token || (expires && new Date() > expires)) {
+      token = crypto.randomBytes(32).toString("hex");
+      expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await pool.query(
+        `UPDATE members SET email_verification_token = $1, email_verification_expires = $2 WHERE member_id = $3`,
+        [token, expires, member_id]
+      );
+    }
+
+    const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+    await sendMail(
+      "Verify your email — CSA Kirinyaga",
+      `Hi ${member_id},\n\nPlease verify your email by clicking the link below:\n${FRONTEND_URL}/verify-email?token=${token}&reg=${encodeURIComponent(member_id)}\n\nThis link expires in 24 hours.\n\n— CSA Kirinyaga Chapter`,
+      member.email
+    );
+
+    res.json({ status: true, message: "Verification email sent" });
+  } catch (error) {
+    logger.error("resendVerification error:", error.message, error.stack);
+    res.status(500).json({ status: false, message: "Failed to send verification email. Please try again later." });
   }
 };
