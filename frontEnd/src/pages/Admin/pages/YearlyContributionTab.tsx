@@ -152,7 +152,7 @@ export default function YearlyContributionTab() {
                   </div>
                   <span className="text-sm font-bold text-slate-800">
                     {j.count}
-                    <span className="text-xs text-slate-400 font-normal ml-1">/ {j.total} ({j.pct}%)</span>
+                    <span className="text-xs text-slate-600 font-semibold ml-1">/ {j.total} ({j.pct}%)</span>
                   </span>
                 </div>
                 <div className="relative h-7 w-full bg-slate-100 rounded-lg overflow-hidden">

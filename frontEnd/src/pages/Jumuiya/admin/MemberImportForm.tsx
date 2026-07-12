@@ -306,7 +306,7 @@ const MemberImportForm: React.FC<Props> = ({ jumuiyaId, seasonId }) => {
                       className="w-24 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
                       <option value="">Select</option>
                       <option value="Male">Male</option>
-                      <option value="Female">Female</option>
+                      <option value="Female">Ladies</option>
                     </select>
                   </td>
                   <td className="py-2 px-3">

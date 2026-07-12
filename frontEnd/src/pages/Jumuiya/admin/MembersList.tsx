@@ -140,7 +140,7 @@ const MembersList: React.FC<Props> = ({ jumuiyaId, jumuiyaName }) => {
         selected.forEach(k => {
           if (k === "RegNo") out.RegNo = row.member_id || "";
           else if (k === "Name") out.Name = `${row.first_name || ""} ${row.last_name || ""}`.trim();
-          else if (k === "Gender") out.Gender = row.gender === "male" ? "Male" : row.gender === "female" ? "Female" : row.gender || "";
+          else if (k === "Gender") out.Gender = row.gender === "male" ? "Male" : row.gender === "female" ? "Ladies" : row.gender || "";
           else if (k === "Email") out.Email = row.email || "";
           else if (k === "Phone") out.Phone = row.phone || "";
           else if (k === "Year") out.Year = row.year_of_study || "";

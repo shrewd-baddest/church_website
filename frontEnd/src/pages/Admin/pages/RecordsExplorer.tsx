@@ -414,7 +414,7 @@ export default function RecordsExplorer() {
                       required
                     >
                       <option value="male">Male</option>
-                      <option value="female">Female</option>
+                      <option value="female">Ladies</option>
                     </select>
                   </div>
 

@@ -80,6 +80,20 @@ const resolveJumuiyaUuid = async (slug) => {
 };
 
 /**
+ * Resolve a jumuiya identifier (slug or UUID) into both its UUID and slug form.
+ * Stored jumuiya_id values are inconsistent (sometimes a UUID, sometimes a slug),
+ * so callers should match against BOTH forms to avoid leaking or dropping rows.
+ */
+const resolveJumuiyaRef = async (input) => {
+  const uuid = await resolveJumuiyaUuid(input);
+  if (!uuid) return { uuid: null, slug: input };
+  const sgRes = await pool.query("SELECT name, slug FROM sub_groups WHERE group_id = $1", [uuid]);
+  const row = sgRes.rows[0];
+  const slug = row?.slug || (row?.name || "").toLowerCase().replace(/\./g, "").replace(/ /g, "-");
+  return { uuid, slug };
+};
+
+/**
  * Internal: fetch members from both sources (jumuiya import, CSA distribution).
  * Used by getAllJumuiyaMembers and getAllMembersAcrossJumuiyas.
  */
@@ -95,12 +109,8 @@ function deriveYearFromReg(memberId) {
 async function fetchAllMembers(jumuiya_id) {
   const resolvedUuid = await resolveJumuiyaUuid(jumuiya_id);
 
-  if (jumuiya_id && !resolvedUuid) {
-    return [];
-  }
-
   let query = `
-    SELECT 
+    SELECT
       m.member_id as id,
       m.first_name,
       m.last_name,
@@ -195,13 +205,18 @@ export const createJumuiyaMember = async (req, res) => {
       return res.status(400).json({ success: false, message: "member_id and jumuiya_id are required" });
     }
 
+    const jumuiyaUuid = await resolveJumuiyaUuid(jumuiya_id);
+    if (!jumuiyaUuid) {
+      return res.status(400).json({ success: false, message: "Invalid jumuiya_id" });
+    }
+
     // Start Transaction
     await pool.query('BEGIN');
 
     // 1. Update members table
     await pool.query(
       `UPDATE members SET jumuiya_id = $1 WHERE member_id = $2`,
-      [jumuiya_id, member_id]
+      [jumuiyaUuid, member_id]
     );
 
     // 2. Fetch updated member with jumuiya name via JOIN
@@ -220,10 +235,10 @@ export const createJumuiyaMember = async (req, res) => {
 
     // 3. Insert into registered table
     await pool.query(
-      `INSERT INTO registered (member_id, jumuiya_id, registration_date, status) 
+      `INSERT INTO registered (member_id, jumuiya_id, registration_date, status)
        VALUES ($1, $2, CURRENT_TIMESTAMP, 'active')
-       ON CONFLICT DO NOTHING`, 
-      [member_id, jumuiya_id]
+       ON CONFLICT DO NOTHING`,
+      [member_id, jumuiyaUuid]
     );
 
     await pool.query('COMMIT');
@@ -256,7 +271,7 @@ export const updateJumuiyaMember = async (req, res) => {
     const { id } = req.params;
     const {
       member_id, first_name, last_name, year_of_study, email, jumuiya_id,
-      phone, gender, course, is_active,
+      phone, gender, course, is_active, serial_no,
     } = req.body;
 
     const newMemberId = member_id && member_id.trim() ? member_id.trim() : null;
@@ -365,6 +380,14 @@ export const updateJumuiyaMember = async (req, res) => {
             );
           }
         }
+      }
+
+      // Update serial_no on the registration record if provided
+      if (serial_no !== undefined) {
+        await pool.query(
+          "UPDATE registered SET serial_no = $1 WHERE member_id = $2",
+          [serial_no === null || serial_no === "" ? null : Number(serial_no), effectiveId]
+        );
       }
 
       await pool.query('COMMIT');
@@ -595,6 +618,11 @@ export const bulkJoinJumuiya = async (req, res) => {
       return res.status(400).json({ success: false, message: "member_ids (array) and jumuiya_id are required" });
     }
 
+    const jumuiyaUuid = await resolveJumuiyaUuid(jumuiya_id);
+    if (!jumuiyaUuid) {
+      return res.status(400).json({ success: false, message: "Invalid jumuiya_id" });
+    }
+
     // Start Transaction
     await pool.query('BEGIN');
 
@@ -604,7 +632,7 @@ export const bulkJoinJumuiya = async (req, res) => {
        SET jumuiya_id = $1 
        WHERE member_id = ANY($2) 
        RETURNING *`,
-      [jumuiya_id, member_ids]
+      [jumuiyaUuid, member_ids]
     );
 
     // 2. Insert into registered table
@@ -613,7 +641,7 @@ export const bulkJoinJumuiya = async (req, res) => {
       `INSERT INTO registered (member_id, jumuiya_id, registration_date, status) 
        SELECT unnest($1::text[]), $2, CURRENT_TIMESTAMP, 'active'
        ON CONFLICT DO NOTHING`,
-      [member_ids, jumuiya_id]
+      [member_ids, jumuiyaUuid]
     );
 
     await pool.query('COMMIT');
@@ -643,6 +671,11 @@ export const bulkRegisterWithPayment = async (req, res) => {
       success: false, 
       message: "member_ids (array), jumuiya_id, phoneNumber, and amount are required" 
     });
+  }
+
+  const jumuiyaUuid = await resolveJumuiyaUuid(jumuiya_id);
+  if (!jumuiyaUuid) {
+    return res.status(400).json({ success: false, message: "Invalid jumuiya_id" });
   }
 
   try {
@@ -691,18 +724,18 @@ export const bulkRegisterWithPayment = async (req, res) => {
            sem_6_reg = CASE WHEN norm.norm_yos = '3' AND $2 = 1 THEN true ELSE m.sem_6_reg END,
            sem_7_reg = CASE WHEN norm.norm_yos = '4' AND $2 = 0 THEN true ELSE m.sem_7_reg END,
            sem_8_reg = CASE WHEN norm.norm_yos = '4' AND $2 = 1 THEN true ELSE m.sem_8_reg END
-       FROM norm
-       WHERE m.member_id = norm.member_id
-       RETURNING m.*`,
-      [jumuiya_id, isSecondSem, member_ids]
+        FROM norm
+        WHERE m.member_id = norm.member_id
+        RETURNING m.*`,
+      [jumuiyaUuid, isSecondSem, member_ids]
     );
 
     // Insert into registered table
     await pool.query(
-      `INSERT INTO registered (member_id, jumuiya_id, registration_date, status) 
+      `INSERT INTO registered (member_id, jumuiya_id, registration_date, status)
        SELECT unnest($1::text[]), $2, CURRENT_TIMESTAMP, 'active'
        ON CONFLICT DO NOTHING`,
-      [member_ids, jumuiya_id]
+      [member_ids, jumuiyaUuid]
     );
 
     await pool.query('COMMIT');
@@ -730,11 +763,21 @@ export const getRegisteredJumuiyaMembers = async (req, res) => {
     const { jumuiya_id } = req.query;
 
     const resolvedUuid = await resolveJumuiyaUuid(jumuiya_id);
+    const filterUuid = resolvedUuid || jumuiya_id;
+
+    const currentMonth = new Date().getMonth() + 1;
+    const isSecondSem = currentMonth <= 4;
+
+    const currentSemFilters = [1, 2, 3, 4].map(yos => {
+      const colIdx = (yos - 1) * 2 + (isSecondSem ? 2 : 1);
+      return `(m.year_of_study = '${yos}' AND m.sem_${colIdx}_reg = true)`;
+    }).join(' OR ');
 
     let query = `
-      SELECT 
+      SELECT DISTINCT
         r.id as registration_id,
-        r.registration_date,
+        COALESCE(r.registration_date, m.join_date) as registration_date,
+        r.serial_no,
         m.member_id as id,
         m.first_name,
         m.last_name,
@@ -742,21 +785,18 @@ export const getRegisteredJumuiyaMembers = async (req, res) => {
         m.year_of_study as year,
         m.jumuiya_id,
         sg.name as jumuiya_name,
-        true as is_registered,
+        (r.member_id IS NOT NULL) as is_registered,
         m.source,
         m.status as import_status
-      FROM registered r
-      JOIN members m ON r.member_id = m.member_id
+      FROM members m
+      LEFT JOIN registered r ON m.member_id = r.member_id AND r.jumuiya_id = $1 AND r.status = 'active'
       LEFT JOIN sub_groups sg ON m.jumuiya_id = sg.group_id
-      WHERE r.status = 'active'
-        AND (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
+      WHERE (m.migrated_to_associates IS NULL OR m.migrated_to_associates = false)
+        AND m.jumuiya_id = $1
+        AND (${currentSemFilters})
     `;
 
-    const queryParams = [];
-    if (resolvedUuid) {
-      query += ` AND r.jumuiya_id = $1`;
-      queryParams.push(resolvedUuid);
-    }
+    const queryParams = [filterUuid];
 
     query += ` ORDER BY m.first_name ASC`;
 
@@ -861,6 +901,11 @@ export const manualRegisterMember = async (req, res) => {
       return res.status(400).json({ success: false, message: "member_id and jumuiya_id are required" });
     }
 
+    const jumuiyaUuid = await resolveJumuiyaUuid(jumuiya_id);
+    if (!jumuiyaUuid) {
+      return res.status(400).json({ success: false, message: "Invalid jumuiya_id" });
+    }
+
     await pool.query("BEGIN");
 
     // 1. Verify member exists
@@ -884,7 +929,7 @@ export const manualRegisterMember = async (req, res) => {
     semVals.push(member_id);
     await pool.query(
       `UPDATE members SET jumuiya_id = $1, migrated_to_associates = NULL, ${semUpdates.join(", ")} WHERE member_id = $${idx}`,
-      [jumuiya_id, ...semVals]
+      [jumuiyaUuid, ...semVals]
     );
 
     // 3. Insert into registered (idempotent)
@@ -892,7 +937,7 @@ export const manualRegisterMember = async (req, res) => {
       `INSERT INTO registered (member_id, jumuiya_id, registration_date, status, serial_no)
        VALUES ($1, $2, CURRENT_TIMESTAMP, 'active', $3)
        ON CONFLICT DO NOTHING`,
-      [member_id, jumuiya_id, serial_no || null]
+      [member_id, jumuiyaUuid, serial_no || null]
     );
 
     // 4. Record cash payment (best-effort, non-blocking)
@@ -1034,6 +1079,11 @@ export const registerWithPayment = async (req, res) => {
     });
   }
 
+  const jumuiyaUuid = await resolveJumuiyaUuid(jumuiya_id);
+  if (!jumuiyaUuid) {
+    return res.status(400).json({ success: false, message: "Invalid jumuiya_id" });
+  }
+
   try {
     logger.info(`Initiating registration payment for member ${member_id} to jumuiya ${jumuiya_id}`);
 
@@ -1072,7 +1122,7 @@ export const registerWithPayment = async (req, res) => {
     const yosUpdate = normalizedYos ? `, year_of_study = '${normalizedYos}'` : '';
     await pool.query(
       `UPDATE members SET jumuiya_id = $1, migrated_to_associates = NULL${yosUpdate}${semCol ? `, ${semCol} = true` : ''} WHERE member_id = $2`,
-      [jumuiya_id, member_id]
+      [jumuiyaUuid, member_id]
     );
 
     // Fetch updated member with jumuiya name via JOIN
@@ -1091,10 +1141,10 @@ export const registerWithPayment = async (req, res) => {
 
     // Insert into registered table
     await pool.query(
-      `INSERT INTO registered (member_id, jumuiya_id, registration_date, status) 
+      `INSERT INTO registered (member_id, jumuiya_id, registration_date, status)
        VALUES ($1, $2, CURRENT_TIMESTAMP, 'active')
-       ON CONFLICT DO NOTHING`, 
-      [member_id, jumuiya_id]
+       ON CONFLICT DO NOTHING`,
+      [member_id, jumuiyaUuid]
     );
 
     await pool.query('COMMIT');

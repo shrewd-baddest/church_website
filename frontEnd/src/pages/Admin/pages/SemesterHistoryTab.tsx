@@ -172,6 +172,7 @@ export default function SemesterHistoryTab() {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="px-3 py-2.5 text-center font-semibold text-slate-500 uppercase tracking-wider w-8">No.</th>
                 <th className="px-3 py-2.5 text-left font-semibold text-slate-500 uppercase tracking-wider">Reg #</th>
                 <th className="px-3 py-2.5 text-left font-semibold text-slate-500 uppercase tracking-wider">Name</th>
                 <th className="px-3 py-2.5 text-left font-semibold text-slate-500 uppercase tracking-wider">Course</th>
@@ -187,11 +188,12 @@ export default function SemesterHistoryTab() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={15} className="px-4 py-12 text-center text-slate-400">No records found</td>
+                  <td colSpan={16} className="px-4 py-12 text-center text-slate-400">No records found</td>
                 </tr>
               ) : (
                 filtered.map((m, i) => (
                   <tr key={m.reg_number} className={`border-b border-slate-100 ${i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-blue-50/50 transition-colors`}>
+                    <td className="px-3 py-2 text-center text-slate-400 text-[11px] font-mono">{i + 1}</td>
                     <td className="px-3 py-2 font-mono text-[11px] text-slate-600">{m.reg_number}</td>
                     <td className="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">{m.name}</td>
                     <td className="px-3 py-2 text-slate-500">{m.course || "—"}</td>

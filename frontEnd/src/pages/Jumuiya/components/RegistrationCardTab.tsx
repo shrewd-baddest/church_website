@@ -18,29 +18,14 @@ const RegistrationCardTab: React.FC<RegistrationCardTabProps> = ({ jumuiyaId, ju
     // Find the current logged-in member in this specific Jumuiya
     const memberRecord = members.find(m => m.id === user?.member_id && m.jumuiya_id === jumuiyaId);
 
-    const isDemo = !memberRecord;
-
-    // Mock data for demo purposes
-    const displayRecord = memberRecord || {
-        name: user?.name || "Sample Member",
-        id: user?.member_id || "CSA-DEMO-001",
-        year: user?.year || "Year 3",
-        joined_at: new Date().toISOString(),
-        sem_1_reg: true,
-        sem_2_reg: true,
-        sem_3_reg: true,
-        sem_4_reg: true,
-        sem_5_reg: false,
-        sem_6_reg: false,
-        sem_7_reg: false,
-        sem_8_reg: false,
-        jumuiya_name: jumuiyaName
-    };
+    const displayRecord = memberRecord;
 
     // Calculate registration progress
-    const registeredSemesters = Object.keys(displayRecord)
-        .filter(key => key.startsWith('sem_') && key.endsWith('_reg'))
-        .filter(key => displayRecord[key as keyof typeof displayRecord] === true).length;
+    const registeredSemesters = displayRecord
+        ? Object.keys(displayRecord)
+            .filter(key => key.startsWith('sem_') && key.endsWith('_reg'))
+            .filter(key => (displayRecord as any)[key] === true).length
+        : 0;
     const totalSemesters = 8;
     const progressPercentage = (registeredSemesters / totalSemesters) * 100;
 
@@ -48,6 +33,22 @@ const RegistrationCardTab: React.FC<RegistrationCardTabProps> = ({ jumuiyaId, ju
         return (
             <div className="tab-system-content" style={{ padding: '64px 24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <PageLoader message="Retrieving your official record..." />
+            </div>
+        );
+    }
+
+    if (!displayRecord) {
+        return (
+            <div className="tab-system-content" style={{ padding: '64px 24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ maxWidth: '420px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '3.5rem', color: jumuiyaColor, opacity: 0.4, marginBottom: '16px' }}>
+                        <FaIdCard />
+                    </div>
+                    <h2 className="page-title">Not Yet Registered</h2>
+                    <p className="page-description">
+                        You are not yet registered with {jumuiyaName}. Complete your registration to receive your official ID card and start tracking your academic progress.
+                    </p>
+                </div>
             </div>
         );
     }
@@ -87,10 +88,8 @@ const RegistrationCardTab: React.FC<RegistrationCardTabProps> = ({ jumuiyaId, ju
                     <button
                         className="btn-premium primary"
                         onClick={handlePrint}
-                        disabled={isDemo}
-                        style={isDemo ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                     >
-                        <FaPrint style={{ marginRight: '8px' }} /> {isDemo ? 'Register to Print' : 'Print / Save PDF'}
+                        <FaPrint style={{ marginRight: '8px' }} /> Print / Save PDF
                     </button>
                 </div>
             </div>
@@ -195,21 +194,6 @@ const RegistrationCardTab: React.FC<RegistrationCardTabProps> = ({ jumuiyaId, ju
                                 position: 'relative'
                             }}>
                                 <FaIdCard />
-                                {isDemo && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        bottom: '-8px',
-                                        right: '-8px',
-                                        background: '#ef4444',
-                                        borderRadius: '8px',
-                                        padding: '2px 6px',
-                                        fontSize: '0.6rem',
-                                        fontWeight: 700,
-                                        color: 'white'
-                                    }}>
-                                        DEMO
-                                    </div>
-                                )}
                             </div>
 
                             {/* Member Info */}
@@ -393,29 +377,6 @@ const RegistrationCardTab: React.FC<RegistrationCardTabProps> = ({ jumuiyaId, ju
                     }} />
                 </div>
             </div>
-
-            {/* Demo Banner */}
-            {isDemo && (
-                <div className="animate-fade" style={{
-                    maxWidth: '520px',
-                    margin: '24px auto',
-                    padding: '20px',
-                    borderRadius: '20px',
-                    background: `linear-gradient(135deg, ${jumuiyaColor}08, ${jumuiyaColor}02)`,
-                    border: `1px solid ${jumuiyaColor}20`,
-                    textAlign: 'center'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '12px' }}>
-                        <div style={{ fontSize: '1.5rem' }}>✨</div>
-                        <p style={{ color: '#475569', fontSize: '0.9rem', fontWeight: 500, margin: 0 }}>
-                            This is a preview of the official {jumuiyaName} registration card
-                        </p>
-                    </div>
-                    <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: 0 }}>
-                        Register now to get your unique ID and start tracking your academic persistence!
-                    </p>
-                </div>
-            )}
 
             {/* Print Styles */}
             <style>{`

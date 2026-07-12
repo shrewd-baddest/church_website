@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, Fragment } from "react";
 import { memberService } from "../../../api/jumuiyaMemberService";
-import { Users, Search, RefreshCw, Download, Church, GraduationCap, Calendar, BookOpen, X, Check, UserPlus, Loader2, BarChart3, List } from "lucide-react";
+import { Users, Search, RefreshCw, Download, Church, GraduationCap, Calendar, BookOpen, X, Check, UserPlus, Loader2, BarChart3, List, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 import AnalyticsDashboard from "./AnalyticsDashboard";
@@ -92,6 +92,12 @@ export default function CsaSecretaryDashboard() {
   const [regAmount, setRegAmount] = useState("");
   const [regSubmitting, setRegSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"members" | "analytics" | "history">("members");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSerialNo, setEditSerialNo] = useState<string>("");
+  const [editCourse, setEditCourse] = useState<string>("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const EXPORT_COLUMNS = [
     { key: "serial_no", label: "Serial No" },
@@ -184,6 +190,17 @@ export default function CsaSecretaryDashboard() {
     });
     return result;
   }, [members, search, sortKey, sortDir, filterJumuiya, filterSemester]);
+
+  const { paginatedMembers, totalPages } = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return {
+      paginatedMembers: filtered.slice(start, end),
+      totalPages: Math.ceil(filtered.length / itemsPerPage)
+    };
+  }, [filtered, currentPage]);
+
+  useEffect(() => { setCurrentPage(1); }, [search, filterJumuiya, filterSemester]);
 
   const toggleSort = (key: string) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -306,36 +323,127 @@ export default function CsaSecretaryDashboard() {
       }));
   }, [filtered, shouldGroup]);
 
-  const renderRow = (m: any, i: number) => (
-    <tr key={m.registration_id || `r${i}`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-      <td className="px-4 py-3 text-xs font-mono text-slate-500">{m.serial_no ?? `S${m.registration_id}`}</td>
-      <td className="px-4 py-3 font-medium text-slate-800">{`${m.first_name || ""} ${m.last_name || ""}`.trim()}</td>
-      <td className="px-4 py-3">
-        <span
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-          style={{
-            backgroundColor: getJumuiyaColor(m.jumuiya_slug || m.jumuiya_id) + "18",
-            color: getJumuiyaColor(m.jumuiya_slug || m.jumuiya_id),
-          }}
-        >
-          <Church size={12} />
-          {m.jumuiya_name || "—"}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-slate-600 text-sm">{m.course || "—"}</td>
-      <td className="px-4 py-3">
-        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
-          {getMemberCurrentYearSem(m)}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-slate-500 text-xs">
-        <div className="flex items-center gap-1.5">
-          <Calendar size={12} className="text-slate-400" />
-          {formatDate(m.registration_date)}
-        </div>
-      </td>
-    </tr>
-  );
+  const startEdit = (m: any) => {
+    setEditingId(m.reg_number || m.registration_id);
+    setEditSerialNo(m.serial_no != null ? String(m.serial_no) : "");
+    setEditCourse(m.course || "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditSerialNo("");
+    setEditCourse("");
+  };
+
+  const saveEdit = async (m: any) => {
+    const id = m.reg_number || m.registration_id;
+    setSavingEdit(true);
+    try {
+      await memberService.updateMember(id, {
+        serial_no: editSerialNo === "" ? null : Number(editSerialNo),
+        course: editCourse,
+      });
+      toast.success("Member updated successfully");
+      setEditingId(null);
+      setEditSerialNo("");
+      setEditCourse("");
+      fetchData();
+    } catch (err) {
+      console.error("Failed to update member", err);
+      toast.error("Failed to update member");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const renderRow = (m: any, i: number, offset = 0) => {
+    const isEditing = editingId === (m.reg_number || m.registration_id);
+    return (
+      <tr key={m.registration_id || `r${i}`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+        <td className="px-4 py-3 text-xs font-mono text-slate-400 text-center">{offset + i + 1}</td>
+        <td className="px-4 py-3 text-xs font-mono text-slate-500">
+          {isEditing ? (
+            <input
+              type="number"
+              value={editSerialNo}
+              onChange={e => setEditSerialNo(e.target.value)}
+              className="w-20 px-2 py-1 rounded border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              placeholder="Serial"
+            />
+          ) : (
+            m.serial_no ?? `S${m.registration_id}`
+          )}
+        </td>
+        <td className="px-4 py-3 font-medium text-slate-800">{`${m.first_name || ""} ${m.last_name || ""}`.trim()}</td>
+        <td className="px-4 py-3">
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+            style={{
+              backgroundColor: getJumuiyaColor(m.jumuiya_slug || m.jumuiya_id) + "18",
+              color: getJumuiyaColor(m.jumuiya_slug || m.jumuiya_id),
+            }}
+          >
+            <Church size={12} />
+            {m.jumuiya_name || "—"}
+          </span>
+        </td>
+        <td className="px-4 py-3 text-slate-600 text-sm">
+          {isEditing ? (
+            <input
+              type="text"
+              value={editCourse}
+              onChange={e => setEditCourse(e.target.value)}
+              className="w-full min-w-[120px] px-2 py-1 rounded border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              placeholder="Course"
+            />
+          ) : (
+            m.course || "—"
+          )}
+        </td>
+        <td className="px-4 py-3">
+          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+            {getMemberCurrentYearSem(m)}
+          </span>
+        </td>
+        <td className="px-4 py-3 text-slate-500 text-xs">
+          <div className="flex items-center gap-1.5">
+            <Calendar size={12} className="text-slate-400" />
+            {formatDate(m.registration_date)}
+          </div>
+        </td>
+        <td className="px-4 py-3">
+          {isEditing ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => saveEdit(m)}
+                disabled={savingEdit}
+                className="p-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                title="Save"
+              >
+                <Check size={14} />
+              </button>
+              <button
+                onClick={cancelEdit}
+                disabled={savingEdit}
+                className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"
+                title="Cancel"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => startEdit(m)}
+              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Edit course & serial no"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
+        </td>
+      </tr>
+    );
+  };
 
   if (loading) {
     return (
@@ -346,7 +454,7 @@ export default function CsaSecretaryDashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6">
       {/* Tab Navigation */}
       <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1 w-fit">
         <button
@@ -389,14 +497,31 @@ export default function CsaSecretaryDashboard() {
         <>
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-3 text-white">
+        <div
+          onClick={() => setFilterJumuiya("all")}
+          className={`rounded-xl p-3 text-white cursor-pointer transition-all ${
+            filterJumuiya === "all"
+              ? "bg-gradient-to-br from-blue-500 to-indigo-600 ring-2 ring-blue-300"
+              : "bg-gradient-to-br from-blue-500 to-indigo-600 opacity-70 hover:opacity-100"
+          }`}
+        >
           <p className="text-2xl font-bold">{members.length}</p>
           <p className="text-[10px] text-blue-100 font-medium mt-0.5">Total</p>
         </div>
         {JUMUIYAS.map(j => {
           const count = jumuiyaCounts[j.id] || 0;
+          const isActive = filterJumuiya === j.id;
           return (
-            <div key={j.id} className="bg-white rounded-xl border border-slate-200 p-3 text-center">
+            <div
+              key={j.id}
+              onClick={() => setFilterJumuiya(j.id)}
+              className={`rounded-xl p-3 text-center cursor-pointer transition-all ${
+                isActive
+                  ? "bg-white"
+                  : "bg-white border border-slate-200 hover:border-slate-300"
+              }`}
+              style={isActive ? { border: `2px solid ${j.color}`, boxShadow: `0 0 0 1px ${j.color}20` } : {}}
+            >
               <p className="text-xl font-bold" style={{ color: j.color }}>{count}</p>
               <p className="text-[10px] text-slate-500 font-medium truncate">{j.name.replace("St. ", "")}</p>
             </div>
@@ -479,12 +604,14 @@ export default function CsaSecretaryDashboard() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 {[
+                  { key: "no", label: "No." },
                   { key: "serial_no", label: "Serial No" },
                   { key: "name", label: "Name" },
                   { key: "jumuiya_name", label: "Jumuiya" },
                   { key: "course", label: "Course" },
                   { key: "year_sem", label: "Year.Sem" },
                   { key: "registration_date", label: "Registered" },
+                  { key: "actions", label: "Actions" },
                 ].map(col => (
                   <th
                     key={col.key}
@@ -504,7 +631,7 @@ export default function CsaSecretaryDashboard() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
                     <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     No registered members found
                   </td>
@@ -513,7 +640,7 @@ export default function CsaSecretaryDashboard() {
                 groupedData.map(group => (
                   <Fragment key={group.yearLevel}>
                     <tr className="bg-indigo-50/60 border-b border-indigo-100">
-                      <td colSpan={6} className="px-4 py-2.5">
+                      <td colSpan={8} className="px-4 py-2.5">
                         <span className="inline-flex items-center gap-2">
                           <GraduationCap size={15} className="text-indigo-500" />
                           <span className="font-semibold text-sm text-slate-700">Year {group.yearLevel}</span>
@@ -526,14 +653,58 @@ export default function CsaSecretaryDashboard() {
                   </Fragment>
                 ))
               ) : (
-                filtered.map((m, i) => renderRow(m, i))
+                paginatedMembers.map((m, i) => renderRow(m, i, (currentPage - 1) * itemsPerPage))
               )}
             </tbody>
           </table>
         </div>
-        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500">
-          Showing {filtered.length} of {members.length} registered members
-        </div>
+        {!shouldGroup && totalPages > 1 && (
+          <div className="flex items-center justify-between bg-white border-t border-slate-200 px-4 py-3">
+            <p className="text-xs text-slate-500 font-medium">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="p-1 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <ChevronLeft size={16} />
+              </button>
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
+                  let page: number;
+                  if (totalPages <= 7) {
+                    page = i + 1;
+                  } else if (currentPage <= 4) {
+                    page = i + 1;
+                  } else if (currentPage >= totalPages - 3) {
+                    page = totalPages - 6 + i;
+                  } else {
+                    page = currentPage - 3 + i;
+                  }
+                  const isActive = page === currentPage;
+                  return (
+                    <button key={page} onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg font-semibold text-xs transition-colors ${
+                        isActive ? "bg-indigo-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      }`}>
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              <button onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+        {(!shouldGroup && totalPages <= 1) || shouldGroup ? (
+          <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500">
+            Showing {filtered.length} of {members.length} registered members
+          </div>
+        ) : null}
       </div>
 
       {/* Export Column Picker Modal */}
@@ -598,12 +769,13 @@ export default function CsaSecretaryDashboard() {
                     {regResults.map((m: any) => (
                       <button
                         key={m.member_id}
-                        onClick={() => {
-                          setSelectedMember(m);
-                          setRegJumuiya(m.jumuiya_id || "");
-                          const alreadyRegd = SEMESTERS.filter(s => m[s.dbCol] === true).map(s => s.dbCol);
-                          setRegSemesters(alreadyRegd);
-                        }}
+                         onClick={() => {
+                           setSelectedMember(m);
+                           setRegJumuiya(m.jumuiya_id || "");
+                           const alreadyRegd = SEMESTERS.filter(s => m[s.dbCol] === true).map(s => s.dbCol);
+                           setRegSemesters(alreadyRegd);
+                           setRegSerialNo(m.serial_no != null ? String(m.serial_no) : "");
+                         }}
                         className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
                       >
                         <p className="font-semibold text-slate-800 text-sm">{m.first_name} {m.last_name || ""}</p>
@@ -677,9 +849,12 @@ export default function CsaSecretaryDashboard() {
                   type="number"
                   value={regSerialNo}
                   onChange={e => setRegSerialNo(e.target.value)}
-                  placeholder="Leave blank to auto-assign"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Serial from physical card"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
+                <p className="text-[10px] text-slate-400 mb-3">
+                  Pre-filled with this member's serial number ({selectedMember?.serial_no != null ? selectedMember.serial_no : "—"}). Edit it if the physical card differs.
+                </p>
 
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Amount Paid (KES)</label>
                 <input

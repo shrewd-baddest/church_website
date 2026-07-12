@@ -579,7 +579,7 @@ export default function CSADistributionCenter() {
                     <td className="py-1.5 px-3">
                       <select value={m.gender} onChange={(e) => { handleMemberChange(i, "gender", e.target.value); if (hasErr) { const next = {...memberErrors}; delete next[i]; setMemberErrors(next); } }}
                         className={`w-24 border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${hasErr ? "border-red-300 bg-red-50" : "border-slate-200 focus:border-indigo-400"}`}>
-                        <option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option>
+                        <option value="">Select</option><option value="Male">Male</option><option value="Female">Ladies</option>
                       </select>
                     </td>
                     <td className="py-1.5 px-3">
@@ -656,7 +656,7 @@ export default function CSADistributionCenter() {
               </div>
               <div className="flex gap-3 text-sm mb-4">
                 <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-full font-medium flex items-center gap-1">♂ {pendingMale} <span className="font-normal text-blue-400">Men</span></span>
-                <span className="text-pink-600 bg-pink-50 px-3 py-1 rounded-full font-medium flex items-center gap-1">♀ {pendingFemale} <span className="font-normal text-pink-400">Women</span></span>
+                <span className="text-pink-600 bg-pink-50 px-3 py-1 rounded-full font-medium flex items-center gap-1">♀ {pendingFemale} <span className="font-normal text-pink-400">Ladies</span></span>
               </div>
               {pendingMembers.length > 0 && (
                 <button onClick={handlePreview}
@@ -909,7 +909,7 @@ export default function CSADistributionCenter() {
                             className="text-xs border border-slate-200 rounded px-1.5 py-1">
                             <option value="">—</option>
                             <option value="Male">Male</option>
-                            <option value="Female">Female</option>
+                            <option value="Female">Ladies</option>
                           </select>
                         ) : (
                           <span className={`text-xs font-semibold ${m.gender === "Male" ? "text-blue-600" : "text-pink-600"}`}>

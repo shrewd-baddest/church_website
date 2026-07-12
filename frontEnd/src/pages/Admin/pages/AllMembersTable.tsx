@@ -100,7 +100,7 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
         selected.forEach(k => {
           if (k === "RegNo") out.RegNo = row.member_id || row.id || "";
           else if (k === "Name") out.Name = row.name || "";
-          else if (k === "Gender") out.Gender = row.gender === "male" || row.gender === "Male" ? "Male" : row.gender === "female" || row.gender === "Female" ? "Female" : row.gender || "";
+          else if (k === "Gender") out.Gender = row.gender === "male" || row.gender === "Male" ? "Male" : row.gender === "female" || row.gender === "Female" ? "Ladies" : row.gender || "";
           else if (k === "Course") out.Course = row.course || "";
           else if (k === "Phone") out.Phone = row.phone || "";
           else if (k === "Year") out.Year = row.year || row.year_of_study || "";
@@ -493,7 +493,7 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
                             className="text-xs border border-slate-200 rounded px-1.5 py-1">
                             <option value="">—</option>
                             <option value="male">Male</option>
-                            <option value="female">Female</option>
+                            <option value="female">Ladies</option>
                           </select>
                         ) : (
                           <span className={`text-xs font-semibold ${m.gender === "male" || m.gender === "Male" ? "text-blue-600" : m.gender === "female" || m.gender === "Female" ? "text-pink-600" : "text-slate-400"}`}>
@@ -618,7 +618,7 @@ export default function AllMembersTable({ refreshKey = 0 }: { refreshKey?: numbe
                       onChange={() => setGenderFilter(prev => ({ ...prev, [g]: !prev[g] }))}
                       className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g === "Male" ? "Male" : "Female"}</span>
+                    <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g === "Male" ? "Male" : "Ladies"}</span>
                   </label>
                 ))}
               </div>

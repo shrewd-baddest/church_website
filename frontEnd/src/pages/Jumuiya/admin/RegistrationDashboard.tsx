@@ -420,7 +420,7 @@ const RegistrationDashboard: React.FC<Props> = ({ jumuiyaId, jumuiyaName, jumuiy
                       onChange={() => setGenderFilter(prev => ({ ...prev, [g]: !prev[g] }))}
                       className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g === "Male" ? "Male" : "Female"}</span>
+                    <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g === "Male" ? "Male" : "Ladies"}</span>
                   </label>
                 ))}
               </div>

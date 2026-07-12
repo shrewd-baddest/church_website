@@ -93,12 +93,16 @@ function SummaryBar({ stats }: { stats: Record<string, any> }) {
         <p className="text-xs text-slate-500 font-medium">CSA</p>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <p className="text-3xl font-bold text-slate-800 flex items-center gap-2">
-          <span className="text-blue-600">♂ {totalMale}</span>
-          <span className="text-slate-300">|</span>
-          <span className="text-pink-600">♀ {totalFemale}</span>
-        </p>
-        <p className="text-xs text-slate-500 font-medium">Men / Women</p>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <p className="text-2xl font-bold text-blue-600">♂ {totalMale}</p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Men</p>
+          </div>
+          <div className="flex-1">
+            <p className="text-2xl font-bold text-pink-600">♀ {totalFemale}</p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Ladies</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -174,14 +178,6 @@ function JumuiyaCard({ j, stats, onClick }: { j: typeof JUMUIYAS[0]; stats: any;
           <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">
             {j.name}
           </h3>
-          {hasData && (
-            <p className="text-xs text-slate-400 mt-0.5">
-              {s.groups?.length || 0} group{s.groups?.length !== 1 ? "s" : ""}
-              {s?.csa?.total > 0 && (
-                <span className="ml-2 text-indigo-400">· {s.csa.total} from CSA</span>
-              )}
-            </p>
-          )}
         </div>
         {hasData && (
           <div className="text-right shrink-0">
@@ -532,7 +528,7 @@ export default function JumuiyaMembersAdmin() {
                                 className="text-xs border border-slate-200 rounded px-1.5 py-1">
                                 <option value="">—</option>
                                 <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                                <option value="Female">Ladies</option>
                               </select>
                             ) : (
                               <span className={`text-xs font-semibold ${m.gender === "Male" ? "text-blue-600" : "text-pink-600"}`}>

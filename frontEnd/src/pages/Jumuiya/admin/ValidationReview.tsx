@@ -64,7 +64,7 @@ const EditableRow = memo(({ m, onSave, onToggleActive }: {
             className="w-20 border border-slate-200 rounded px-1.5 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
             <option value="">—</option>
             <option value="male">Male</option>
-            <option value="female">Female</option>
+            <option value="female">Ladies</option>
           </select>
         ) : (
           <span className={`text-xs font-semibold ${m.gender === "male" ? "text-blue-600" : m.gender === "female" ? "text-pink-600" : "text-slate-400"}`}>

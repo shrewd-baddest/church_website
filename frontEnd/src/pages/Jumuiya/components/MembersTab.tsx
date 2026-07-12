@@ -66,6 +66,7 @@ const MembersTab: React.FC<MembersTabProps> = ({ jumuiyaId, jumuiyaName, jumuiya
                     <table className="premium-table">
                         <thead>
                             <tr>
+                                <th style={{ width: '40px', textAlign: 'center' }}>No.</th>
                                 <th>Member Name</th>
                                 <th>Academic Year</th>
                                 <th>Jumuiya</th>
@@ -74,12 +75,13 @@ const MembersTab: React.FC<MembersTabProps> = ({ jumuiyaId, jumuiyaName, jumuiya
                         <tbody>
                             {displayedMembers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={3} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
+                                    <td colSpan={4} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
                                         No members found in this category.
                                     </td>
                                 </tr>
-                            ) : displayedMembers.map(member => (
+                            ) : displayedMembers.map((member, idx) => (
                                 <tr key={member.id}>
+                                    <td style={{ width: '32px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.75rem' }}>{idx + 1}</td>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                     <div

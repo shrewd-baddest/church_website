@@ -25,23 +25,7 @@ const StampCard: React.FC<StampCardProps> = ({ jumuiyaId, jumuiyaName, jumuiyaCo
     const [emailSent, setEmailSent] = useState(false);
 
     const memberRecord = members.find(m => m.id === user?.member_id && m.jumuiya_id === jumuiyaId);
-    const isDemo = !memberRecord;
-
-    const displayRecord = memberRecord || {
-        name: user?.name || "Sample Member",
-        id: user?.member_id || "CSA-DEMO-001",
-        year: user?.year || "Year 3",
-        joined_at: new Date().toISOString(),
-        sem_1_reg: true,
-        sem_2_reg: true,
-        sem_3_reg: true,
-        sem_4_reg: true,
-        sem_5_reg: false,
-        sem_6_reg: false,
-        sem_7_reg: false,
-        sem_8_reg: false,
-        jumuiya_name: jumuiyaName
-    };
+    const displayRecord = memberRecord;
 
     const registeredCount = useMemo(() =>
         SEMESTER_LABELS.filter((_, i) =>
@@ -145,6 +129,22 @@ const StampCard: React.FC<StampCardProps> = ({ jumuiyaId, jumuiyaName, jumuiyaCo
         return (
             <div style={{ padding: '64px 24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <PageLoader message="Loading your stamp card..." />
+            </div>
+        );
+    }
+
+    if (!displayRecord) {
+        return (
+            <div style={{ padding: '64px 24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ maxWidth: '420px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '3.5rem', color: jumuiyaColor, opacity: 0.4, marginBottom: '16px' }}>
+                        <FaStamp />
+                    </div>
+                    <h2 style={{ margin: '0 0 8px', fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>Not Yet Registered</h2>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
+                        You are not yet registered with {jumuiyaName}. Complete your registration to receive your semester stamp card.
+                    </p>
+                </div>
             </div>
         );
     }
@@ -424,19 +424,6 @@ const StampCard: React.FC<StampCardProps> = ({ jumuiyaId, jumuiyaName, jumuiyaCo
                     background: `repeating-linear-gradient(45deg, ${jumuiyaColor}, ${jumuiyaColor} 15px, #1e293b 15px, #1e293b 30px)`,
                 }} />
             </div>
-
-            {/* Demo notice */}
-            {isDemo && (
-                <div style={{
-                    maxWidth: '580px', margin: '20px auto 0', padding: '16px 20px',
-                    borderRadius: '16px', background: `${jumuiyaColor}08`,
-                    border: `1px solid ${jumuiyaColor}20`, textAlign: 'center'
-                }}>
-                    <p style={{ color: '#475569', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
-                        This is a preview. Register for a semester to get your stamp card!
-                    </p>
-                </div>
-            )}
         </div>
     );
 };

@@ -2259,7 +2259,8 @@ export const lookupMemberByRegNumber = async (req, res) => {
               m.sem_1_reg, m.sem_2_reg, m.sem_3_reg, m.sem_4_reg,
               m.sem_5_reg, m.sem_6_reg, m.sem_7_reg, m.sem_8_reg,
               sg.group_id::text as jumuiya_id, sg.name as jumuiya_name,
-              LOWER(REPLACE(REPLACE(sg.name, '.', ''), ' ', '-')) as jumuiya_slug
+              LOWER(REPLACE(REPLACE(sg.name, '.', ''), ' ', '-')) as jumuiya_slug,
+              (SELECT MAX(r.serial_no) FROM registered r WHERE r.member_id = m.member_id) as serial_no
        FROM members m
        LEFT JOIN sub_groups sg ON m.jumuiya_id = sg.group_id
        WHERE m.member_id LIKE '%/' || $1 || '/%'

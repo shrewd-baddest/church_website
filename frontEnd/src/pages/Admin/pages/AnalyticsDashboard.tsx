@@ -7,7 +7,7 @@ import {
 import {
   TrendingUp, Users, Church, GraduationCap, CreditCard, Smartphone, Wallet,
   RefreshCw, Calendar, ArrowUpRight, CheckCircle2, Clock, XCircle,
-  X, ChevronDown, Loader2, ExternalLink, Eye, EyeOff,
+  X, ChevronDown, Loader2, ExternalLink,
   Layers, GitCompare, Activity, Trophy
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -61,7 +61,6 @@ export default function AnalyticsDashboard() {
   const [payments, setPayments] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"overview" | "cohort" | "cross" | "jumuiya" | "yearly">("overview");
 
   const fetchData = async () => {
@@ -79,54 +78,7 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // ── Mock data for demo mode (high-volume scenario: 100 per jumuiya) ──
-  const MOCK_DATA = {
-    overview: { totalRegistered: 647, totalMembers: 720, registrationRate: 90 },
-    registrationTrends: [
-      { month: "2025-07", count: 12 }, { month: "2025-08", count: 45 },
-      { month: "2025-09", count: 89 }, { month: "2025-10", count: 67 },
-      { month: "2025-11", count: 34 }, { month: "2025-12", count: 18 },
-      { month: "2026-01", count: 28 }, { month: "2026-02", count: 56 },
-      { month: "2026-03", count: 78 }, { month: "2026-04", count: 92 },
-      { month: "2026-05", count: 41 }, { month: "2026-06", count: 87 },
-    ],
-    jumuiyaComparison: [
-      { jumuiya_name: "St. Anthony", jumuiya_color: "#8b5cf6", count: 102 },
-      { jumuiya_name: "St. Augustine", jumuiya_color: "#3b82f6", count: 98 },
-      { jumuiya_name: "St. Catherine", jumuiya_color: "#800000", count: 95 },
-      { jumuiya_name: "St. Dominic", jumuiya_color: "#979695ff", count: 87 },
-      { jumuiya_name: "St. Elizabeth", jumuiya_color: "#07a414d1", count: 91 },
-      { jumuiya_name: "St. Maria Goretti", jumuiya_color: "#0ea5e9", count: 99 },
-      { jumuiya_name: "St. Monica", jumuiya_color: "#ef4444", count: 75 },
-    ],
-    semesterFillRates: { sem_1: 647, sem_2: 580, sem_3: 490, sem_4: 412, sem_5: 328, sem_6: 245, sem_7: 168, sem_8: 95 },
-    coursesBreakdown: [
-      { course: "Computer Science", count: 142 }, { course: "Business Admin", count: 118 },
-      { course: "Education Arts", count: 95 }, { course: "Nursing", count: 87 },
-      { course: "Engineering", count: 72 }, { course: "Law", count: 58 },
-      { course: "Accounting", count: 45 }, { course: "Journalism", count: 22 },
-      { course: "Theology", count: 8 },
-    ],
-    yearBreakdown: [
-      { year: "1", count: 210 }, { year: "2", count: 185 },
-      { year: "3", count: 142 }, { year: "4", count: 110 },
-    ],
-    genderBreakdown: [
-      { gender: "male", count: 356 }, { gender: "female", count: 291 },
-    ],
-    recentRegistrations: [
-      { first_name: "Faith", last_name: "Wanjiku", jumuiya_name: "St. Maria Goretti", registration_date: "2026-06-28", serial_no: 99 },
-      { first_name: "Brian", last_name: "Ochieng", jumuiya_name: "St. Anthony", registration_date: "2026-06-27", serial_no: 102 },
-      { first_name: "Grace", last_name: "Muthoni", jumuiya_name: "St. Monica", registration_date: "2026-06-27", serial_no: 75 },
-      { first_name: "Kevin", last_name: "Kiprop", jumuiya_name: "St. Elizabeth", registration_date: "2026-06-26", serial_no: 91 },
-      { first_name: "Mercy", last_name: "Akinyi", jumuiya_name: "St. Catherine", registration_date: "2026-06-25", serial_no: 95 },
-      { first_name: "Daniel", last_name: "Mutua", jumuiya_name: "St. Augustine", registration_date: "2026-06-24", serial_no: 98 },
-      { first_name: "Esther", last_name: "Njeri", jumuiya_name: "St. Dominic", registration_date: "2026-06-23", serial_no: 87 },
-    ],
-    paymentSummary: { total_transactions: 647, total_amount: 32350, successful: 589, pending: 34, failed: 24, mpesa_success_amount: 28350, manual_success_amount: 4000 },
-  };
-
-  const displayData = demoMode ? MOCK_DATA : data;
+  const displayData = data;
 
   const openPayments = async (status: string) => {
     setPaymentsFilter(status);
@@ -318,19 +270,6 @@ export default function AnalyticsDashboard() {
           <p className="text-3xl font-bold text-slate-800">KES {Number(paymentSummary.total_amount || 0).toLocaleString()}</p>
           <p className="text-[10px] text-slate-400 mt-0.5">{paymentSummary.total_transactions || 0} transactions</p>
         </div>
-      </div>
-
-      {/* Demo Mode Toggle */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => setDemoMode(!demoMode)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-            demoMode ? "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-          }`}
-        >
-          {demoMode ? <EyeOff size={14} /> : <Eye size={14} />}
-          {demoMode ? "Exit Demo" : "Demo Mode"}
-        </button>
       </div>
 
       {/* Payment Status Row — clickable */}

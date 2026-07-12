@@ -91,7 +91,7 @@ export default function AssociatesTable({ refreshKey = 0 }: { refreshKey?: numbe
         selected.forEach(k => {
           if (k === "RegNo") out.RegNo = a.member_id || "";
           else if (k === "Name") out.Name = a.name || "";
-          else if (k === "Gender") out.Gender = a.gender || "";
+          else if (k === "Gender") out.Gender = a.gender === "Female" || a.gender === "female" ? "Ladies" : a.gender === "Male" || a.gender === "male" ? "Male" : a.gender || "";
           else if (k === "Email") out.Email = a.email || "";
           else if (k === "Phone") out.Phone = a.phone || "";
           else if (k === "Jumuiya") out.Jumuiya = a.jumuiya_name || "";
@@ -297,7 +297,7 @@ export default function AssociatesTable({ refreshKey = 0 }: { refreshKey?: numbe
                     <input type="checkbox" checked={v}
                       onChange={() => setGenderFilter(prev => ({ ...prev, [g]: !prev[g] }))}
                       className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                    <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g === "Male" ? "Male" : "Female"}</span>
+                    <span className="text-sm text-slate-700 group-hover:text-slate-900 font-medium">{g === "Male" ? "Male" : "Ladies"}</span>
                   </label>
                 ))}
               </div>
