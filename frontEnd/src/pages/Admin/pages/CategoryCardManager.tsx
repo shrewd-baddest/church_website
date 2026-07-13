@@ -4,25 +4,21 @@ import apiService from '../../Landing/services/api';
 import { uploadFile } from '../../../api/axiosInstance';
 import { toast } from 'react-hot-toast';
 
-const DEFAULT_CARDS = [
-  { category: 'sacramentals', label: 'Sacramentals', tag: '15 items', image_url: '' },
-  { category: 'tshirts', label: 'T-Shirts', tag: 'New Arrival', image_url: '' },
-  { category: 'chairs', label: 'Chairs', tag: 'Rent Now', image_url: '' },
-  { category: 'instruments', label: 'Instruments', tag: 'Book Now', image_url: '' },
-];
-
 interface Props { sectionFilter?: string[] }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  sacramentals: 'Sacramentals', tshirts: 'T-Shirts', chairs: 'Chairs', instruments: 'Instruments',
+};
+
 export default function CategoryCardManager({ sectionFilter }: Props) {
-  const activeDefaults = sectionFilter
-    ? DEFAULT_CARDS.filter(c => sectionFilter.includes(c.category))
-    : DEFAULT_CARDS;
   const [cards, setCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [inputMode, setInputMode] = useState<'url' | 'file'>('url');
+  const [newCardCategory, setNewCardCategory] = useState('');
+  const [showNewCard, setShowNewCard] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeCategoryRef = useRef<string | null>(null);
 
@@ -30,17 +26,10 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
     setLoading(true);
     try {
       const data = await apiService.getCategoryCards();
-      if (Array.isArray(data) && data.length > 0) {
-        const merged = activeDefaults.map(def => {
-          const existing = data.find((c: any) => c.category === def.category);
-          return existing || def;
-        });
-        setCards(merged);
-      } else {
-        setCards(activeDefaults);
-      }
+      const all = Array.isArray(data) ? data : [];
+      setCards(sectionFilter ? all.filter((c: any) => sectionFilter.includes(c.category)) : all);
     } catch {
-      setCards(activeDefaults);
+      setCards([]);
     } finally {
       setLoading(false);
     }
@@ -150,7 +139,56 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
         <div className="flex items-center justify-center py-16">
           <Loader2 size={24} className="animate-spin text-blue-600" />
         </div>
+      ) : cards.length === 0 && !showNewCard ? (
+        <div className="text-center py-16 text-slate-400">
+          <LayoutGrid size={48} className="mx-auto mb-3 opacity-30" />
+          <p className="font-semibold text-slate-500">No home cards yet</p>
+          <p className="text-sm mt-1">Add your first card to appear on the home page.</p>
+          <button onClick={() => setShowNewCard(true)} className="mt-4 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all inline-flex items-center gap-2">
+            <Plus size={16} /> New Card
+          </button>
+        </div>
       ) : (
+        <>
+        {showNewCard && (
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
+            <h3 className="font-bold text-slate-800">New Home Card</h3>
+            <select
+              value={newCardCategory}
+              onChange={e => setNewCardCategory(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">Select category...</option>
+              {(sectionFilter || ['sacramentals', 'tshirts', 'chairs', 'instruments']).map(cat => (
+                <option key={cat} value={cat} disabled={cards.some(c => c.category === cat)}>
+                  {CATEGORY_LABELS[cat] || cat} {cards.some(c => c.category === cat) ? '(already added)' : ''}
+                </option>
+              ))}
+            </select>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (!newCardCategory) return;
+                  setCards(prev => [...prev, { category: newCardCategory, label: CATEGORY_LABELS[newCardCategory] || newCardCategory, tag: '', image_url: '' }]);
+                  setNewCardCategory('');
+                  setShowNewCard(false);
+                }}
+                disabled={!newCardCategory}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-sm font-bold transition-all"
+              >
+                Add
+              </button>
+              <button onClick={() => setShowNewCard(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-end">
+          <button onClick={() => setShowNewCard(true)} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm">
+            <Plus size={16} /> Add Card
+          </button>
+        </div>
         <div className="grid gap-6 md:grid-cols-2">
           {cards.map(card => (
             <div key={card.category} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
@@ -255,6 +293,7 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
             </div>
           ))}
         </div>
+        </>
       )}
 
       <input

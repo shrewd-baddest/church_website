@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../api/config';
-import {  MESSAGES as DEFAULT_MESSAGES, SACRAMENTAL_CATEGORIES} from '../pages/projects/pages/data';
+import { SACRAMENTAL_CATEGORIES } from '../pages/projects/pages/data';
 import type { CartItem, SacramentalCategory } from '../pages/projects/pages/data';
 
 export interface HireItem {
@@ -83,7 +83,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const navigate = useNavigate();
     const [products, setProducts] = useState<any[]>([]);
-    const [apiMessages, setApiMessages] = useState<Record<string, string[]>>(DEFAULT_MESSAGES);
+    const [apiMessages, setApiMessages] = useState<Record<string, string[]>>({});
     const [sliderImages, setSliderImages] = useState<any[]>([]);
     const [sectionBanners, setSectionBanners] = useState<Record<string, { img: string; title: string; subtitle: string }> | null>(null);
     const [isLoading, setIsLoading] = useState(true);

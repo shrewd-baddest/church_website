@@ -4,13 +4,6 @@ import { Plus, Pencil, Trash2, RefreshCcw, X, Loader2, Tag } from "lucide-react"
 
 interface Props { typeFilter?: "sale" | "hire" }
 
-const DEFAULT_CATEGORIES = [
-  { value: "sacramentals", label: "Sacramentals", type: "sale" },
-  { value: "tshirts", label: "T-Shirts", type: "sale" },
-  { value: "chairs", label: "Chairs", type: "hire" },
-  { value: "instruments", label: "Instruments", type: "hire" },
-];
-
 export default function CategoryManager(props: Props) {
   const { typeFilter } = props;
   const [categories, setCategories] = useState<any[]>([]);
@@ -31,8 +24,7 @@ export default function CategoryManager(props: Props) {
     finally { setLoading(false); }
   };
 
-  const filtered = categories.filter((c: any) => !typeFilter || c.type === typeFilter);
-  const display = filtered.length > 0 ? filtered : DEFAULT_CATEGORIES.filter(c => !typeFilter || c.type === typeFilter);
+  const display = categories.filter((c: any) => !typeFilter || c.type === typeFilter);
 
   const openForm = (cat?: any) => {
     if (cat) {
@@ -91,9 +83,16 @@ export default function CategoryManager(props: Props) {
         </div>
       </div>
 
+      {display.length === 0 ? (
+        <div className="text-center py-12 text-slate-400">
+          <Tag size={40} className="mx-auto mb-3 opacity-30" />
+          <p className="font-semibold">No categories yet</p>
+          <p className="text-sm mt-1">Add your first category above.</p>
+        </div>
+      ) : (
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {display.map((cat: any) => (
-          <div key={cat.id || cat.value} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all">
+          <div key={cat.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-bold text-slate-800">{cat.name || cat.label}</h3>
@@ -103,12 +102,13 @@ export default function CategoryManager(props: Props) {
               </div>
               <div className="flex gap-1">
                 <button onClick={() => openForm(cat)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
-                {filtered.length > 0 && <button onClick={() => handleDelete(cat.id)} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={14} /></button>}
+                <button onClick={() => handleDelete(cat.id)} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={14} /></button>
               </div>
             </div>
           </div>
         ))}
       </div>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

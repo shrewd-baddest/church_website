@@ -3,7 +3,7 @@ import { useApp } from '../../../context/AppContext';
 import { motion } from 'framer-motion';
 import { HireModal } from '../components/HireModal';
 import { HeroSlider, useSliderImages } from '../components/HeroSlider';
-import { SLIDE_IMAGES, TRUST_BADGES, RENTAL_PROCESS_STEPS } from './data';
+
 import { FaStar, FaChevronLeft, FaChevronRight, FaTrash, FaCheckCircle } from 'react-icons/fa';
 import TestimonialsSection from '../components/TestimonialsSection';
 import ProjectHero from '../components/ProjectHero';
@@ -63,42 +63,11 @@ const HeroSliderComponent: React.FC<{
     );
 };
 
-const TrustStrip: React.FC = () => {
-    const badges = TRUST_BADGES['instruments'] || [];
-    return (
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 py-4">
-            {badges.map((b, i) => (
-                <div key={i} className="flex items-center gap-2 bg-white border border-emerald-100 px-3 sm:px-4 py-2 rounded-xl shadow-sm text-xs sm:text-sm font-semibold text-slate-700 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                    {b.text}
-                </div>
-            ))}
-        </div>
-    );
-};
 
 
 
-const ProcessGuide: React.FC = () => (
-    <div className="py-12 sm:py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-10">
-            <span className="inline-block text-[10px] sm:text-xs font-black text-emerald-600 bg-emerald-100 px-4 py-1.5 rounded-full uppercase tracking-widest mb-3">Simple Process</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-800">How to Rent</h2>
-            <p className="text-slate-500 mt-2 text-sm max-w-sm mx-auto">Getting instruments for your worship event is quick and easy.</p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3 max-w-4xl mx-auto">
-            {RENTAL_PROCESS_STEPS.map((step, i) => (
-                <div key={step.step} className="relative bg-white rounded-2xl p-5 sm:p-6 text-center shadow hover:shadow-lg transition-all duration-300 border border-emerald-50 hover:-translate-y-1 group">
-                    {i < RENTAL_PROCESS_STEPS.length - 1 && <div className="hidden sm:block absolute top-10 -right-3 w-6 h-0.5 bg-emerald-200 z-10" />}
-                    <div className="flex items-center justify-center mb-4 mx-auto w-fit relative">
-                        <div className="w-14 sm:w-16 h-14 sm:h-16 flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl text-2xl font-bold text-emerald-600 group-hover:scale-110 transition-transform duration-300 shadow-inner">{step.step}</div>
-                    </div>
-                    <h3 className="text-sm sm:text-base font-black text-slate-800 mb-1">{step.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{step.desc}</p>
-                </div>
-            ))}
-        </div>
-    </div>
-);
+
+
 
 const InstrumentCard: React.FC<{
     instrument: any;
@@ -238,9 +207,6 @@ export const Instruments = () => {
                     title={<>Musical{' '}<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Instruments</span></>}
                     subtitle="Professional-grade organs, pianos, speakers and microphones — elevate your worship experience. Daily and hourly rental available."
                 >
-                    <div className="mt-6">
-                        <TrustStrip />
-                    </div>
                 </ProjectPageHeader>
             </ProjectHero>
 
@@ -296,9 +262,6 @@ export const Instruments = () => {
 
             {/* Testimonials */}
             <TestimonialsSection />
-
-            {/* Process Guide */}
-            <ProcessGuide />
 
             {/* Faith Footer */}
             <div className="text-center py-10 text-sm text-emerald-700 italic px-4">

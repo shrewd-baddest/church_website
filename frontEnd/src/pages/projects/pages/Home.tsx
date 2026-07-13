@@ -6,13 +6,6 @@ import { ArrowUpRight, Loader2, ShoppingBag, Shirt, ArmchairIcon, Guitar, BookHe
 import apiService from '../../Landing/services/api';
 import { useProjectsData } from '../context/ProjectsProvider';
 
-const DEFAULT_IMAGES: Record<string, string> = {
-  sacramentals: 'https://images.unsplash.com/photo-1584446549557-ca5e7baf3cc1?w=800&fit=crop',
-  tshirts: 'https://images.unsplash.com/photo-1594938298603-c8148f4c3c0c?w=800&fit=crop',
-  chairs: 'https://images.unsplash.com/photo-1549615555-5dc63920dcbc?w=800&fit=crop',
-  instruments: 'https://images.unsplash.com/photo-1545128485-c400e7702796?w=800&fit=crop',
-};
-
 const CATEGORIES = [
   { id: 'sacramentals', label: 'Sacramentals', path: '/sacramentals', tag: '15 items', icon: <ShoppingBag size={18} />, desc: 'Sacred items for your spiritual journey and daily devotion.' },
   { id: 'tshirts', label: 'T-Shirts', path: '/t-shirts', tag: 'New Arrival', icon: <Shirt size={18} />, desc: 'Show your faith with our premium CSA merchandise.' },
@@ -88,7 +81,7 @@ export const Home = () => {
     }
   }, [ctx.sliderImages, ctx.categoryCards]);
 
-  const getImg = (id: string) => cardImages[id] || DEFAULT_IMAGES[id] || '';
+  const getImg = (id: string) => cardImages[id] || '';
   const getTag = (id: string) => cardTags[id] || CATEGORIES.find(c => c.id === id)?.tag || '';
 
   return (

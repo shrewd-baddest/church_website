@@ -2,8 +2,9 @@ import React from 'react';
 import { useApp } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Shirt } from 'lucide-react';
 import { HeroSlider, useSliderImages } from '../components/HeroSlider';
-import { SLIDE_IMAGES, TRUST_BADGES, RENTAL_PROCESS_STEPS, TSHIRT_PRODUCTS } from './data';
+
 import { FaStar, FaCheckCircle, FaChevronLeft, FaChevronRight, FaTrash } from 'react-icons/fa';
 import TestimonialsSection from '../components/TestimonialsSection';
 import ProjectHero from '../components/ProjectHero';
@@ -65,44 +66,11 @@ const HeroSliderComponent: React.FC<{
     );
 };
 
-const TRUST_ICONS: Record<string, React.ReactNode> = {};
-
-const TrustStrip: React.FC = () => {
-    const badges = TRUST_BADGES['tshirts'] || [];
-    return (
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 py-4">
-            {badges.map((b, i) => (
-                <div key={i} className="flex items-center gap-2 bg-white border border-blue-100 px-3 sm:px-4 py-2 rounded-xl shadow-sm text-xs sm:text-sm font-semibold text-slate-700 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                    {b.text}
-                </div>
-            ))}
-        </div>
-    );
-};
 
 
 
-const ProcessGuide: React.FC = () => (
-    <div className="py-12 sm:py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-10">
-            <span className="inline-block text-[10px] sm:text-xs font-black text-blue-600 bg-blue-100 px-4 py-1.5 rounded-full uppercase tracking-widest mb-3">Simple Process</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-800">How to Order</h2>
-            <p className="text-slate-500 mt-2 text-sm max-w-sm mx-auto">Getting your KYU CSA apparel is quick and easy.</p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3 max-w-4xl mx-auto">
-            {RENTAL_PROCESS_STEPS.map((step, i) => (
-                <div key={step.step} className="relative bg-white rounded-2xl p-5 sm:p-6 text-center shadow hover:shadow-lg transition-all duration-300 border border-blue-50 hover:-translate-y-1 group">
-                    {i < RENTAL_PROCESS_STEPS.length - 1 && <div className="hidden sm:block absolute top-10 -right-3 w-6 h-0.5 bg-blue-200 z-10" />}
-                    <div className="flex items-center justify-center mb-4 mx-auto w-fit relative">
-                        <div className="w-14 sm:w-16 h-14 sm:h-16 flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl text-2xl font-bold text-blue-600 group-hover:scale-110 transition-transform duration-300 shadow-inner">{step.step}</div>
-                    </div>
-                    <h3 className="text-sm sm:text-base font-black text-slate-800 mb-1">{step.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{step.desc}</p>
-                </div>
-            ))}
-        </div>
-    </div>
-);
+
+
 
 export const Tshirts = () => {
     const { products, addToCart, setIsCartOpen } = useApp();
@@ -113,9 +81,22 @@ export const Tshirts = () => {
     const product = React.useMemo(() => {
         const dbProduct = products.find(p => p.category?.toLowerCase() === 'tshirts');
         if (dbProduct) return { ...dbProduct, sizes: dbProduct.sizes || TSHIRT_SIZES };
-        const fallback = TSHIRT_PRODUCTS[0];
-        return { id: `static-tshirt-0`, name: fallback.name, price: fallback.price, description: fallback.desc, image_url: fallback.img, category: 'tshirts', stock: 50, sizes: fallback.sizes || TSHIRT_SIZES };
+        return null;
     }, [products]);
+
+    if (!product) {
+        return (
+            <div className="w-full bg-slate-50 min-h-screen pb-20 text-slate-800 font-sans flex items-center justify-center">
+                <div className="text-center py-16">
+                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Shirt size={32} className="text-blue-300" />
+                    </div>
+                    <p className="text-slate-700 font-black text-lg mb-1">No T-Shirts Available</p>
+                    <p className="text-slate-400 text-sm max-w-xs mx-auto">T-shirts coming soon. Check back later.</p>
+                </div>
+            </div>
+        );
+    }
 
     const image = product.image_url || product.img;
     const stock = product.stock != null ? Number(product.stock) : 50;
@@ -150,9 +131,6 @@ export const Tshirts = () => {
                     title={<>Official{' '}<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">CSA T-Shirt</span></>}
                     subtitle="The official KYU Catholic Student Association polo shirt — pure grey with a smart black collar. Wear your faith and community pride."
                 >
-                    <div className="mt-6">
-                        <TrustStrip />
-                    </div>
                 </ProjectPageHeader>
             </ProjectHero>
 
@@ -279,8 +257,6 @@ export const Tshirts = () => {
             {/* Testimonials */}
             <TestimonialsSection variant="blue" />
 
-            {/* Process Guide */}
-            <ProcessGuide />
         </div>
     );
 };
