@@ -11,15 +11,20 @@ export default function CustomerManager() {
   const loadCustomers = async () => {
     setLoading(true);
     try {
-      const [members, orders] = await Promise.all([
+      const [members, orders, subGroups] = await Promise.all([
         apiService.fetchTableData("members", true),
         apiService.fetchTableData("orders", true),
+        apiService.fetchTableData("sub_groups", true),
       ]);
       const membersArr = Array.isArray(members) ? members : [];
       const ordersArr = Array.isArray(orders) ? orders : [];
+      const groupsArr = Array.isArray(subGroups) ? subGroups : [];
+      const groupMap: Record<string, string> = {};
+      groupsArr.forEach((g: any) => { if (g.group_id && g.name) groupMap[g.group_id] = g.name; });
       const enriched = membersArr.map((m: any) => ({
         ...m,
         orderCount: ordersArr.filter((o: any) => o.phone === m.phone || o.user_id === m.id).length,
+        jumuiyaName: m.jumuiya_id ? (groupMap[m.jumuiya_id] || m.jumuiya_id) : "—",
       }));
       setCustomers(enriched);
     } catch (err) { console.error(err); setCustomers([]); }
@@ -81,7 +86,7 @@ export default function CustomerManager() {
                         <Mail size={12} className="text-slate-400" /> {c.email || "—"}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-slate-600">{c.jumuiya_id || "—"}</td>
+                    <td className="px-5 py-4 text-slate-600">{c.jumuiyaName}</td>
                     <td className="px-5 py-4">
                       <span className="flex items-center gap-1.5 font-bold text-slate-700">
                         <ShoppingBag size={12} className="text-blue-500" /> {c.orderCount || 0}

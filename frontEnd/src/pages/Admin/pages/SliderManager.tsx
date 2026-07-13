@@ -14,15 +14,20 @@ interface SliderImage {
   position: number;
 }
 
-const SECTIONS = [
+interface Props { sectionFilter?: string[] }
+
+const ALL_SECTIONS = [
   { id: 'sacramentals', label: 'Sacramentals', icon: '✝️' },
   { id: 'tshirts', label: 'T-Shirts', icon: '👕' },
   { id: 'chairs', label: 'Chairs', icon: '🪑' },
   { id: 'instruments', label: 'Instruments', icon: '🎸' },
 ];
 
-export default function SliderManager() {
-  const [activeSection, setActiveSection] = useState('sacramentals');
+export default function SliderManager({ sectionFilter }: Props) {
+  const SECTIONS = sectionFilter
+    ? ALL_SECTIONS.filter(s => sectionFilter.includes(s.id))
+    : ALL_SECTIONS;
+  const [activeSection, setActiveSection] = useState(SECTIONS[0]?.id || 'sacramentals');
   const [slides, setSlides] = useState<SliderImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);

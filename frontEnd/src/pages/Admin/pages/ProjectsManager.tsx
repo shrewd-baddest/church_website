@@ -103,12 +103,12 @@ export default function ProjectsManager() {
       {activeSection === 'purchase' && (
         <>
           {activeTab === "notifications" && <NotificationsPanel />}
-          {activeTab === "products" && <ProductsPanel />}
+          {activeTab === "products" && <ProductsPanel categoryFilter={['sacramentals', 'tshirts']} />}
           {activeTab === "orders" && <OrdersPanel />}
           {activeTab === "categories" && <CategoriesPanel typeFilter="sale" />}
           {activeTab === "customers" && <CustomersPanel />}
-          {activeTab === "cards" && <CategoryCardManager />}
-          {activeTab === "sliders" && <SliderManager />}
+          {activeTab === "cards" && <CategoryCardManager sectionFilter={['sacramentals', 'tshirts']} />}
+          {activeTab === "sliders" && <SliderManager sectionFilter={['sacramentals', 'tshirts']} />}
           {activeTab === "testimonials" && <TestimonialManager />}
           {activeTab === "reports" && <ReportsPanel typeFilter="sale" />}
         </>
@@ -120,8 +120,8 @@ export default function ProjectsManager() {
           {activeTab === "hire-requests" && <HireRequestsPanel />}
           {activeTab === "hire-settings" && <HireSettingsSection />}
           {activeTab === "hire-categories" && <CategoriesPanel typeFilter="hire" />}
-          {activeTab === "hire-cards" && <CategoryCardManager />}
-          {activeTab === "hire-sliders" && <SliderManager />}
+          {activeTab === "hire-cards" && <CategoryCardManager sectionFilter={['chairs', 'instruments']} />}
+          {activeTab === "hire-sliders" && <SliderManager sectionFilter={['chairs', 'instruments']} />}
           {activeTab === "hire-customers" && <CustomersPanel />}
           {activeTab === "hire-testimonials" && <TestimonialManager />}
           {activeTab === "hire-reports" && <ReportsPanel typeFilter="hire" />}

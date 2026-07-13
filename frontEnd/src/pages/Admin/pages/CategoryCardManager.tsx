@@ -11,7 +11,12 @@ const DEFAULT_CARDS = [
   { category: 'instruments', label: 'Instruments', tag: 'Book Now', image_url: '' },
 ];
 
-export default function CategoryCardManager() {
+interface Props { sectionFilter?: string[] }
+
+export default function CategoryCardManager({ sectionFilter }: Props) {
+  const activeDefaults = sectionFilter
+    ? DEFAULT_CARDS.filter(c => sectionFilter.includes(c.category))
+    : DEFAULT_CARDS;
   const [cards, setCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
@@ -26,20 +31,20 @@ export default function CategoryCardManager() {
     try {
       const data = await apiService.getCategoryCards();
       if (Array.isArray(data) && data.length > 0) {
-        const merged = DEFAULT_CARDS.map(def => {
+        const merged = activeDefaults.map(def => {
           const existing = data.find((c: any) => c.category === def.category);
           return existing || def;
         });
         setCards(merged);
       } else {
-        setCards(DEFAULT_CARDS);
+        setCards(activeDefaults);
       }
     } catch {
-      setCards(DEFAULT_CARDS);
+      setCards(activeDefaults);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sectionFilter]);
 
   useEffect(() => { loadCards(); }, [loadCards]);
 

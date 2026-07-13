@@ -21,19 +21,13 @@ type ProductForm = Omit<Product, 'id' | 'created_at'> & {
   imagePreview?: string;
 };
 
-const defaultForm: ProductForm = {
-  name: '',
-  description: '',
-  category: 'sacramentals',
-  price: 0,
-  stock: 50,
-  image_url: '',
-  is_hireable: false,
-  imageFile: null,
-  imagePreview: '',
-};
+interface Props { categoryFilter?: string[] }
 
-const ProductsPanel = () => {
+const allCats = ['sacramentals', 'tshirts', 'chairs', 'instruments'];
+
+const ProductsPanel = ({ categoryFilter }: Props) => {
+  const activeCategories = categoryFilter || allCats;
+
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const { data: products = [], loading, refetch: loadProducts, setData: setProducts } = useCachedData<Product[]>(
@@ -53,19 +47,30 @@ const ProductsPanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentProductId, setCurrentProductId] = useState<string | number | null>(null);
-  const [form, setForm] = useState<ProductForm>(defaultForm);
+  const defaultForm = (): ProductForm => ({
+    name: '',
+    description: '',
+    category: activeCategories[0],
+    price: 0,
+    stock: 50,
+    image_url: '',
+    is_hireable: false,
+    imageFile: null,
+    imagePreview: '',
+  });
+  const [form, setForm] = useState<ProductForm>(defaultForm());
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const categories = ['all', 'sacramentals', 'tshirts', 'chairs', 'instruments'];
-  const productCategories = ['sacramentals', 'tshirts', 'chairs', 'instruments'];
-
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === 'all') return products;
-    return products.filter(
+    const pool = activeCategories.length === 4
+      ? products
+      : products.filter((p) => activeCategories.includes(p.category));
+    if (selectedCategory === 'all') return pool;
+    return pool.filter(
       (p) => p.category?.toLowerCase() === selectedCategory
     );
-  }, [products, selectedCategory]);
+  }, [products, selectedCategory, activeCategories]);
 
   const openProductForm = (product?: Product) => {
     if (product) {
@@ -85,7 +90,7 @@ const ProductsPanel = () => {
     } else {
       setIsEditing(false);
       setCurrentProductId(null);
-      setForm(defaultForm);
+      setForm(defaultForm());
     }
     setErrorMessage('');
     setIsModalOpen(true);
@@ -94,7 +99,7 @@ const ProductsPanel = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setErrorMessage('');
-    setForm(defaultForm);
+    setForm(defaultForm());
     setCurrentProductId(null);
     setIsEditing(false);
   };
@@ -199,8 +204,14 @@ const ProductsPanel = () => {
       <div className="admin-card-section">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="admin-panel-title">Product Management</h1>
-            <p className="admin-panel-subtitle mt-1">Create, edit, and remove sacramentals, t-shirts, chairs, and instruments.</p>
+            <h1 className="admin-panel-title">
+              {activeCategories.length === 4 ? 'Product Management' : `${activeCategories[0].charAt(0).toUpperCase() + activeCategories[0].slice(1)} Products`}
+            </h1>
+            <p className="admin-panel-subtitle mt-1">
+              {activeCategories.length === 4
+                ? 'Create, edit, and remove products across all categories.'
+                : `Manage ${activeCategories.join(' & ')} products.`}
+            </p>
           </div>
           <button onClick={() => openProductForm()} className="admin-btn-primary">
             Add New Product
@@ -209,7 +220,7 @@ const ProductsPanel = () => {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {categories.map((category) => (
+        {['all', ...activeCategories].map((category) => (
           <button
             key={category}
             type="button"
@@ -307,7 +318,7 @@ const ProductsPanel = () => {
                   onChange={(e) => handleFormChange('category', e.target.value)}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500"
                 >
-                  {productCategories.map((cat) => (
+                  {activeCategories.map((cat) => (
                     <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
                   ))}
                 </select>
