@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Phone, Save, Loader2 } from 'lucide-react';
+import { Phone, Save, Loader2, Smartphone, Headphones, Building2, RotateCcw } from 'lucide-react';
 import { apiClient } from '../../../api/axiosInstance';
 import { toast } from 'react-hot-toast';
 
@@ -50,74 +50,73 @@ export default function HireSettingsSection() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 mt-8">
-        <div className="flex items-center justify-center py-8">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+        <div className="flex items-center justify-center py-12">
           <Loader2 size={24} className="animate-spin text-blue-600" />
         </div>
       </div>
     );
   }
 
+  const fields = [
+    { key: 'chairs_handler_phone', label: 'Chairs Handler Phone', desc: 'Receives WhatsApp messages for chair hire requests.', icon: Smartphone, placeholder: 'e.g. 254712345678' },
+    { key: 'instruments_handler_phone', label: 'Instruments Handler Phone', desc: 'Receives WhatsApp messages for instrument hire requests.', icon: Headphones, placeholder: 'e.g. 254798765432' },
+    { key: 'hire_admin_phone', label: 'Default Hire Admin Phone', desc: 'Fallback number if no category-specific handler is set.', icon: Building2, placeholder: 'e.g. 254112051739' },
+  ] as const;
+
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mt-8">
-      <div className="p-8 bg-gradient-to-r from-blue-600 to-indigo-600">
-        <h2 className="text-2xl font-black text-white flex items-center gap-3">
-          <Phone className="w-6 h-6" />
-          Hire Request Admin Numbers
-        </h2>
-        <p className="text-blue-100 text-sm mt-2">
-          Configure who receives WhatsApp messages when a hire request is submitted.
-        </p>
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="px-8 py-7 bg-gradient-to-r from-blue-600 to-indigo-600 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-20 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
+        <div className="relative">
+          <h2 className="text-2xl font-black text-white flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              <Phone className="w-5 h-5" />
+            </div>
+            Hire Request Admin Numbers
+          </h2>
+          <p className="text-blue-100 text-sm mt-2 ml-[52px]">
+            Configure who receives WhatsApp messages when a hire request is submitted.
+          </p>
+        </div>
       </div>
 
-      <div className="p-8 space-y-6">
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-700">Chairs Handler Phone</label>
-          <p className="text-xs text-slate-400">Receives WhatsApp messages for chair hire requests.</p>
-          <input
-            type="text"
-            value={phones.chairs_handler_phone}
-            onChange={(e) => setPhones((prev) => ({ ...prev, chairs_handler_phone: e.target.value }))}
-            placeholder="e.g. 254712345678"
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
-          />
+      <div className="p-8">
+        <div className="grid gap-6 md:grid-cols-3">
+          {fields.map(({ key, label, desc, icon: Icon, placeholder }) => (
+            <div key={key} className="space-y-3 p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                  <Icon size={16} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700">{label}</label>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{desc}</p>
+                </div>
+              </div>
+              <input
+                type="text"
+                value={(phones as any)[key]}
+                onChange={(e) => setPhones((prev) => ({ ...prev, [key]: e.target.value }))}
+                placeholder={placeholder}
+                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm transition"
+              />
+            </div>
+          ))}
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-700">Instruments Handler Phone</label>
-          <p className="text-xs text-slate-400">Receives WhatsApp messages for instrument hire requests.</p>
-          <input
-            type="text"
-            value={phones.instruments_handler_phone}
-            onChange={(e) => setPhones((prev) => ({ ...prev, instruments_handler_phone: e.target.value }))}
-            placeholder="e.g. 254798765432"
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-700">Default Hire Admin Phone</label>
-          <p className="text-xs text-slate-400">Fallback number if no category-specific handler is set.</p>
-          <input
-            type="text"
-            value={phones.hire_admin_phone}
-            onChange={(e) => setPhones((prev) => ({ ...prev, hire_admin_phone: e.target.value }))}
-            placeholder="e.g. 254112051739"
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
-          />
-        </div>
-
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-100">
           <button
             onClick={loadSettings}
-            className="px-5 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition text-sm"
+            className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm"
           >
-            Reset
+            <RotateCcw size={14} /> Reset
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all text-sm flex items-center gap-2 disabled:opacity-50"
+            className="flex items-center gap-2 px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-xl shadow-lg shadow-blue-200 transition-all text-sm disabled:opacity-50"
           >
             {saving ? (
               <><Loader2 size={16} className="animate-spin" /> Saving...</>

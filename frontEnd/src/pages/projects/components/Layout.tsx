@@ -21,7 +21,8 @@ export const Layout = () => {
         deliveryAddress, setDeliveryAddress,
         collectionMethod, setCollectionMethod,
         cartTotal, proceedToCheckout, proceedWithCash, toasts, isDarkMode, toggleDarkMode,
-        apiMessages
+        apiMessages,
+        paymentPending, confirmMpesaPayment, dismissPaymentPending
     } = useApp();
 
     const [footerIndex, setFooterIndex] = useState(0);
@@ -70,6 +71,9 @@ export const Layout = () => {
                 setCollectionMethod={setCollectionMethod}
                 proceedToCheckout={proceedToCheckout}
                 proceedWithCash={proceedWithCash}
+                paymentPending={paymentPending}
+                confirmMpesaPayment={confirmMpesaPayment}
+                dismissPaymentPending={dismissPaymentPending}
             />
 
             <main className="content">

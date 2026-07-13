@@ -169,52 +169,52 @@ const NotificationsPanel = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="admin-card-section">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Bell size={24} className="text-blue-600" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+              <Bell size={20} />
             </div>
-            <div>
-              <h1 className="admin-panel-title">Notifications</h1>
-              <p className="admin-panel-subtitle mt-1">
-                Real-time alerts for orders, bookings, payments, and stock.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={buildNotifications}
-              disabled={loading}
-              className="admin-btn-outline flex items-center gap-2"
-            >
-              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-              Refresh
-            </button>
             {unreadCount > 0 && (
-              <button onClick={markAllAsRead} className="admin-btn-primary">
-                Mark All Read
-              </button>
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
             )}
           </div>
+          <div>
+            <h3 className="text-lg font-black text-slate-800">Notifications</h3>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Real-time alerts for orders, bookings, payments, and stock.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={buildNotifications}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
+          {unreadCount > 0 && (
+            <button onClick={markAllAsRead} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-md">
+              Mark All Read
+            </button>
+          )}
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          { label: "Total", value: stats.total, color: "bg-slate-50 text-slate-700" },
-          { label: "Unread", value: stats.unread, color: "bg-rose-50 text-rose-700" },
-          { label: "Orders", value: stats.orders, color: "bg-blue-50 text-blue-700" },
-          { label: "Bookings", value: stats.hires, color: "bg-amber-50 text-amber-700" },
-          { label: "Stock Alerts", value: stats.stock, color: "bg-purple-50 text-purple-700" },
+          { label: "Total", value: stats.total, color: "bg-slate-50 text-slate-700", icon: Bell },
+          { label: "Unread", value: stats.unread, color: "bg-rose-50 text-rose-700", icon: Clock },
+          { label: "Orders", value: stats.orders, color: "bg-blue-50 text-blue-700", icon: ShoppingCart },
+          { label: "Bookings", value: stats.hires, color: "bg-amber-50 text-amber-700", icon: CalendarDays },
+          { label: "Stock", value: stats.stock, color: "bg-purple-50 text-purple-700", icon: Package },
         ].map((stat, i) => (
           <div key={i} className={`rounded-2xl border border-slate-100 p-4 ${stat.color}`}>
             <p className="text-2xl font-black">{stat.value}</p>
@@ -242,13 +242,13 @@ const NotificationsPanel = () => {
 
       {/* Notification List */}
       {loading ? (
-        <div className="admin-card-section text-center text-slate-500 py-12">
-          Loading notifications...
+        <div className="flex items-center justify-center py-16 bg-slate-50 rounded-2xl border border-slate-200">
+          <span className="text-sm font-medium text-slate-500">Loading notifications...</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="admin-card-section text-center py-12">
-          <CheckCircle size={48} className="text-emerald-400 mx-auto mb-4" />
-          <p className="text-slate-500 font-semibold">All clear — no notifications right now.</p>
+        <div className="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+          <CheckCircle size={40} className="text-emerald-300 mb-3" />
+          <p className="text-sm font-semibold text-slate-500">All clear — no notifications right now.</p>
         </div>
       ) : (
         <div className="space-y-3">

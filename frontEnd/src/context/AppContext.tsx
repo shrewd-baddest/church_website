@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../api/config';
+import { apiClient } from '../api/axiosInstance';
 import { SACRAMENTAL_CATEGORIES } from '../pages/projects/pages/data';
 import type { CartItem, SacramentalCategory } from '../pages/projects/pages/data';
 
@@ -54,6 +55,13 @@ interface AppContextType {
     proceedToCheckout: () => Promise<void>;
     proceedWithCash: () => Promise<void>;
 
+    // Payment status (for M-Pesa manual confirmation)
+    paymentPending: boolean;
+    pendingCheckoutId: string | null;
+    pendingPhone: string;
+    confirmMpesaPayment: (receipt: string) => Promise<void>;
+    dismissPaymentPending: () => void;
+
     // Toasts
     toasts: ToastMessage[];
     showToast: (message: string) => void;
@@ -102,6 +110,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
     const [hireItems, setHireItems] = useState<HireItem[]>([]);
     const [isHireModalOpen, setHireModalOpen] = useState(false);
+
+    // Payment pending state (for manual M-Pesa receipt confirmation)
+    const [paymentPending, setPaymentPending] = useState(false);
+    const [pendingCheckoutId, setPendingCheckoutId] = useState<string | null>(null);
+    const [pendingPhone, setPendingPhone] = useState('');
 
     const addToHire = (item: HireItem) => {
         setHireItems(prev => {
@@ -265,6 +278,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             
             if (response && response.checkoutId) {
                 checkoutId = response.checkoutId;
+                setPendingCheckoutId(checkoutId);
+                setPendingPhone(phone);
 
                 // Create a pending order linked to this checkout
                 try {
@@ -296,6 +311,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         
                         if (statusRes.status === 'paid') {
                             clearInterval(pollInterval);
+                            setPaymentPending(false);
                             showToast("Payment successful! Order confirmed.");
                             const orderId = statusRes.order_id || statusRes.orderId || checkoutId;
                             // Clear cart and customer info
@@ -318,7 +334,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     if (attempts >= maxAttempts) {
                         clearInterval(pollInterval);
                         if (checkoutId) {
-                            showToast("Payment taking longer than expected. Check your phone for M-Pesa prompt. Order will update when payment completes.");
+                            setPaymentPending(true);
+                            showToast("Payment sent to your phone. If you've already entered your PIN, enter the M-Pesa receipt from your SMS below.");
                         } else {
                             showToast("Payment timeout. Please try again.");
                         }
@@ -331,6 +348,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             console.error("Checkout error:", err);
             showToast(err?.response?.data?.error || "An error occurred during checkout.");
         }
+    };
+
+    const confirmMpesaPayment = async (receipt: string) => {
+        try {
+            const response = await apiClient.post('/orders/confirm-payment', {
+                phone: pendingPhone,
+                checkout_id: pendingCheckoutId,
+                mpesa_receipt: receipt.trim(),
+            });
+            if (response.data?.status === 'paid') {
+                setPaymentPending(false);
+                setPendingCheckoutId(null);
+                setPendingPhone('');
+                setCart([]);
+                setIsCartOpen(false);
+                setCustomerName('');
+                setCustomerPhone('');
+                setCustomerEmail('');
+                setDeliveryAddress('');
+                showToast("Payment confirmed! Order placed successfully.");
+                navigate(`/order-confirmation?order_id=${receipt}&method=mpesa`);
+            } else {
+                showToast("Could not confirm payment. Check the receipt number and try again.");
+            }
+        } catch (err: any) {
+            showToast(err?.response?.data?.error || "Failed to confirm payment. Try again.");
+        }
+    };
+
+    const dismissPaymentPending = () => {
+        setPaymentPending(false);
+        setPendingCheckoutId(null);
+        setPendingPhone('');
     };
 
     const proceedWithCash = async () => {
@@ -380,6 +430,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             customerEmail, setCustomerEmail, deliveryAddress, setDeliveryAddress,
             collectionMethod, setCollectionMethod,
             proceedToCheckout, proceedWithCash,
+            paymentPending, pendingCheckoutId, pendingPhone,
+            confirmMpesaPayment, dismissPaymentPending,
             toasts, showToast,
             sacCategory, setSacCategory,
             hireItems, addToHire, removeFromHire, updateHireQty, clearHire, hireItemsCount,

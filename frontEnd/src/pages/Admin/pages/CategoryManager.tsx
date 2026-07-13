@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import apiService from "../../Landing/services/api";
-import { Plus, Pencil, Trash2, RefreshCcw, X, Loader2, Tag } from "lucide-react";
+import { Plus, Pencil, Trash2, RefreshCcw, X, Loader2, Tag, FolderOpen } from "lucide-react";
+import PanelHeader from "../components/PanelHeader";
+import EmptyState from "../components/EmptyState";
 
 interface Props { typeFilter?: "sale" | "hire" }
 
@@ -62,77 +64,102 @@ export default function CategoryManager(props: Props) {
     } catch (err) { console.error(err); }
   };
 
+  const typeColors: Record<string, string> = {
+    sale: 'bg-blue-100 text-blue-700',
+    hire: 'bg-purple-100 text-purple-700',
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-            <Tag size={22} className="text-blue-600" /> {typeFilter === 'hire' ? 'Hire Categories' : 'Sale Categories'}
-          </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            {typeFilter === 'hire' ? 'Categories for chairs & instruments (hire)' : 'Categories for sacramentals & t-shirts (sale)'}
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={() => openForm()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md">
+    <div className="space-y-6">
+      <PanelHeader
+        title={typeFilter === 'hire' ? 'Hire Categories' : 'Sale Categories'}
+        subtitle={typeFilter === 'hire' ? 'Categories for chairs & instruments (hire)' : 'Categories for sacramentals & t-shirts (sale)'}
+        icon={Tag}
+        onRefresh={loadCategories}
+        loading={loading}
+        actions={
+          <button onClick={() => openForm()} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-200">
             <Plus size={16} /> Add Category
           </button>
-          <button onClick={loadCategories} disabled={loading} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
-            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} /> Refresh
-          </button>
-        </div>
-      </div>
+        }
+      />
 
-      {display.length === 0 ? (
-        <div className="text-center py-12 text-slate-400">
-          <Tag size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="font-semibold">No categories yet</p>
-          <p className="text-sm mt-1">Add your first category above.</p>
+      {loading ? (
+        <div className="flex items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
+          <Loader2 size={24} className="animate-spin text-blue-600 mr-3" />
+          <span className="text-sm font-medium text-slate-500">Loading categories...</span>
         </div>
+      ) : display.length === 0 ? (
+        <EmptyState
+          icon={FolderOpen}
+          title="No categories yet"
+          subtitle={`Add your first ${typeFilter === 'hire' ? 'hire' : 'sale'} category to get started.`}
+          action={
+            <button onClick={() => openForm()} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-200">
+              <Plus size={16} /> Add Category
+            </button>
+          }
+        />
       ) : (
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {display.map((cat: any) => (
-          <div key={cat.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-bold text-slate-800">{cat.name || cat.label}</h3>
-                <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${cat.type === 'hire' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {cat.type === 'hire' ? 'Hire' : 'Sale'}
-                </span>
-              </div>
-              <div className="flex gap-1">
-                <button onClick={() => openForm(cat)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
-                <button onClick={() => handleDelete(cat.id)} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={14} /></button>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {display.map((cat: any) => (
+            <div key={cat.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                    <Tag size={18} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">{cat.name || cat.label}</h3>
+                    <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${typeColors[cat.type] || 'bg-slate-100 text-slate-600'}`}>
+                      {cat.type === 'hire' ? 'Hire' : 'Sale'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => openForm(cat)} className="w-8 h-8 flex items-center justify-center rounded-lg text-blue-600 hover:bg-blue-50 transition-all"><Pencil size={13} /></button>
+                  <button onClick={() => handleDelete(cat.id)} className="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 transition-all"><Trash2 size={13} /></button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
 
       {showForm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-slate-800 text-lg">{editing ? "Edit Category" : `Add ${typeFilter === 'hire' ? 'Hire' : 'Sale'} Category`}</h3>
-              <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50"><X size={20} /></button>
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                  {editing ? <Pencil size={18} /> : <Tag size={18} />}
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-base">{editing ? "Edit Category" : `Add ${typeFilter === 'hire' ? 'Hire' : 'Sale'} Category`}</h3>
+                  <p className="text-xs text-slate-400 font-medium">{editing ? "Update the category details" : "Create a new product category"}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowForm(false)} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"><X size={18} /></button>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Category Name</label>
-                <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={typeFilter === 'hire' ? 'e.g. Chairs' : 'e.g. Candles'} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div className="p-6 space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Category Name</label>
+                <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={typeFilter === 'hire' ? 'e.g. Chairs' : 'e.g. Candles'} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10" />
               </div>
               {!typeFilter && (
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Type</label>
-                <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="sale">Buy / Sale</option>
-                  <option value="hire">Hire</option>
-                </select>
-              </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Type</label>
+                  <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10">
+                    <option value="sale">Buy / Sale</option>
+                    <option value="hire">Hire</option>
+                  </select>
+                </div>
               )}
-              <button onClick={handleSave} disabled={saving || !form.name.trim()} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-xl transition-all">
-                {saving ? "Saving..." : editing ? "Update" : "Create"}
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-100">
+              <button onClick={() => setShowForm(false)} className="px-5 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm">Cancel</button>
+              <button onClick={handleSave} disabled={saving || !form.name.trim()} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-xl transition-all text-sm flex items-center gap-2 shadow-lg shadow-blue-200">
+                {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : editing ? "Update" : "Create Category"}
               </button>
             </div>
           </div>

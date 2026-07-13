@@ -21,6 +21,9 @@ interface CartDrawerProps {
     setCollectionMethod: (val: "pickup" | "delivery") => void;
     proceedToCheckout: () => void;
     proceedWithCash: () => void;
+    paymentPending?: boolean;
+    confirmMpesaPayment?: (receipt: string) => void;
+    dismissPaymentPending?: () => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -28,24 +31,72 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     customerName, setCustomerName, customerPhone, setCustomerPhone,
     customerEmail, setCustomerEmail, deliveryAddress, setDeliveryAddress,
     collectionMethod, setCollectionMethod,
-    proceedToCheckout, proceedWithCash
+    proceedToCheckout, proceedWithCash,
+    paymentPending, confirmMpesaPayment, dismissPaymentPending
 }) => {
+    const [receiptInput, setReceiptInput] = React.useState('');
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[1000] flex justify-end">
-            <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" onClick={onClose} />
+            <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" onClick={paymentPending ? undefined : onClose} />
             <div className="relative w-full max-w-md h-full bg-white shadow-2xl flex flex-col z-[1001] transition-transform duration-300 animate-in slide-in-from-right">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-                    <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                        <ShoppingBag size={20} className="text-blue-600" />
-                        Your Cart ({cart.length})
-                    </h2>
-                    <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
-                        <X size={20} />
-                    </button>
+
+            {paymentPending ? (
+                <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                            <ShieldCheck size={20} className="text-amber-600" />
+                            Confirm Payment
+                        </h2>
+                        <button onClick={() => { dismissPaymentPending?.(); onClose(); }} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
+                            <X size={20} />
+                        </button>
+                    </div>
+                    <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-5">
+                        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                            <ShieldCheck size={30} />
+                        </div>
+                        <div>
+                            <p className="text-base font-bold text-slate-800">Payment Initiated</p>
+                            <p className="text-sm text-slate-500 mt-1 max-w-xs">
+                                Check your phone for the M-Pesa prompt and enter your PIN. If you've already paid, enter the M-Pesa receipt number from the SMS below.
+                            </p>
+                        </div>
+                        <div className="w-full max-w-xs space-y-3">
+                            <input
+                                type="text"
+                                value={receiptInput}
+                                onChange={e => setReceiptInput(e.target.value)}
+                                placeholder="e.g. QLS1234567"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase tracking-wider"
+                            />
+                            <button
+                                onClick={() => confirmMpesaPayment?.(receiptInput)}
+                                disabled={!receiptInput.trim()}
+                                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-black rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-[0.98]"
+                            >
+                                Confirm Payment
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => { dismissPaymentPending?.(); onClose(); }}
+                            className="text-sm text-slate-400 hover:text-slate-600 underline"
+                        >
+                            Cancel & Close
+                        </button>
+                    </div>
                 </div>
+            ) : (<>
+                    <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                            <ShoppingBag size={20} className="text-blue-600" />
+                            Your Cart ({cart.length})
+                        </h2>
+                        <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
+                            <X size={20} />
+                        </button>
+                    </div>
 
                 {/* Items list */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -187,6 +238,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         </p>
                     </div>
                 )}
+            </>
+            )}
             </div>
         </div>
     );

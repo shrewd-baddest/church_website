@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import apiService from "../../Landing/services/api";
-import { Users, RefreshCcw, Loader2, Phone, Mail, ShoppingBag } from "lucide-react";
+import { Users, RefreshCcw, Loader2, Phone, Mail, ShoppingBag, User, CalendarDays } from "lucide-react";
+import PanelHeader from "../components/PanelHeader";
+import EmptyState from "../components/EmptyState";
 
 export default function CustomerManager() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -31,77 +33,74 @@ export default function CustomerManager() {
     finally { setLoading(false); }
   };
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-            <Users size={22} className="text-blue-600" /> Customer Management
-          </h2>
-          <p className="text-slate-500 text-sm mt-1">View and manage your customers ({customers.length})</p>
-        </div>
-        <button onClick={loadCustomers} disabled={loading} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50">
-          <RefreshCcw size={15} className={loading ? "animate-spin" : ""} /> Refresh
-        </button>
-      </div>
+  const getInitial = (name: string) => (name || "?").charAt(0).toUpperCase();
+  const getInitialBg = (name: string) => {
+    const colors = ['bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 'bg-sky-100 text-sky-700', 'bg-rose-100 text-rose-700'];
+    let hash = 0;
+    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  };
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-slate-400">
-            <Loader2 size={32} className="animate-spin mr-3" /> Loading customers...
-          </div>
-        ) : customers.length === 0 ? (
-          <div className="text-center py-16 text-slate-400">
-            <Users size={40} className="mx-auto mb-3 opacity-30" />
-            <p className="font-semibold">No customers found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  {["Name", "Phone", "Email", "Jumuiya", "Orders", "Registered"].map(h => (
-                    <th key={h} className="text-left px-5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {customers.map((c: any) => (
-                  <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-4 font-semibold text-slate-800">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-black text-xs">
-                          {(c.name || c.first_name || "?").charAt(0).toUpperCase()}
-                        </div>
-                        {c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim() || "—"}
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="flex items-center gap-1.5 text-slate-600">
-                        <Phone size={12} className="text-slate-400" /> {c.phone || c.phone_number || "—"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="flex items-center gap-1.5 text-slate-600">
-                        <Mail size={12} className="text-slate-400" /> {c.email || "—"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">{c.jumuiyaName}</td>
-                    <td className="px-5 py-4">
-                      <span className="flex items-center gap-1.5 font-bold text-slate-700">
-                        <ShoppingBag size={12} className="text-blue-500" /> {c.orderCount || 0}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-slate-500 text-xs">
-                      {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+  return (
+    <div className="space-y-6">
+      <PanelHeader
+        title="Customer Management"
+        subtitle={`View and manage your customers (${customers.length})`}
+        icon={Users}
+        onRefresh={loadCustomers}
+        loading={loading}
+      />
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
+          <Loader2 size={24} className="animate-spin text-blue-600 mr-3" />
+          <span className="text-sm font-medium text-slate-500">Loading customers...</span>
+        </div>
+      ) : customers.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No customers found"
+          subtitle="Customers will appear here once they place orders."
+        />
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {customers.map((c: any) => (
+            <div key={c.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm ${getInitialBg(c.name || c.first_name)}`}>
+                    {getInitial(c.name || c.first_name)}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">{c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim() || "—"}</h3>
+                    <span className="text-[11px] text-slate-400 font-medium">{c.email || "No email"}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 rounded-lg">
+                  <ShoppingBag size={12} className="text-blue-600" />
+                  <span className="text-xs font-bold text-blue-700">{c.orderCount || 0}</span>
+                </div>
+              </div>
+              <div className="space-y-2.5 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2.5 text-xs text-slate-500">
+                  <Phone size={12} className="shrink-0 text-slate-400" />
+                  <span className="font-medium text-slate-700">{c.phone || c.phone_number || "—"}</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-500">
+                  <User size={12} className="shrink-0 text-slate-400" />
+                  <span className="font-medium text-slate-700">{c.jumuiyaName}</span>
+                </div>
+                {c.created_at && (
+                  <div className="flex items-center gap-2.5 text-xs text-slate-500">
+                    <CalendarDays size={12} className="shrink-0 text-slate-400" />
+                    <span className="font-medium text-slate-700">{new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
