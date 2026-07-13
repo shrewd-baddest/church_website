@@ -1,6 +1,22 @@
 import { db as pool } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
+/**
+ * Validates that a dynamically-provided identifier (column or table name)
+ * contains ONLY alphanumeric characters and underscores.
+ * This prevents SQL injection through double-quote escaping in identifier strings.
+ * Throws a TypeError if the identifier contains any disallowed characters.
+ */
+const sanitizeIdentifier = (name) => {
+  if (typeof name !== "string" || !/^[a-zA-Z0-9_]+$/.test(name)) {
+    throw Object.assign(
+      new TypeError(`Invalid identifier: "${String(name).substring(0, 50)}"`),
+      { statusCode: 400 }
+    );
+  }
+  return name;
+};
+
 const TABLE_SORT_COLUMNS = {
   events: "event_date",
   contributions: "date",
@@ -33,8 +49,9 @@ export const getTableData = async (tableName, queryParams = {}) => {
 
     if (filterKeys.length > 0) {
       const filters = filterKeys.map((key, index) => {
+        const safeKey = sanitizeIdentifier(key); // guard against SQL injection via key names
         values.push(queryParams[key]);
-        return `"${key}" = $${index + 1}`;
+        return `"${safeKey}" = $${index + 1}`;
       });
       query += ` WHERE ${filters.join(' AND ')}`;
     }
@@ -79,7 +96,7 @@ export const getTableData = async (tableName, queryParams = {}) => {
 export const createRecord = async (tableName, data) => {
   const dbTableName = tableName === 'jumuiya' ? 'sub_groups' : tableName;
   try {
-    const columns = Object.keys(data);
+    const columns = Object.keys(data).map(sanitizeIdentifier); // validate all keys
     const values = Object.values(data);
     const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
     const columnNames = columns.map(col => `"${col}"`).join(', ');
@@ -134,7 +151,7 @@ export const updateRecord = async (tableName, id, data) => {
   const dbTableName = tableName === 'jumuiya' ? 'sub_groups' : tableName;
   const pkName = TABLE_PRIMARY_KEYS[dbTableName] || 'id';
   try {
-    const columns = Object.keys(data);
+    const columns = Object.keys(data).map(sanitizeIdentifier); // validate all keys
     const values = Object.values(data);
     const setClause = columns.map((col, i) => `"${col}" = $${i + 1}`).join(', ');
     

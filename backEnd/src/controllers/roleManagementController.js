@@ -1,6 +1,28 @@
 import { db as pool } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 
+/** Roles that are allowed to manage role assignments */
+const ADMIN_ROLES = ["supreme_admin", "admin", "csa_chair", "csa_secretary"];
+
+/**
+ * Returns a 403 response if the requesting user does not hold
+ * at least one administrative role. Returns null on success.
+ */
+const rejectIfNotAdmin = (req, res) => {
+  const userRoles = req.user?.role;
+  const normalized = (Array.isArray(userRoles) ? userRoles : [userRoles])
+    .map((r) => String(r).toLowerCase().trim());
+  const hasAccess = normalized.some((r) => ADMIN_ROLES.includes(r));
+  if (!hasAccess) {
+    res.status(403).json({
+      success: false,
+      message: "Access denied: administrative role required",
+    });
+    return false;
+  }
+  return true;
+};
+
 export const listRoles = async (req, res) => {
   try {
     const result = await pool.query(
@@ -52,6 +74,7 @@ export const listAssignments = async (req, res) => {
 };
 
 export const assignRole = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { member_id, role_id, jumuiya_id } = req.body;
     const assignedBy = req.user?.member_id;
@@ -130,6 +153,7 @@ export const assignRole = async (req, res) => {
 };
 
 export const approveAssignment = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { id } = req.params;
     const approvedBy = req.user?.member_id;
@@ -158,6 +182,7 @@ export const approveAssignment = async (req, res) => {
 };
 
 export const rejectAssignment = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { id } = req.params;
 
@@ -185,6 +210,7 @@ export const rejectAssignment = async (req, res) => {
 };
 
 export const revokeAssignment = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { id } = req.params;
 
@@ -212,6 +238,7 @@ export const revokeAssignment = async (req, res) => {
 };
 
 export const activateAssignment = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { id } = req.params;
     const approvedBy = req.user?.member_id;
@@ -240,6 +267,7 @@ export const activateAssignment = async (req, res) => {
 };
 
 export const removeAssignment = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM member_roles WHERE id = $1", [id]);

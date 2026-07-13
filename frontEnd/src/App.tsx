@@ -42,6 +42,8 @@ const HireStatus = lazy(() => import("./pages/HireStatus"));
 
 // Utility pages
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 // Devotions
 const Dashboard = lazy(() => import("./pages/Devotions/pages/Dashboard"));
@@ -134,14 +136,9 @@ const App: React.FC = () => {
         <Route
           path="/admin"
           element={
-            // ======================================
-            // TEMP DEVELOPMENT COMMENT
-            // ADMIN AUTH DISABLED TEMPORARILY
-            // RE-ENABLE BEFORE PRODUCTION
-            // ======================================
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <UniversalAdmin />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         >
           <Route index element={<AdminDashboard />} />
@@ -219,6 +216,10 @@ const App: React.FC = () => {
             <Route path="community" element={<Community />} />
             <Route path="community/:moduleId" element={<CommunityDetail />} />
           </Route>
+
+          {/* Legal Pages */}
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="terms" element={<Terms />} />
 
           {/* 404 - Catch-all for unmatched routes */}
           <Route path="/*" element={<NotFound />} />

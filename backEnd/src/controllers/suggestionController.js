@@ -41,6 +41,25 @@ const findEmailByMemberId = async (memberId) => {
   return result.rows[0]?.email || null;
 };
 
+/* ── Role guard for admin-only endpoints ────────────────────────── */
+
+const SUGGESTION_ADMIN_ROLES = [
+  "supreme_admin", "admin", "csa_chair", "csa_vice_chair", "csa_secretary",
+  "secretary", "liturgist",
+];
+
+const rejectIfNotAdmin = (req, res) => {
+  const userRoles = req.user?.role;
+  const normalized = (Array.isArray(userRoles) ? userRoles : [userRoles])
+    .map((r) => String(r).toLowerCase().trim());
+  const hasAccess = normalized.some((r) => SUGGESTION_ADMIN_ROLES.includes(r));
+  if (!hasAccess) {
+    res.status(403).json({ status: false, message: "Access denied: administrative role required" });
+    return false;
+  }
+  return true;
+};
+
 /* ── Submit Suggestion ──────────────────────────────────────────── */
 
 export const submitSuggestion = async (req, res) => {
@@ -69,12 +88,14 @@ export const submitSuggestion = async (req, res) => {
 /* ── Admin List Suggestions ─────────────────────────────────────── */
 
 export const getSuggestions = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const result = await pool.query(
       `SELECT s.*, m.first_name, m.last_name, sg.name as jumuiya_name, m.phone
        FROM suggestions s
        LEFT JOIN members m ON m.member_id = s.member_id
        LEFT JOIN sub_groups sg ON sg.group_id = m.jumuiya_id
+       WHERE s.deleted_at IS NULL
        ORDER BY s.created_at DESC`
     );
 
@@ -86,6 +107,11 @@ export const getSuggestions = async (req, res) => {
       created_at: r.created_at,
       is_anonymous: r.is_anonymous,
       unmask_status: r.unmask_status,
+      status: r.status,
+      category: r.category,
+      admin_response: r.admin_response,
+      responded_at: r.responded_at,
+      responded_by: r.responded_by,
       member: r.member_id && !r.is_anonymous ? {
         member_id: r.member_id,
         first_name: r.first_name,
@@ -109,6 +135,7 @@ export const getSuggestions = async (req, res) => {
 /* ── Request Unmask (VC) ────────────────────────────────────────── */
 
 export const requestUnmask = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { id } = req.params;
     const sugg = await pool.query("SELECT * FROM suggestions WHERE id = $1", [id]);
@@ -253,22 +280,251 @@ export const respondUnmask = async (req, res) => {
   }
 };
 
+/* ── Respond to Suggestion ──────────────────────────────────────── */
+
+export const respondToSuggestion = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
+  try {
+    const { id } = req.params;
+    const { response } = req.body;
+    if (!response || !response.trim()) {
+      return res.status(400).json({ status: false, message: "Response text is required" });
+    }
+
+    const sugg = await pool.query("SELECT * FROM suggestions WHERE id = $1", [id]);
+    if (sugg.rows.length === 0) return res.status(404).json({ status: false, message: "Suggestion not found" });
+
+    const s = sugg.rows[0];
+    const responderName = req.user?.name || "Admin";
+
+    await pool.query(
+      `UPDATE suggestions SET admin_response = $1, responded_at = NOW(), responded_by = $2 WHERE id = $3`,
+      [response.trim(), responderName, id]
+    );
+
+    if (s.member_id) {
+      const email = await findEmailByMemberId(s.member_id);
+      if (email) {
+        const safeName = s.is_anonymous ? "Someone" : (s.name || "A member");
+        await sendMail(
+          `Response to Your Suggestion — CSA Kirinyaga`,
+          `${responderName} responded to your suggestion: "${response.trim()}"`,
+          email,
+          emailHtml({
+            title: "Your Suggestion Received a Response",
+            message: `${responderName} wrote: "${response.trim()}"`,
+            buttonUrl: FRONTEND_URL,
+            buttonText: "View on CSA Website",
+          })
+        ).catch(e => logger.error("Failed to email suggestion response:", e.message));
+      }
+    }
+
+    res.json({ status: "success", message: "Response submitted" });
+  } catch (error) {
+    logger.error("respondToSuggestion error:", error.message);
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+/* ── Update Suggestion Status ───────────────────────────────────── */
+
+export const updateSuggestionStatus = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const validStatuses = ["new", "under_review", "acknowledged", "implemented", "closed"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ status: false, message: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
+    }
+
+    const sugg = await pool.query("SELECT * FROM suggestions WHERE id = $1", [id]);
+    if (sugg.rows.length === 0) return res.status(404).json({ status: false, message: "Suggestion not found" });
+
+    await pool.query("UPDATE suggestions SET status = $1 WHERE id = $2", [status, id]);
+
+    const s = sugg.rows[0];
+    if (s.member_id && status !== s.status) {
+      const email = await findEmailByMemberId(s.member_id);
+      if (email) {
+        await sendMail(
+          `Suggestion Status Update — CSA Kirinyaga`,
+          `Your suggestion status has been updated to: ${status.replace("_", " ")}`,
+          email,
+          emailHtml({
+            title: "Suggestion Status Updated",
+            message: `Your suggestion "${s.suggestion.substring(0, 80)}..." is now marked as "${status.replace("_", " ")}".`,
+            buttonUrl: FRONTEND_URL,
+            buttonText: "View on CSA Website",
+          })
+        ).catch(e => logger.error("Failed to email status update:", e.message));
+      }
+    }
+
+    res.json({ status: "success", message: "Status updated" });
+  } catch (error) {
+    logger.error("updateSuggestionStatus error:", error.message);
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+/* ── Set Suggestion Category ────────────────────────────────────── */
+
+export const setSuggestionCategory = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
+  try {
+    const { id } = req.params;
+    const { category } = req.body;
+    const validCategories = ["worship", "facilities", "events", "spiritual_growth", "outreach", "other", null];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ status: false, message: `Invalid category. Must be one of: ${validCategories.filter(Boolean).join(", ")}, or null to clear` });
+    }
+
+    const sugg = await pool.query("SELECT * FROM suggestions WHERE id = $1", [id]);
+    if (sugg.rows.length === 0) return res.status(404).json({ status: false, message: "Suggestion not found" });
+
+    await pool.query("UPDATE suggestions SET category = $1 WHERE id = $2", [category, id]);
+    res.json({ status: "success", message: category ? `Category set to "${category}"` : "Category cleared" });
+  } catch (error) {
+    logger.error("setSuggestionCategory error:", error.message);
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+/* ── Get Current User's Suggestions ─────────────────────────────── */
+
+export const getMySuggestions = async (req, res) => {
+  try {
+    const memberId = req.user?.member_id;
+    if (!memberId) return res.status(401).json({ status: false, message: "Not authenticated" });
+
+    const result = await pool.query(
+      `SELECT id, suggestion, status, category, admin_response, responded_at, responded_by, created_at, is_anonymous, unmask_status
+       FROM suggestions WHERE member_id = $1 ORDER BY created_at DESC LIMIT 20`,
+      [memberId]
+    );
+
+    res.json({ status: "success", data: result.rows });
+  } catch (error) {
+    logger.error("getMySuggestions error:", error.message);
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
 /* ── Reveal Author (VC checks after approval) ───────────────────── */
 
-/* ── Delete Suggestion ──────────────────────────────────────────── */
+/* ── Role helpers ────────────────────────────────────────────────── */
+
+const userRoles = (req) => {
+  const roles = Array.isArray(req.user?.role) ? req.user.role : req.user?.role ? [req.user.role] : [];
+  return roles.map(r => String(r).toUpperCase().trim());
+};
+
+const isSuperAdmin = (req) => userRoles(req).some(r => r === "CSA_CHAIR" || r.includes("ADMIN") || r.includes("SUPREME"));
+const isVC = (req) => userRoles(req).includes("CSA_VICE_CHAIR");
+
+/* ── Delete Suggestion (soft-delete — moves to CSA Chair's bin) ── */
 
 export const deleteSuggestion = async (req, res) => {
   try {
+    if (!isVC(req) && !isSuperAdmin(req)) {
+      return res.status(403).json({ status: false, message: "Only VC or Chair can delete suggestions" });
+    }
+
     const { id } = req.params;
-    await pool.query("DELETE FROM suggestions WHERE id = $1", [id]);
-    res.json({ status: "success", message: "Suggestion deleted" });
+
+    const sugg = await pool.query("SELECT * FROM suggestions WHERE id = $1", [id]);
+    if (sugg.rows.length === 0) return res.status(404).json({ status: false, message: "Suggestion not found" });
+    if (sugg.rows[0].deleted_at) return res.status(400).json({ status: false, message: "Suggestion is already in the bin" });
+
+    await pool.query(
+      "UPDATE suggestions SET deleted_at = NOW(), deleted_by = $1 WHERE id = $2",
+      [req.user?.name || "Unknown", id]
+    );
+
+    res.json({ status: "success", message: "Suggestion moved to bin (CSA Chair can clear permanently)" });
   } catch (error) {
     logger.error("deleteSuggestion error:", error.message);
     res.status(500).json({ status: false, message: error.message });
   }
 };
 
+/* ── Get Bin (CSA Chair only — view soft-deleted suggestions) ──── */
+
+export const getBin = async (req, res) => {
+  try {
+    if (!isSuperAdmin(req)) return res.status(403).json({ status: false, message: "Only CSA Chair can access the bin" });
+    const result = await pool.query(
+      `SELECT s.*, m.first_name, m.last_name, sg.name as jumuiya_name, m.phone
+       FROM suggestions s
+       LEFT JOIN members m ON m.member_id = s.member_id
+       LEFT JOIN sub_groups sg ON sg.group_id = m.jumuiya_id
+       WHERE s.deleted_at IS NOT NULL
+       ORDER BY s.deleted_at DESC`
+    );
+
+    const data = result.rows.map(r => ({
+      id: r.id,
+      suggestion: r.suggestion,
+      name: r.name,
+      email: r.email,
+      created_at: r.created_at,
+      is_anonymous: r.is_anonymous,
+      unmask_status: r.unmask_status,
+      status: r.status,
+      category: r.category,
+      admin_response: r.admin_response,
+      responded_at: r.responded_at,
+      responded_by: r.responded_by,
+      deleted_at: r.deleted_at,
+      deleted_by: r.deleted_by,
+      member: r.member_id && !r.is_anonymous ? {
+        member_id: r.member_id,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        jumuiya: r.jumuiya_name,
+        phone: r.phone,
+      } : null,
+    }));
+
+    res.json({ status: "success", data });
+  } catch (error) {
+    logger.error("getBin error:", error.message);
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+/* ── Clear Single from Bin (permanent delete) ──────────────────── */
+
+export const clearBinItem = async (req, res) => {
+  try {
+    if (!isSuperAdmin(req)) return res.status(403).json({ status: false, message: "Only CSA Chair can clear the bin" });
+    const { id } = req.params;
+    const result = await pool.query("DELETE FROM suggestions WHERE id = $1 AND deleted_at IS NOT NULL RETURNING id", [id]);
+    if (result.rows.length === 0) return res.status(404).json({ status: false, message: "Item not found in bin" });
+    res.json({ status: "success", message: "Permanently deleted from bin" });
+  } catch (error) {
+    logger.error("clearBinItem error:", error.message);
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+/* ── Clear All from Bin (permanent delete) ─────────────────────── */
+
+export const clearAllBin = async (req, res) => {
+  try {
+    if (!isSuperAdmin(req)) return res.status(403).json({ status: false, message: "Only CSA Chair can clear the bin" });
+    const result = await pool.query("DELETE FROM suggestions WHERE deleted_at IS NOT NULL RETURNING id");
+    res.json({ status: "success", message: `Cleared ${result.rowCount} items from bin` });
+  } catch (error) {
+    logger.error("clearAllBin error:", error.message);
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+
 export const revealAuthor = async (req, res) => {
+  if (!rejectIfNotAdmin(req, res)) return;
   try {
     const { id } = req.params;
     const result = await pool.query(

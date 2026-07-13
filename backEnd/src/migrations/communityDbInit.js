@@ -854,8 +854,33 @@ export const setupCommunityDatabase = async () => {
       // Column may already exist, ignore
     }
 
+    // Create notification_uploads join table if target tables exist
+    try {
+      const checkTables = await db.query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_name IN ('notifications', 'uploads')
+      `);
+      if (checkTables.rows.length === 2) {
+        await db.query(`
+          CREATE TABLE IF NOT EXISTS notification_uploads (
+            id SERIAL PRIMARY KEY,
+            notification_id UUID NOT NULL,
+            upload_id INTEGER NOT NULL,
+            CONSTRAINT fk_notification FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE,
+            CONSTRAINT fk_upload FOREIGN KEY (upload_id) REFERENCES uploads(id) ON DELETE CASCADE
+          );
+        `);
+        logger.info("Table 'notification_uploads' ready");
+      } else {
+        logger.warn("Skipping 'notification_uploads' table creation: 'notifications' or 'uploads' table not found in schema.");
+      }
+    } catch (tblErr) {
+      logger.error(`Error initializing 'notification_uploads' table: ${tblErr.message}`);
+    }
+
     const duration = Date.now() - startTime;
-    logger.info(`✔ Community Hub database schema ready (including commerce tables). (Duration: ${duration}ms)`);
+    logger.info(`✔ Community Hub database schema ready (including commerce tables and join tables). (Duration: ${duration}ms)`);
   } catch (error) {
     logger.error("❌ Community Hub database schema initialization failed:", error.message, { stack: error.stack });
     // Non-fatal, do not exit server process here to let basic app routes function

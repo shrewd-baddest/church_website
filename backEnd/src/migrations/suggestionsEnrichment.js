@@ -54,6 +54,27 @@ const suggestionsEnrichment = async () => {
       ADD COLUMN IF NOT EXISTS unmask_liturgist_responded_at TIMESTAMP
     `);
 
+    await pool.query(`
+      ALTER TABLE suggestions
+      ADD COLUMN IF NOT EXISTS status VARCHAR(30) NOT NULL DEFAULT 'new'
+    `);
+    await pool.query(`
+      ALTER TABLE suggestions
+      ADD COLUMN IF NOT EXISTS category VARCHAR(50)
+    `);
+    await pool.query(`
+      ALTER TABLE suggestions
+      ADD COLUMN IF NOT EXISTS admin_response TEXT
+    `);
+    await pool.query(`
+      ALTER TABLE suggestions
+      ADD COLUMN IF NOT EXISTS responded_at TIMESTAMP
+    `);
+    await pool.query(`
+      ALTER TABLE suggestions
+      ADD COLUMN IF NOT EXISTS responded_by VARCHAR(255)
+    `);
+
     logger.info("Suggestions enrichment migration complete");
   } catch (error) {
     logger.error("Suggestions enrichment migration failed:", error.message);

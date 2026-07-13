@@ -17,6 +17,7 @@ export const Reset = async (req, res) => {
     //   Check if user exists
 
     let userName = null;
+    let existingUser = null;
 
     if (purpose === "email") {
       userName = req.body.userReg;
@@ -36,9 +37,12 @@ export const Reset = async (req, res) => {
         logger.warn(`Password reset attempt for non-existent email: ${email}`);
         return res.status(404).send("User not found");
       }
-      if (!userCheck.rows[0].email_verified) {
+      existingUser = userCheck.rows[0];
+      if (!existingUser.email_verified) {
         return res.status(403).json({ error: "Email not verified. Please verify your email before resetting your password." });
       }
+      // Use the member's actual primary key for the password_resets record
+      userName = existingUser.member_id;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -59,7 +63,7 @@ export const Reset = async (req, res) => {
            temp_password = EXCLUDED.temp_password`,
       [
         userName,
-        email || existingUser.email,
+        email, // email is already validated as required at the top of the function
         hashedOtp,
         expiresAt,
         hashedPassword,

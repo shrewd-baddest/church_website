@@ -71,9 +71,9 @@ const Footers = () => {
           © {currentYear} St. Thomas Aquinas CSA — Crafted for the Catholic Community.
         </p>
         <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-          <a href="#" className="hover:text-gray-700 transition-colors duration-200">Privacy</a>
+          <Link to="/privacy" className="hover:text-gray-700 transition-colors duration-200">Privacy</Link>
           <span className="text-gray-300">·</span>
-          <a href="#" className="hover:text-gray-700 transition-colors duration-200">Terms</a>
+          <Link to="/terms" className="hover:text-gray-700 transition-colors duration-200">Terms</Link>
         </div>
       </div>
     </footer>

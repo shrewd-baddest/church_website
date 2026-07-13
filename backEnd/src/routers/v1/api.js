@@ -37,6 +37,22 @@ const allowedTables = [
   "product_categories",
 ];
 
+// Tables that contain sensitive member/financial data — read access is admin-only
+const PRIVATE_TABLES = new Set([
+  "members", "contributions", "users", "mpesa_request",
+  "suggestions", "orders", "hire_requests",
+]);
+
+// Roles permitted to read/write private tables or perform any write operation
+const API_ADMIN_ROLES = ["supreme_admin", "admin", "csa_chair", "csa_secretary", "csa_vice_chair"];
+
+const isAdminRole = (req) => {
+  const userRoles = req.user?.role;
+  const normalized = (Array.isArray(userRoles) ? userRoles : [userRoles])
+    .map((r) => String(r).toLowerCase().trim());
+  return normalized.some((r) => API_ADMIN_ROLES.includes(r));
+};
+
 // Middleware to validate table name
 const validateTable = (req, res, next) => {
   const tableName = req.params.table;
@@ -48,8 +64,32 @@ const validateTable = (req, res, next) => {
   next();
 };
 
-// GET all data from all tables (must be before /:table route)
-api.get("/all/data", async (req, res) => {
+// Middleware to guard private tables and all write operations
+const validatePrivateAccess = (req, res, next) => {
+  const table = req.params.table;
+  if (!req.user) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  if (PRIVATE_TABLES.has(table) && !isAdminRole(req)) {
+    logger.warn(`Unauthorized access attempt on private table '${table}' by member ${req.user?.member_id}`);
+    return res.status(403).json({ error: "Access denied: administrative role required for this table" });
+  }
+  next();
+};
+
+// Middleware that always requires an admin role (for writes)
+const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  if (!isAdminRole(req)) {
+    return res.status(403).json({ error: "Access denied: administrative role required" });
+  }
+  next();
+};
+
+// GET all data from all tables — admin only
+api.get("/all/data", requireAdmin, async (req, res) => {
   try {
     const data = await getAllData();
     logger.debug(`received data from route '/all/data'`);
@@ -61,7 +101,7 @@ api.get("/all/data", async (req, res) => {
 });
 
 // GET all records from a table
-api.get("/:table", validateTable, async (req, res) => {
+api.get("/:table", validateTable, validatePrivateAccess, async (req, res) => {
   try {
     const { table } = req.params;
     let data = await getTableData(table, req.query);
@@ -100,7 +140,7 @@ api.get("/:table", validateTable, async (req, res) => {
 });
 
 // POST create a new record in a table
-api.post("/:table", validateTable, async (req, res) => {
+api.post("/:table", validateTable, validatePrivateAccess, requireAdmin, async (req, res) => {
   try {
     const { table } = req.params;
     
@@ -135,7 +175,7 @@ api.post("/:table", validateTable, async (req, res) => {
 });
 
 // PATCH update a record in a table
-api.patch("/:table/:id", validateTable, async (req, res) => {
+api.patch("/:table/:id", validateTable, validatePrivateAccess, requireAdmin, async (req, res) => {
   try {
     const { table, id } = req.params;
     const updated = await updateRecord(table, id, req.body);
@@ -150,7 +190,7 @@ api.patch("/:table/:id", validateTable, async (req, res) => {
 });
 
 // DELETE a record from a table
-api.delete("/:table/:id", validateTable, async (req, res) => {
+api.delete("/:table/:id", validateTable, validatePrivateAccess, requireAdmin, async (req, res) => {
   try {
     const { table, id } = req.params;
     const deleted = await deleteRecord(table, id);

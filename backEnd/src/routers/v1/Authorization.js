@@ -49,29 +49,31 @@ route.get("/stk-push-status/:checkoutId", checkStatus);
 route.post("/mpesa/callback", callback);
 route.get("/mpesa/callback", callback);
 
-// function for registering  roles, permissions and assign permissions to roles , and registering a user with a role
-route.post("/register", registerUser);
-route.post("/roles", registerRoleValidator, validate, registerRoles);
+// ── Admin-only system setup routes (require a valid token) ───────────────────
+route.post("/register", verifyToken, registerUser);
+route.post("/roles", verifyToken, registerRoleValidator, validate, registerRoles);
 route.post(
   "/permissions",
+  verifyToken,
   registerPermissionValidator,
   validate,
   registerPermissions,
 );
 route.post(
   "/role-permissions",
+  verifyToken,
   assignRolePermissionValidator,
   validate,
   assignPermissionsToRole,
 );
 
-// function for admin to manage roles and permissions, this is for testing purposes only, in production we will have an admin interface to manage users, roles and permissions
-route.get("/list-roles-permissions", getRolesAndPermissions);
-route.get("/list-permissions-by-role", getPermissionsByRole);
-route.get("/users-role-permissions", getUserRolesAndPermissions);
-route.get("/list-all-memebrs-roles-permisions", listAllUsersRolesPermissions);
-route.get("/list-all-memebrs", listAllMembers);
-route.get("/delete-all-memebers", deleteAllMembers);
-route.post("/update-user-roles", updateUserRoles);
+// function for admin to manage roles and permissions
+route.get("/list-roles-permissions", verifyToken, getRolesAndPermissions);
+route.get("/list-permissions-by-role", verifyToken, getPermissionsByRole);
+route.get("/users-role-permissions", verifyToken, getUserRolesAndPermissions);
+route.get("/list-all-memebrs-roles-permisions", verifyToken, listAllUsersRolesPermissions);
+route.get("/list-all-memebrs", verifyToken, listAllMembers);
+route.get("/delete-all-memebers", verifyToken, deleteAllMembers);
+route.post("/update-user-roles", verifyToken, updateUserRoles);
 
 export default route;

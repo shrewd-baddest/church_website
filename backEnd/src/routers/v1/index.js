@@ -33,8 +33,8 @@ import hireSubmitRouter from "./hireSubmit.js";
 import hireStatusRouter from "./hireStatus.js";
 import activityLogRouter from "../activityLogRouter.js";
 
-router.use("/payments", paymentRouter);
-router.use("/stkPush", stkPushRouter);
+router.use("/payments", verifyToken, paymentRouter);
+router.use("/stkPush", stkPushRouter); // STK callbacks are validated structurally, auth applied inside
 
 
 // Basic table routes
@@ -49,24 +49,12 @@ router.use("/", galleryRouter); // handles /choir/gallery
 router.use("/community-view", communityViewRouter);
 router.use("/orders", ordersRouter);
 
-// ======================================
-// TEMP DEVELOPMENT COMMENT
-// ADMIN AUTH DISABLED TEMPORARILY
-// RE-ENABLE BEFORE PRODUCTION
-// ======================================
-// router.use("/questions", verifyToken, QuestionsRoutes);
-router.use("/questions", QuestionsRoutes);
-
-// router.use("/files", verifyToken, uploadMedia);
-router.use("/files", uploadMedia);
-
+// All routes below require a valid JWT token
+router.use("/questions", verifyToken, QuestionsRoutes);
+router.use("/files", verifyToken, uploadMedia);
 router.use("/notifications", verifyToken, notificationRoutes);
-
-// router.use("/csa", verifyToken, JumuiComparisonRoutes);
-router.use("/csa", JumuiComparisonRoutes);
-
-// router.use("/distribution", verifyToken, formsDistributionRouter);
-router.use("/distribution", formsDistributionRouter);
+router.use("/csa", verifyToken, JumuiComparisonRoutes);
+router.use("/distribution", verifyToken, formsDistributionRouter);
 
 // Slider and config endpoints for frontend banners
 router.use("/", sliderRoutes);
@@ -109,7 +97,7 @@ router.use("/", activityLogRouter);
 // Suggestions system
 router.use("/", suggestionRoutes);
 
-// Generic Table CRUD (should be last)
-router.use("/", tableApi);
+// Generic Table CRUD (should be last) — requires valid session token
+router.use("/", verifyToken, tableApi);
 
 export default router;

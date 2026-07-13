@@ -94,7 +94,7 @@ const initialModules: CommunityModule[] = [
         color: '#2c3e50',
         icon: 'fas fa-music',
         scheduleLabel: 'Practice Schedule',
-        registrationEndpoint: '/api/enrollments',
+        registrationEndpoint: '/enrollments',
         about: 'The Choir is dedicated to uplifting the spirits of the congregation through carefully selected hymns and chants. We sing at the Sunday 10 AM Mass and during special events.',
         meetingSchedule: 'Tuesdays 6PM–8PM @ Church Hall · Saturdays 1PM–4PM @ LH 32',
         practiceSchedules: [
@@ -122,7 +122,7 @@ const initialModules: CommunityModule[] = [
         color: '#e67e22',
         icon: 'fas fa-child',
         scheduleLabel: 'Training Schedule',
-        registrationEndpoint: '/api/enrollments',
+        registrationEndpoint: '/enrollments',
         about: 'Our liturgical dancers add a profound layer of prayer through bodily expression. We welcome members of all ages to express their love for God through cultural and liturgical dance.',
         meetingSchedule: 'Every Saturday, 4:00 PM – 6:30 PM — School Compound',
         agenda: [
@@ -144,7 +144,7 @@ const initialModules: CommunityModule[] = [
         color: '#2ecc71',
         icon: 'fas fa-fire-alt',
         scheduleLabel: 'Meeting Schedule',
-        registrationEndpoint: '/api/enrollments',
+        registrationEndpoint: '/enrollments',
         about: 'The Charismatic Prayer Group focuses on prayer, praise, healing and experiencing the Holy Spirit in our daily lives. All are welcome to join us in an environment of faith and miracles.',
         meetingSchedule: 'Every Saturday, 5:00 PM – 6:30 PM — Parish Hall',
         agenda: [
@@ -163,7 +163,7 @@ const initialModules: CommunityModule[] = [
         color: '#2980b9',
         icon: 'fas fa-dove',
         scheduleLabel: 'Prayer Schedule',
-        registrationEndpoint: '/api/enrollments',
+        registrationEndpoint: '/enrollments',
         about: 'The St. Francis of Assisi community serves the marginalized, cares for the environment, and promotes peace within our parish and the broader world. We are inspired by the radical simplicity of our patron saint.',
         meetingSchedule: 'Every Sunday, 5:00 PM – 6:30 PM — LH 21',
         announcements: [
@@ -188,7 +188,7 @@ const initialModules: CommunityModule[] = [
         color: '#8e44ad',
         icon: 'fas fa-users',
         scheduleLabel: 'Mentorship Sessions',
-        registrationEndpoint: '/api/enrollments',
+        registrationEndpoint: '/enrollments',
         about: 'The Mentorship Program connects young Christians with experienced mentors to guide them in spiritual growth, professional development, and personal maturity.',
         meetingSchedule: 'Every Sunday, 3:00 PM – 5:00 PM — Parish Hall',
         fees: { registration: 0, subscription: 0 }
