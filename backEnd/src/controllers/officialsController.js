@@ -1,5 +1,6 @@
 import { db as pool } from "../Configs/dbConfig.js";
 import path from 'path';
+import crypto from 'crypto';
 import ExcelJS from 'exceljs';
 import { 
   normalizePhone, 
@@ -10,9 +11,51 @@ import {
   syncCurrentTerm,
   formatPhoneForExcel 
 } from '../utils/helpers.js';
-import { autoAssignRoleForOfficial, removeRoleForOfficial } from '../utils/positionToRole.js';
+import { autoAssignRoleForOfficial, removeRoleForOfficial, getRoleNameForPosition } from '../utils/positionToRole.js';
 import logger from "../logger/winston.js";
 import { emitSocketEvent } from "../socket/index.js";
+import sendEmail from "../Configs/emailConfig.js";
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+const HIGH_PRIVILEGE_POSITIONS = ["Chairperson", "Secretary", "Jumuiya Coordinator"];
+const APPROVER_POSITIONS = ["Chairperson", "Secretary", "Jumuiya Coordinator"];
+
+const approvalEmailHtml = ({ official, initiator, token, role }) => `
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f4f6f9;font-family:-apple-system,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px;"><tr><td align="center">
+<table width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;">
+<tr><td style="background:#fff;border-radius:16px;padding:40px 32px;">
+<h1 style="margin:0 0 16px;font-size:20px;color:#1e293b;text-align:center;">Deletion Approval Request</h1>
+<p style="margin:0 0 8px;font-size:15px;color:#64748b;text-align:center;line-height:1.6;">
+  <strong>${initiator}</strong> wants to delete <strong>${official}</strong> from the officials list.
+</p>
+<p style="margin:0 0 24px;font-size:14px;color:#94a3b8;text-align:center;">
+  Position: ${role}<br>
+  You are one of three approvers. Two approvals are required.
+</p>
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:0 0 12px;">
+<a href="${FRONTEND_URL}/officials/deletion-approval/${token}?action=approve" style="display:inline-block;background:#16a34a;color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:12px 32px;border-radius:10px;margin:0 6px;">✓ Approve</a>
+<a href="${FRONTEND_URL}/officials/deletion-approval/${token}?action=reject" style="display:inline-block;background:#fff;color:#dc2626;font-size:15px;font-weight:600;text-decoration:none;padding:12px 32px;border-radius:10px;border:2px solid #fecaca;margin:0 6px;">✗ Reject</a>
+</td></tr></table>
+<p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">&mdash; CSA Kirinyaga Chapter</p>
+</td></tr></table></td></tr></table></body></html>
+`;
+
+const findApproversByPosition = async (position, excludeOfficialId) => {
+  const result = await pool.query(
+    `SELECT o.id, o.name, o.reg_number, m.email
+     FROM officials o
+     LEFT JOIN members m ON m.member_id = o.reg_number
+     WHERE o.position = $1
+       AND o.id != $2
+       AND m.email IS NOT NULL
+     ORDER BY o.created_at ASC`,
+    [position, excludeOfficialId]
+  );
+  return result.rows;
+};
 
 export const CATEGORY_LIMITS = {
   'Executive': 6,
@@ -722,21 +765,46 @@ export const updateOfficial = async (req, res) => {
     const newPosition = position || oldPosition;
     const newRegNumber = validatedRegNumber || oldRegNumber;
 
+    let inheritedStatus = 'pending';
     if (oldPosition !== newPosition || oldRegNumber !== newRegNumber) {
       if (oldPosition && oldRegNumber) {
+        const oldRoleName = getRoleNameForPosition(oldPosition, false);
+        if (oldRoleName) {
+          const oldRole = await pool.query(
+            `SELECT mr.status FROM member_roles mr
+             JOIN roles r ON r.role_id = mr.role_id
+             WHERE mr.member_id = $1 AND r.role_name = $2 AND mr.status = 'approved'`,
+            [oldRegNumber, oldRoleName]
+          );
+          if (oldRole.rows.length > 0) inheritedStatus = 'approved';
+        }
         await removeRoleForOfficial(oldRegNumber, oldPosition, false);
       }
       if (newRegNumber && newPosition) {
         const roleResult = await autoAssignRoleForOfficial(
-          newRegNumber, newPosition, false, result.rows[0].category, req.user?.member_id || null
+          newRegNumber, newPosition, false, result.rows[0].category, req.user?.member_id || null, inheritedStatus
         );
         if (roleResult) {
           logger.info(`Auto-assigned role for updated official: ${JSON.stringify(roleResult)}`);
         }
       }
     } else if (validatedRegNumber && position && oldPosition === position) {
+      // Position unchanged — if the member changed, preserve the old role status
+      let reassignStatus = 'pending';
+      if (oldRegNumber !== newRegNumber) {
+        const oldRoleName = getRoleNameForPosition(position, false);
+        if (oldRoleName) {
+          const oldRole = await pool.query(
+            `SELECT mr.status FROM member_roles mr
+             JOIN roles r ON r.role_id = mr.role_id
+             WHERE mr.member_id = $1 AND r.role_name = $2 AND mr.status = 'approved'`,
+            [oldRegNumber, oldRoleName]
+          );
+          if (oldRole.rows.length > 0) reassignStatus = 'approved';
+        }
+      }
       const roleResult = await autoAssignRoleForOfficial(
-        validatedRegNumber, position, false, result.rows[0].category, req.user?.member_id || null
+        validatedRegNumber, position, false, result.rows[0].category, req.user?.member_id || null, reassignStatus
       );
       if (roleResult) {
         logger.info(`Re-assigned role for official: ${JSON.stringify(roleResult)}`);
@@ -756,6 +824,21 @@ export const updateOfficial = async (req, res) => {
   }
 };
 
+const executeDeletion = async (official, res) => {
+  if (official.photo) {
+    if (official.photo.startsWith('http')) {
+      await deleteFromCloudinary(official.photo);
+    } else {
+      const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
+      deleteFile(filePath);
+    }
+  }
+  if (official.reg_number && official.position) {
+    await removeRoleForOfficial(official.reg_number, official.position, false);
+  }
+  await pool.query('DELETE FROM officials WHERE id = $1', [official.id]);
+};
+
 export const deleteOfficial = async (req, res) => {
   try {
     const { id } = req.params;
@@ -767,26 +850,212 @@ export const deleteOfficial = async (req, res) => {
 
     const official = result.rows[0];
 
-    if (official.photo) {
-      if (official.photo.startsWith('http')) {
-        await deleteFromCloudinary(official.photo);
-      } else {
-        const filePath = path.join(process.cwd(), 'localFileUploads', path.basename(official.photo));
-        deleteFile(filePath);
+    const isHighPrivilege = HIGH_PRIVILEGE_POSITIONS.includes(official.position);
+    if (!isHighPrivilege) {
+      await executeDeletion(official);
+      emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete", id });
+      return res.json({ success: true, message: 'Official deleted successfully' });
+    }
+
+    const approverEmailPromises = APPROVER_POSITIONS.map(async (pos) => {
+      const approvers = (await findApproversByPosition(pos, parseInt(id))).slice(0, 1);
+      return { position: pos, approvers };
+    });
+    const approverGroups = await Promise.all(approverEmailPromises);
+
+    const allEmails = [];
+    const tokenMap = {};
+    for (const group of approverGroups) {
+      for (const approver of group.approvers) {
+        const token = crypto.randomBytes(32).toString('hex');
+        tokenMap[group.position] = token;
+
+        const existing = await pool.query(
+          `SELECT id FROM deletion_approvals WHERE official_id = $1 AND status = 'pending' AND chair_responded = false AND secretary_responded = false AND coordinator_responded = false`,
+          [id]
+        );
+
+        if (existing.rows.length > 0) {
+          return res.status(409).json({ success: false, message: 'A pending deletion approval already exists for this official' });
+        }
+
+        allEmails.push({
+          email: approver.email,
+          token,
+          position: group.position,
+          name: approver.name,
+        });
       }
     }
 
-
-    if (official.reg_number && official.position) {
-      await removeRoleForOfficial(official.reg_number, official.position, false);
+    if (allEmails.length === 0) {
+      await executeDeletion(official);
+      emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete", id });
+      return res.json({ success: true, message: 'No approvers configured; official deleted directly' });
     }
 
-    await pool.query('DELETE FROM officials WHERE id = $1', [id]);
-    emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete", id });
-    res.json({ success: true, message: 'Official deleted successfully' });
+    await pool.query(
+      `INSERT INTO deletion_approvals (
+        official_id, official_name, official_position, initiator_id, initiator_name,
+        chair_token, secretary_token, coordinator_token
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        id, official.name, official.position,
+        req.user?.member_id || 'unknown', req.user?.name || 'Unknown',
+        tokenMap['Chairperson'] || null,
+        tokenMap['Secretary'] || null,
+        tokenMap['Jumuiya Coordinator'] || null,
+      ]
+    );
+
+    const emailPromises = allEmails.map(({ email, token, position, name }) => {
+      const html = approvalEmailHtml({
+        official: `${official.name} (${official.position})`,
+        initiator: req.user?.name || 'A user',
+        token,
+        role: position,
+      });
+      return sendEmail(
+        email,
+        `Deletion Approval Required: ${official.name}`,
+        `A deletion approval request has been initiated. Use the following link to approve or reject: ${FRONTEND_URL}/officials/deletion-approval/${token}`,
+        html
+      );
+    });
+
+    await Promise.all(emailPromises);
+
+    res.json({
+      success: true,
+      message: 'Approval request sent to Chairperson, Secretary, and Jumuiya Coordinator. Deletion will proceed once two approvals are received.',
+      requiresApproval: true,
+    });
   } catch (error) {
     logger.error('Error deleting official: ' + error.message);
     res.status(500).json({ success: false, message: 'Failed to delete official' });
+  }
+};
+
+export const respondDeletionApproval = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { action } = req.body;
+
+    if (!action || !['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Invalid action. Use "approve" or "reject".' });
+    }
+
+    const columnMap = { chair_token: 'chair', secretary_token: 'secretary', coordinator_token: 'coordinator' };
+    let foundColumn = null;
+    let foundPrefix = null;
+    for (const [col, prefix] of Object.entries(columnMap)) {
+      const check = await pool.query(`SELECT id, status FROM deletion_approvals WHERE ${col} = $1`, [token]);
+      if (check.rows.length > 0) {
+        foundColumn = col;
+        foundPrefix = prefix;
+        break;
+      }
+    }
+
+    if (!foundColumn) {
+      return res.status(404).json({ success: false, message: 'Invalid or expired approval token' });
+    }
+
+    const approval = (await pool.query(`SELECT * FROM deletion_approvals WHERE ${foundColumn} = $1`, [token])).rows[0];
+
+    if (approval.status !== 'pending') {
+      return res.status(409).json({
+        success: false,
+        message: approval.status === 'approved' ? 'This deletion has already been approved and executed.' : 'This deletion request has already been rejected.'
+      });
+    }
+
+    const respondedCol = `${foundPrefix}_responded`;
+    const approvedCol = `${foundPrefix}_approved`;
+    const respondedAtCol = `${foundPrefix}_responded_at`;
+
+    if (approval[respondedCol]) {
+      return res.status(409).json({ success: false, message: 'You have already responded to this request' });
+    }
+
+    const now = new Date();
+    await pool.query(
+      `UPDATE deletion_approvals SET ${respondedCol} = true, ${approvedCol} = $1, ${respondedAtCol} = $2, updated_at = $2 WHERE id = $3`,
+      [action === 'approve', now, approval.id]
+    );
+
+    if (action === 'reject') {
+      return res.json({ success: true, message: 'You have rejected the deletion request.' });
+    }
+
+    const updated = (await pool.query('SELECT * FROM deletion_approvals WHERE id = $1', [approval.id])).rows[0];
+    const approvals = ['chair_approved', 'secretary_approved', 'coordinator_approved']
+      .map(col => updated[col])
+      .filter(v => v === true).length;
+
+    if (approvals >= 2) {
+      const official = (await pool.query('SELECT * FROM officials WHERE id = $1', [approval.official_id])).rows[0];
+      if (official) {
+        await executeDeletion(official);
+        await pool.query("UPDATE deletion_approvals SET status = 'approved', updated_at = NOW() WHERE id = $1", [approval.id]);
+        emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete", id: approval.official_id });
+        return res.json({ success: true, message: 'Approval threshold reached. Official has been deleted.', deleted: true });
+      }
+      await pool.query("UPDATE deletion_approvals SET status = 'approved', updated_at = NOW() WHERE id = $1", [approval.id]);
+    }
+
+    res.json({ success: true, message: 'Your approval has been recorded. Waiting for additional approvals.' });
+  } catch (error) {
+    logger.error('Error responding to deletion approval: ' + error.message);
+    res.status(500).json({ success: false, message: 'Failed to process approval' });
+  }
+};
+
+export const getDeletionApprovalInfo = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const columnMap = { chair_token: 'Chairperson', secretary_token: 'Secretary', coordinator_token: 'Jumuiya Coordinator' };
+    let foundColumn = null;
+    let yourRole = null;
+    for (const [col, role] of Object.entries(columnMap)) {
+      const check = await pool.query(`SELECT id FROM deletion_approvals WHERE ${col} = $1`, [token]);
+      if (check.rows.length > 0) {
+        foundColumn = col;
+        yourRole = role;
+        break;
+      }
+    }
+
+    if (!foundColumn) {
+      return res.status(404).json({ success: false, message: 'Invalid or expired approval token' });
+    }
+
+    const approval = (await pool.query(`SELECT * FROM deletion_approvals WHERE ${foundColumn} = $1`, [token])).rows[0];
+
+    const approvalCount = ['chair_approved', 'secretary_approved', 'coordinator_approved']
+      .map(col => approval[col])
+      .filter(v => v === true).length;
+
+    res.json({
+      success: true,
+      data: {
+        official_name: approval.official_name,
+        official_position: approval.official_position,
+        initiator_name: approval.initiator_name,
+        status: approval.status,
+        your_role: yourRole,
+        approvals_received: approvalCount,
+        approvals_required: 2,
+        chair_approved: approval.chair_approved,
+        secretary_approved: approval.secretary_approved,
+        coordinator_approved: approval.coordinator_approved,
+        has_responded: approval[`${yourRole?.toLowerCase().startsWith('chair') ? 'chair' : yourRole?.toLowerCase().startsWith('sec') ? 'secretary' : 'coordinator'}_responded`] === true || false,
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching deletion approval info: ' + error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch approval info' });
   }
 };
 

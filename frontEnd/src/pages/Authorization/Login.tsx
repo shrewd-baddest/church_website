@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowRight, ChevronLeft, User } from "lucide-react";
 import { loginApi } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
-
-interface ErrorResponse {
-  message: string;
-}
 
 const Login: React.FC = () => {
   const [userReg, setUserReg] = useState("");

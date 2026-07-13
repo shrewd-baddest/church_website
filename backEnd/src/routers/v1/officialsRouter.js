@@ -18,6 +18,8 @@ import {
   deleteArchivedOfficial,
   bulkDeleteArchivedOfficials,
   clearAllOfficials,
+  respondDeletionApproval,
+  getDeletionApprovalInfo,
 } from '../../controllers/officialsController.js';
 
 import { uploadMiddleware } from '../../middlewares/uploadMiddleware.js';
@@ -43,6 +45,10 @@ router.delete('/term/:officialId', deleteArchivedOfficial);
 
 // Clear all (admin utility)
 router.delete('/clear-all', verifyToken, clearAllOfficials);
+
+// Deletion approval routes (before generic :id routes)
+router.post('/deletion-approval/:token/respond', respondDeletionApproval);
+router.get('/deletion-approval/:token', getDeletionApprovalInfo);
 
 // Basic CRUD routes for Officials
 router.get('/list', getAllOfficials); 

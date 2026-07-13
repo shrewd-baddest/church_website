@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from './context/DataContext';
 import './JumuiyaLanding.css';
 
+
 const JumuiyaLanding: React.FC = () => {
     const navigate = useNavigate();
     const { jumuiyaList } = useData();

@@ -81,6 +81,8 @@ const AnnouncementsAdmin = lazy(() =>
 );
 const CommunityDetailEditor = lazy(() => import("./pages/Admin/pages/CommunityDetailEditor"));
 const AdminSuggestions = lazy(() => import("./pages/Admin/pages/AdminSuggestions"));
+const UnmaskApproval = lazy(() => import("./pages/Admin/pages/UnmaskApproval"));
+const DeletionApproval = lazy(() => import("./pages/Admin/pages/DeletionApproval"));
 const GalleryManager = lazy(() => import("./pages/Admin/pages/GalleryManager"));
 const SacramentalsBannerManager = lazy(() => import("./pages/Admin/pages/SacramentalsBannerManager"));
 const JumuiyaMembersAdmin = lazy(() => import("./pages/Admin/pages/JumuiyaMembersAdmin"));
@@ -165,6 +167,8 @@ const App: React.FC = () => {
         {/* Order Confirmation (no layout) */}
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/hire-status" element={<HireStatus />} />
+        <Route path="/suggestions/unmask/:token" element={<UnmaskApproval />} />
+        <Route path="/officials/deletion-approval/:token" element={<DeletionApproval />} />
 
         {/* Public Routes with Page Layout */}
         <Route path="/" element={<Pageoulet />}>

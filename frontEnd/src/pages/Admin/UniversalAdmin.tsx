@@ -178,6 +178,9 @@ export default function UniversalAdmin() {
         case "CSA_SECRETARY":
           allowedPrefixes.add("/admin/registered-members");
           break;
+        case "CSA_VICE_CHAIR":
+          allowedPrefixes.add("/admin/suggestions");
+          break;
         case "JUMUIYA_CHAIRPERSON":
         case "JUMUIYA_SECRETARY":
           allowedPrefixes.add("/admin/jumuiya-members");

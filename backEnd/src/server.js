@@ -24,6 +24,8 @@ import { registeredSerialNoMigration } from "./migrations/registeredSerialNo.js"
 import { importRecordsCourseMigration } from "./migrations/importRecordsCourse.js";
 import { backfillSemRegMigration } from "./migrations/backfillSemReg.js";
 import { performanceIndexes } from "./migrations/performanceIndexes.js";
+import { suggestionsEnrichment } from "./migrations/suggestionsEnrichment.js";
+import { deletionApprovalsMigration } from "./migrations/deletionApprovals.js";
 import { startKeepAliveWorker } from "./services/keep-alive.js";
 import { startImportSyncWorker } from "./services/importSyncJob.js";
 
@@ -169,6 +171,8 @@ const initServer = async () => {
     await importRecordsCourseMigration();
     await backfillSemRegMigration();
     await performanceIndexes();
+    await suggestionsEnrichment();
+    await deletionApprovalsMigration();
 
     httpServer.on("error", (err) => {
       if (err?.code === "EADDRINUSE") {

@@ -135,9 +135,6 @@ export const memberProgressData = () => apiClient.get("/member/progress");
 
 export const memberSummaryData = () => apiClient.get("/member/summary");
 
-export const individualJumuiAttemptsData = (jumuiyaId: number) =>
-  apiClient.get(`/attempts/jumuiya/${jumuiyaId}`);
-
 export const fetchNotifications = () => apiClient.get("/notifications");
 
 export const createNotificationEventApi = (payload: {

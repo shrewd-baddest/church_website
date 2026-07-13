@@ -2,11 +2,13 @@ import ImageSlider from "../ImageSlider";
 import { AboutSection, CommunitySection, SupportSection, SuggestionBox, GalleryTeaser } from "../sections";
 import { LiturgicalTicker } from "../LiturgicalTicker";
 import { useLiturgicalCalendar } from "../../../../hooks/useLiturgicalCalendar";
+import { useAuth } from "../../../../context/AuthContext";
 
 export const Home: React.FC = () => {
   const { data } = useLiturgicalCalendar();
+  const { isAuthenticated } = useAuth();
   
-  let themeClass = "bg-gray-50"; // default
+  let themeClass = "bg-gray-50";
   if (data && data.celebrations.length > 0) {
     const color = data.celebrations[0].colour.toLowerCase();
     if (color === "red") themeClass = "bg-red-50/30";
@@ -24,7 +26,7 @@ export const Home: React.FC = () => {
         <AboutSection />
         <GalleryTeaser />
         <CommunitySection />
-        <SuggestionBox />
+        {isAuthenticated && <SuggestionBox />}
         <SupportSection />
       </main>
     </div>

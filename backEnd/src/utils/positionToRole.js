@@ -32,7 +32,7 @@ export const getRoleNameForPosition = (position, isJumuiya) => {
   return map[position] || null;
 };
 
-export const autoAssignRoleForOfficial = async (regNumber, position, isJumuiya, category, assignedBy) => {
+export const autoAssignRoleForOfficial = async (regNumber, position, isJumuiya, category, assignedBy, initialStatus = 'pending') => {
   const roleName = getRoleNameForPosition(position, isJumuiya);
   if (!roleName) return null;
 
@@ -93,21 +93,23 @@ export const autoAssignRoleForOfficial = async (regNumber, position, isJumuiya, 
 
   let result;
   if (existingPending.rows.length > 0) {
+    const statusUpdate = initialStatus !== 'pending' ? `, status = '${initialStatus.replace(/'/g, "''")}'` : '';
     result = await pool.query(
-      `UPDATE member_roles SET assigned_by = $1, created_at = NOW()
+      `UPDATE member_roles SET assigned_by = $1, created_at = NOW()${statusUpdate}
        WHERE id = $2 RETURNING id, status`,
       [assignedBy, existingPending.rows[0].id]
     );
   } else {
     result = await pool.query(
       `INSERT INTO member_roles (member_id, role_id, assigned_by, jumuiya_id, status)
-       VALUES ($1, $2, $3, $4, 'pending')
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id, status`,
-      [member.member_id, roleId, assignedBy, effectiveJumuiyaId]
+      [member.member_id, roleId, assignedBy, effectiveJumuiyaId, initialStatus]
     );
   }
 
-  return { id: result.rows[0].id, status: result.rows[0].status, message: 'Role assigned. Pending approval.' };
+  const msg = initialStatus === 'approved' ? 'Role assigned and approved.' : 'Role assigned. Pending approval.';
+  return { id: result.rows[0].id, status: result.rows[0].status, message: msg };
 };
 
 export const removeRoleForOfficial = async (regNumber, position, isJumuiya) => {

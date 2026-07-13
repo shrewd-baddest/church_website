@@ -95,5 +95,3 @@ const ResetPasswordPage = () => {
 }
 
 export default ResetPasswordPage;
-
-export const emailChecker=()=>{}

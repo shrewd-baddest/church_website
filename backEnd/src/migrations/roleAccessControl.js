@@ -17,6 +17,7 @@ const ROLES = [
   { name: "sub_group_chair", description: "Full admin access for a sub-group (St. Francis, Charismatic, Dance)" },
   { name: "liturgist", description: "Manages Quizzes and Prayers" },
   { name: "treasurer", description: "Manages Donation Monitor" },
+  { name: "csa_vice_chair", description: "CSA Vice Chair — manages user suggestions and feedback" },
 ];
 
 const setupRoleSystem = async () => {

@@ -1,22 +1,16 @@
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import type { DashboardProps } from "../../../interface/api";
-// import { individualJumuiAttemptsData } from "../../../api/axiosInstace";
 import Card from "../components/Card";
-
 
 export default function JumuiyaDashboard({ jumuiyaId }: DashboardProps) {
   const [loading, setLoading] = useState<boolean>(true);
-  // const [jumuiyaStats, setJumuiyaStats] = useState<JumuiyaStats | null>(null);
 
   useEffect(() => {
-
     if (jumuiyaId) {
       const fetchData = async (): Promise<void> => {
         try {
           setLoading(true);
-          // const res = await individualJumuiAttemptsData(jumuiyaId)
-          // setJumuiyaStats(res.data);
         } catch (err) {
           console.error(err);
         } finally {
@@ -42,10 +36,6 @@ const jumuiyaStats ={
       </div>
     );
   }
-
-  // if (!jumuiyaStats) {
-  //   return <p className="text-center mt-10">No data available</p>;
-  // }
 
   const accuracy: number = jumuiyaStats?.totalAttempts
     ? (jumuiyaStats?.correctAttempts / jumuiyaStats?.totalAttempts) * 100

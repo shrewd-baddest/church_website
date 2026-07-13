@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 dotenv.config();
 import jwt from "jsonwebtoken";
 import logger from "../logger/winston.js";
-// import redisClient from "../Configs/redisConfig.js";
 
 const verifyToken = async (req, res, next) => {
   const authHeader =

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { MessageSquare, Send, CheckCircle2, User, Mail, Sparkles, Heart, Star } from 'lucide-react';
-import apiService from '../../services/api';
+import { MessageSquare, Send, CheckCircle2, User, Mail, Sparkles, Heart, Star, Eye, EyeOff } from 'lucide-react';
+import { apiClient } from '../../../../api/axiosInstance';
 
 const SuggestionBox: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +8,7 @@ const SuggestionBox: React.FC = () => {
     email: '',
     suggestion: ''
   });
+  const [anonymous, setAnonymous] = useState(true);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -18,17 +19,19 @@ const SuggestionBox: React.FC = () => {
 
     setStatus('submitting');
     
-    const submissionData: Record<string, string> = {
-      suggestion: formData.suggestion.trim()
+    const payload: Record<string, any> = {
+      suggestion: formData.suggestion.trim(),
+      is_anonymous: anonymous,
     };
     
-    if (formData.name.trim()) submissionData.name = formData.name.trim();
-    if (formData.email.trim()) submissionData.email = formData.email.trim();
+    if (formData.name.trim()) payload.name = formData.name.trim();
+    if (formData.email.trim()) payload.email = formData.email.trim();
 
     try {
-      await apiService.createRecord('suggestions', submissionData);
+      await apiClient.post('/suggestions', payload);
       setStatus('success');
       setFormData({ name: '', email: '', suggestion: '' });
+      setAnonymous(true);
       
       setTimeout(() => {
         setStatus('idle');
@@ -49,11 +52,11 @@ const SuggestionBox: React.FC = () => {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -mr-48 -mt-48 opacity-60"></div>
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-50/20 rounded-full blur-3xl -ml-48 -mb-48 opacity-60"></div>
       
-      {/* Floating Decorative Elements - Moved very high on mobile to avoid overlap */}
-      <div className="absolute -top-2 md:top-10 left-4 md:left-10 text-primary/10 -rotate-12 animate-bounce direction-alternate-reverse duration-[3000ms]">
+      {/* Floating Decorative Elements */}
+      <div className="absolute -top-2 md:top-10 left-4 md:left-10 text-primary/10">
         <Heart size={36} fill="currentColor" />
       </div>
-      <div className="absolute bottom-10 right-4 md:right-10 text-amber-500/5 rotate-12 animate-pulse">
+      <div className="absolute bottom-10 right-4 md:right-10 text-amber-500/5">
         <Star size={48} fill="currentColor" />
       </div>
 
@@ -155,7 +158,23 @@ const SuggestionBox: React.FC = () => {
                       ></textarea>
                     </div>
 
-                    <div className="pt-2">
+                    <div className="flex items-center justify-between pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <button
+                          type="button"
+                          onClick={() => setAnonymous(!anonymous)}
+                          className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${anonymous ? 'bg-primary' : 'bg-slate-300'}`}
+                        >
+                          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${anonymous ? 'translate-x-5' : ''}`} />
+                        </button>
+                        <span className="text-xs font-bold text-slate-500 tracking-wider flex items-center gap-1.5">
+                          {anonymous ? <EyeOff size={13} /> : <Eye size={13} />}
+                          {anonymous ? 'Anonymous' : 'Attach my identity'}
+                        </span>
+                      </label>
+                    </div>
+
+                    <div>
                       <button
                         type="submit"
                         disabled={status === 'submitting' || !formData.suggestion.trim()}

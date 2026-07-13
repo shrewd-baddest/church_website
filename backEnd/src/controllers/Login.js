@@ -5,6 +5,7 @@ import { db as pool } from "../Configs/dbConfig.js";
 import logger from "../logger/winston.js";
 import jwt from "jsonwebtoken";
 import sendMail from "../Configs/emailConfig.js";
+import { verificationEmailHTML, verificationEmailText } from "../Configs/emailTemplates.js";
 dotenv.config();
 
 export const Login = async (req, res) => {
@@ -268,10 +269,12 @@ export const firstLoginSetup = async (req, res) => {
       );
       try {
         const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+        const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}&reg=${encodeURIComponent(member_id)}`;
         await sendMail(
           "Verify your email — CSA Kirinyaga",
-          `Hi ${member_id},\n\nPlease verify your email by clicking the link below:\n${FRONTEND_URL}/verify-email?token=${token}&reg=${encodeURIComponent(member_id)}\n\nThis link expires in 24 hours.\n\n— CSA Kirinyaga Chapter`,
-          email.trim()
+          verificationEmailText({ name: member_id, verifyUrl }),
+          email.trim(),
+          verificationEmailHTML({ name: member_id, verifyUrl })
         );
       } catch (mailErr) {
         logger.error("Failed to send verification email:", mailErr.message, mailErr.stack);
@@ -365,10 +368,12 @@ export const resendVerification = async (req, res) => {
     }
 
     const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+    const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}&reg=${encodeURIComponent(member_id)}`;
     await sendMail(
       "Verify your email — CSA Kirinyaga",
-      `Hi ${member_id},\n\nPlease verify your email by clicking the link below:\n${FRONTEND_URL}/verify-email?token=${token}&reg=${encodeURIComponent(member_id)}\n\nThis link expires in 24 hours.\n\n— CSA Kirinyaga Chapter`,
-      member.email
+      verificationEmailText({ name: member_id, verifyUrl }),
+      member.email,
+      verificationEmailHTML({ name: member_id, verifyUrl })
     );
 
     res.json({ status: true, message: "Verification email sent" });

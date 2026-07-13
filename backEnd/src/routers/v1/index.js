@@ -25,6 +25,7 @@ const router = Router()
 import paymentRouter from "./payment.router.js";
 import jumuiyaMemberRouter from "./jumuiyaMemberRouter.js";
 import settingsRouter from "./settingsRoutes.js";
+import suggestionRoutes from "./suggestionRoutes.js";
 import { roleManagementRouter } from "./roleManagementRouter.js";
 import categoryCardsRouter from "./categoryCardsRoutes.js";
 import hireAvailabilityRouter from "./hireAvailability.js";
@@ -104,6 +105,9 @@ router.use("/hire", hireStatusRouter);
 
 // Activity logs (must be before generic tableApi catch-all)
 router.use("/", activityLogRouter);
+
+// Suggestions system
+router.use("/", suggestionRoutes);
 
 // Generic Table CRUD (should be last)
 router.use("/", tableApi);
