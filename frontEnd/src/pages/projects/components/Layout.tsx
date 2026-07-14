@@ -17,12 +17,12 @@ export const Layout = () => {
     const {
         cart, isCartOpen, setIsCartOpen, removeFromCart, updateCartQuantity,
         customerName, setCustomerName, customerPhone, setCustomerPhone,
-        customerEmail, setCustomerEmail,
         deliveryAddress, setDeliveryAddress,
         collectionMethod, setCollectionMethod,
         cartTotal, proceedToCheckout, proceedWithCash, toasts, isDarkMode, toggleDarkMode,
         apiMessages,
-        paymentPending, confirmMpesaPayment, dismissPaymentPending
+        paymentPending, confirmMpesaPayment, dismissPaymentPending,
+        dismissToast, cashPhone
     } = useApp();
 
     const [footerIndex, setFooterIndex] = useState(0);
@@ -50,7 +50,7 @@ export const Layout = () => {
                 toggleDarkMode={toggleDarkMode}
             />
 
-            <ToastContainer toasts={toasts} />
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
             <CartDrawer
                 isOpen={isCartOpen}
@@ -63,8 +63,6 @@ export const Layout = () => {
                 setCustomerName={setCustomerName}
                 customerPhone={customerPhone}
                 setCustomerPhone={setCustomerPhone}
-                customerEmail={customerEmail}
-                setCustomerEmail={setCustomerEmail}
                 deliveryAddress={deliveryAddress}
                 setDeliveryAddress={setDeliveryAddress}
                 collectionMethod={collectionMethod}
@@ -74,6 +72,7 @@ export const Layout = () => {
                 paymentPending={paymentPending}
                 confirmMpesaPayment={confirmMpesaPayment}
                 dismissPaymentPending={dismissPaymentPending}
+                cashPhone={cashPhone}
             />
 
             <main className="content">

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { CartItem } from '../data';
-import { X, Trash2, ShoppingBag, ShieldCheck, Plus, Minus, DollarSign, MapPin, Truck } from 'lucide-react';
+import { X, Trash2, ShoppingBag, ShieldCheck, Plus, Minus, DollarSign, MapPin, Truck, CreditCard, Wallet, Package, User, Phone, MessageCircle } from 'lucide-react';
 
 interface CartDrawerProps {
     isOpen: boolean;
@@ -13,8 +13,6 @@ interface CartDrawerProps {
     setCustomerName: (val: string) => void;
     customerPhone: string;
     setCustomerPhone: (val: string) => void;
-    customerEmail: string;
-    setCustomerEmail: (val: string) => void;
     deliveryAddress: string;
     setDeliveryAddress: (val: string) => void;
     collectionMethod: "pickup" | "delivery";
@@ -24,218 +22,217 @@ interface CartDrawerProps {
     paymentPending?: boolean;
     confirmMpesaPayment?: (receipt: string) => void;
     dismissPaymentPending?: () => void;
+    cashPhone?: string;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
     isOpen, onClose, cart, cartTotal, removeFromCart, updateCartQuantity,
     customerName, setCustomerName, customerPhone, setCustomerPhone,
-    customerEmail, setCustomerEmail, deliveryAddress, setDeliveryAddress,
+    deliveryAddress, setDeliveryAddress,
     collectionMethod, setCollectionMethod,
     proceedToCheckout, proceedWithCash,
-    paymentPending, confirmMpesaPayment, dismissPaymentPending
+    paymentPending, confirmMpesaPayment, dismissPaymentPending,
+    cashPhone
 }) => {
     const [receiptInput, setReceiptInput] = React.useState('');
     if (!isOpen) return null;
+    const displayPhone = cashPhone || '254112051739';
+    const isValidPhone = /^\d{10}$/.test(customerPhone.replace(/\s/g, ''));
+    const detailsFilled = customerName.trim().length > 0 && isValidPhone;
+    const canProceed = detailsFilled && (collectionMethod !== "delivery" || deliveryAddress.trim().length > 0);
+    const handlePhoneChange = (val: string) => {
+        const digits = val.replace(/\D/g, '').slice(0, 10);
+        setCustomerPhone(digits.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3').trim());
+    };
 
     return (
-        <div className="fixed inset-0 z-[1000] flex justify-end">
-            <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" onClick={paymentPending ? undefined : onClose} />
-            <div className="relative w-full max-w-md h-full bg-white shadow-2xl flex flex-col z-[1001] transition-transform duration-300 animate-in slide-in-from-right">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={paymentPending ? undefined : onClose} />
+            <div className="relative w-full max-w-lg max-h-[90vh] bg-white rounded-3xl shadow-2xl flex flex-col z-[1001] overflow-hidden">
 
             {paymentPending ? (
-                <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-                        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                            <ShieldCheck size={20} className="text-amber-600" />
-                            Confirm Payment
-                        </h2>
-                        <button onClick={() => { dismissPaymentPending?.(); onClose(); }} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
-                            <X size={20} />
+                <div className="flex flex-col">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                                <ShieldCheck size={20} className="text-amber-600" />
+                            </div>
+                            <div>
+                                <h2 className="font-bold text-slate-800">Confirm Payment</h2>
+                                <p className="text-xs text-slate-400">Enter your M-Pesa receipt</p>
+                            </div>
+                        </div>
+                        <button onClick={() => { dismissPaymentPending?.(); onClose(); }} className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                            <X size={18} />
                         </button>
                     </div>
-                    <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-5">
-                        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
-                            <ShieldCheck size={30} />
+                    <div className="flex flex-col items-center px-8 py-8 text-center space-y-5">
+                        <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
+                            <ShieldCheck size={28} />
                         </div>
-                        <div>
-                            <p className="text-base font-bold text-slate-800">Payment Initiated</p>
-                            <p className="text-sm text-slate-500 mt-1 max-w-xs">
-                                Check your phone for the M-Pesa prompt and enter your PIN. If you've already paid, enter the M-Pesa receipt number from the SMS below.
-                            </p>
-                        </div>
-                        <div className="w-full max-w-xs space-y-3">
-                            <input
-                                type="text"
-                                value={receiptInput}
-                                onChange={e => setReceiptInput(e.target.value)}
-                                placeholder="e.g. QLS1234567"
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase tracking-wider"
-                            />
-                            <button
-                                onClick={() => confirmMpesaPayment?.(receiptInput)}
-                                disabled={!receiptInput.trim()}
-                                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-black rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-[0.98]"
-                            >
-                                Confirm Payment
+                        <p className="font-bold text-slate-800">Awaiting M-Pesa Confirmation</p>
+                        <p className="text-sm text-slate-500 leading-relaxed">Check your phone, enter your PIN, then enter the receipt number below.</p>
+                        <div className="w-full max-w-sm space-y-3">
+                            <input type="text" value={receiptInput} onChange={e => setReceiptInput(e.target.value)} placeholder="e.g. QLS1234567"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center font-bold text-slate-800 tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                            <button onClick={() => confirmMpesaPayment?.(receiptInput)} disabled={!receiptInput.trim()}
+                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all active:scale-[0.98]">
+                                Confirm
                             </button>
                         </div>
-                        <button
-                            onClick={() => { dismissPaymentPending?.(); onClose(); }}
-                            className="text-sm text-slate-400 hover:text-slate-600 underline"
-                        >
-                            Cancel & Close
+                        <button onClick={() => { dismissPaymentPending?.(); onClose(); }} className="text-sm text-slate-400 hover:text-slate-600 underline transition-colors">
+                            Cancel
                         </button>
                     </div>
                 </div>
             ) : (<>
-                    <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-                        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
                             <ShoppingBag size={20} className="text-blue-600" />
-                            Your Cart ({cart.length})
-                        </h2>
-                        <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
-                            <X size={20} />
+                        </div>
+                        <div>
+                            <h2 className="font-bold text-slate-800">Shopping Cart</h2>
+                            <p className="text-xs text-slate-400">{cart.length} item{cart.length !== 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+                        <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-300 mb-4">
+                            <Package size={26} />
+                        </div>
+                        <p className="font-bold text-slate-500">Your cart is empty</p>
+                        <p className="text-sm text-slate-400 mt-1">Browse products and add items you'd like.</p>
+                        <button className="mt-5 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98]" onClick={onClose}>
+                            Continue Shopping
                         </button>
                     </div>
-
-                {/* Items list */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    {cart.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mb-4">
-                                <ShoppingBag size={28} />
-                            </div>
-                            <p className="text-slate-500 font-medium">Your cart is empty</p>
-                            <p className="text-xs text-slate-400 mt-1 max-w-[200px]">Browse items and add them to your cart.</p>
-                            <button className="mt-6 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-200 transition-all" onClick={onClose}>
-                                Continue Shopping
-                            </button>
-                        </div>
-                    ) : (
-                        cart.map((item, index) => {
+                ) : (
+                    <div className="overflow-y-auto max-h-[35vh] px-6 py-3 space-y-2.5">
+                        {cart.map((item, index) => {
                             const product = item.item;
                             const image = product.image_url || product.img || item.img;
                             return (
-                                <div key={index} className="flex gap-4 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
-                                    {image ? (
-                                        <img src={image} alt={product.name} className="w-16 h-16 object-cover rounded-xl border border-slate-200/60" />
-                                    ) : (
-                                        <div className="w-16 h-16 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 text-xs font-semibold">No Img</div>
-                                    )}
-                                    <div className="flex-1 flex flex-col justify-between py-0.5">
-                                        <div>
-                                            <h4 className="font-bold text-sm text-slate-800 line-clamp-1">{product.name}</h4>
-                                            <div className="flex items-center gap-1.5 mt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                                {item.size && <><span>Size: {item.size}</span><span>•</span></>}
-                                                <span>Purchase</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <div className="flex items-center gap-1">
-                                                <button onClick={() => updateCartQuantity(index, -1)} className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 transition-colors">
-                                                    <Minus size={14} />
-                                                </button>
-                                                <span className="text-sm font-bold text-slate-700 min-w-[24px] text-center">{item.quantity || 1}</span>
-                                                <button onClick={() => updateCartQuantity(index, 1)} className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 transition-colors">
-                                                    <Plus size={14} />
-                                                </button>
-                                            </div>
-                                            <span className="text-sm font-black text-blue-600">KES {Number(item.price * (item.quantity || 1)).toLocaleString()}</span>
-                                            <button onClick={() => removeFromCart(index)} className="w-9 h-9 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 transition-colors">
-                                                <Trash2 size={15} />
+                                <div key={index} className="flex gap-3 p-2.5 bg-white border border-slate-100 rounded-xl">
+                                    <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-slate-100 border border-slate-50">
+                                        {image ? (
+                                            <img src={image} alt={product.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-slate-300"><Package size={20} /></div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h4 className="font-bold text-sm text-slate-800 truncate">{product.name}</h4>
+                                            <button onClick={() => removeFromCart(index)} className="w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all shrink-0">
+                                                <Trash2 size={11} />
                                             </button>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {item.size && <span className="text-[10px] font-medium text-slate-400">Size: {item.size}</span>}
+                                            <span className="text-[10px] font-medium text-slate-400">Purchase</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1 bg-slate-100 rounded-md p-0.5">
+                                                <button onClick={() => updateCartQuantity(index, -1)} className="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-white transition-all">
+                                                    <Minus size={10} />
+                                                </button>
+                                                <span className="text-xs font-bold text-slate-700 min-w-[20px] text-center">{item.quantity || 1}</span>
+                                                <button onClick={() => updateCartQuantity(index, 1)} className="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-white transition-all">
+                                                    <Plus size={10} />
+                                                </button>
+                                            </div>
+                                            <span className="text-xs font-black text-slate-900">KES {Number(item.price * (item.quantity || 1)).toLocaleString()}</span>
                                         </div>
                                     </div>
                                 </div>
                             );
-                        })
-                    )}
-                </div>
+                        })}
+                    </div>
+                )}
 
-                {/* Footer and Checkout Form */}
                 {cart.length > 0 && (
-                    <div className="p-6 bg-slate-50 border-t border-slate-100">
-                        <div className="flex justify-between items-center mb-5">
-                            <span className="text-sm font-bold text-slate-500">Subtotal:</span>
-                            <span className="text-xl font-black text-slate-900">KES {cartTotal.toLocaleString()}</span>
+                    <div className="border-t border-slate-200 shrink-0">
+                        <div className="px-6 py-2.5 flex items-center justify-between bg-slate-50">
+                            <span className="text-xs font-semibold text-slate-500">Subtotal</span>
+                            <span className="text-base font-black text-slate-900">KES {cartTotal.toLocaleString()}</span>
                         </div>
 
-                        <div className="space-y-3 mb-4">
-                            <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Full Name <span className="text-rose-500">*</span></label>
-                                <input type="text" required className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-semibold text-slate-800 placeholder:text-slate-400"
-                                    placeholder="John Maina" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Phone Number <span className="text-rose-500">*</span></label>
-                                <input type="tel" required className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-semibold text-slate-800 placeholder:text-slate-400"
-                                    placeholder="0712 345 678" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Email</label>
-                                <input type="email" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-semibold text-slate-800 placeholder:text-slate-400"
-                                    placeholder="you@example.com" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} />
-                            </div>
-
-                            {/* Collection Method */}
-                            <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Collection Method</label>
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setCollectionMethod("pickup")}
-                                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center justify-center gap-2 ${
-                                            collectionMethod === "pickup"
-                                                ? "border-blue-500 bg-blue-50 text-blue-700"
-                                                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
-                                        }`}
-                                    >
-                                        <MapPin size={16} /> Pick Up at Church
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setCollectionMethod("delivery")}
-                                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center justify-center gap-2 ${
-                                            collectionMethod === "delivery"
-                                                ? "border-blue-500 bg-blue-50 text-blue-700"
-                                                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
-                                        }`}
-                                    >
-                                        <Truck size={16} /> Delivery
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Delivery Address (only when delivery selected) */}
-                            {collectionMethod === "delivery" && (
+                        <div className="px-6 py-3 space-y-3">
+                            <div className="grid grid-cols-2 gap-2.5">
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Delivery Address <span className="text-rose-500">*</span></label>
-                                    <input type="text" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-semibold text-slate-800 placeholder:text-slate-400"
-                                        placeholder="Your delivery address" value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} />
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Full Name</label>
+                                    <div className="relative">
+                                        <User size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <input type="text" className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                            placeholder="John Maina" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                                    </div>
                                 </div>
+                                <div>
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Phone No.</label>
+                                    <div className="relative">
+                                        <Phone size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <input type="tel" className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                            placeholder="0712 345 678" value={customerPhone} onChange={(e) => handlePhoneChange(e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2.5">
+                                <button type="button" onClick={() => setCollectionMethod("pickup")}
+                                    className={`flex-1 py-2 rounded-lg text-[11px] font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                                        collectionMethod === "pickup" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-400 hover:border-slate-300"
+                                    }`}>
+                                    <MapPin size={12} /> Pick Up
+                                </button>
+                                <button type="button" onClick={() => setCollectionMethod("delivery")}
+                                    className={`flex-1 py-2 rounded-lg text-[11px] font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                                        collectionMethod === "delivery" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-400 hover:border-slate-300"
+                                    }`}>
+                                    <Truck size={12} /> Delivery
+                                </button>
+                            </div>
+
+                            {collectionMethod === "delivery" && (
+                                <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="Delivery address" value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} />
                             )}
                         </div>
 
-                        {/* Payment Buttons */}
-                        <div className="space-y-3">
-                            <button
-                                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
-                                onClick={proceedToCheckout}
-                                disabled={!customerName.trim() || !customerPhone.trim()}
-                            >
-                                <ShieldCheck size={16} /> Pay via M-Pesa (STK Push)
+                        <div className="px-6 pb-4 space-y-2">
+                            <button onClick={proceedToCheckout} disabled={!canProceed}
+                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                                <CreditCard size={14} /> Pay via M-Pesa
                             </button>
-                            <button
-                                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
-                                onClick={proceedWithCash}
-                                disabled={!customerName.trim() || !customerPhone.trim() || (collectionMethod === "delivery" && !deliveryAddress.trim())}
-                            >
-                                <DollarSign size={16} /> Place Order (Cash on Pickup)
+                            <button onClick={proceedWithCash} disabled={!canProceed}
+                                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                                <Wallet size={14} /> Cash on Pickup
                             </button>
+                            {!detailsFilled && (
+                                <p className="text-center text-[10px] text-amber-600 font-medium">
+                                    {!customerName.trim() ? 'Enter your name' : 'Enter a valid 10-digit phone number'}
+                                </p>
+                            )}
+                            {detailsFilled && !canProceed && collectionMethod === "delivery" && (
+                                <p className="text-center text-[10px] text-amber-600 font-medium">Enter your delivery address</p>
+                            )}
+                            <a
+                                href={`https://wa.me/${displayPhone.replace(/\D/g, '')}?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20an%20order.`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 hover:bg-emerald-100 transition-all group"
+                            >
+                                <MessageCircle size={18} className="text-emerald-500 shrink-0" />
+                                <div className="text-xs">
+                                    <p className="font-semibold text-emerald-800">Chat with us on WhatsApp</p>
+                                    <p className="text-emerald-500 font-bold mt-0.5 group-hover:underline">{displayPhone}</p>
+                                </div>
+                            </a>
                         </div>
-                        <p className="text-center text-[10px] text-slate-400 mt-3">
-                            {collectionMethod === "delivery" ? "Delivery available within Kirinyaga County" : "Items available for pickup at CSA Church Bookshop"}
-                        </p>
                     </div>
                 )}
             </>

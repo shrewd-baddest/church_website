@@ -1,18 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Package, Home, ShoppingBag, Clock, MapPin, Truck } from "lucide-react";
+import { CheckCircle2, Package, Home, ShoppingBag, Clock, MapPin, Truck, MessageCircle, Phone } from "lucide-react";
 
 export default function OrderConfirmation() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [orderId, setOrderId] = useState<string | null>(null);
   const [method, setMethod] = useState<"mpesa" | "cash">("mpesa");
+  const [contactPhone, setContactPhone] = useState("");
 
   useEffect(() => {
     const id = searchParams.get("order_id");
     const m = searchParams.get("method");
+    const phone = searchParams.get("phone");
     if (id) setOrderId(id);
     if (m === "cash") setMethod("cash");
+    if (phone) { setContactPhone(phone); return; }
+    // Fallback: try fetching setting, else use fallback number
+    if (m === "cash") {
+      setContactPhone('254112051739');
+      import("../api/axiosInstance").then(({ apiClient }) => {
+        apiClient.get('/settings').then(res => {
+          if (res.data?.cash_phone) setContactPhone(res.data.cash_phone);
+        }).catch(() => {});
+      });
+    }
   }, [searchParams]);
 
   const isMpesa = method === "mpesa";
@@ -59,6 +71,23 @@ export default function OrderConfirmation() {
               </p>
               <p className="text-xs text-blue-600 mt-1">Monday — Saturday, 8:00 AM – 5:00 PM</p>
             </div>
+
+            {!isMpesa && contactPhone && (
+              <a
+                href={`https://wa.me/${contactPhone}?text=Hello%2C%20I%20have%20placed%20an%20order%20(%23${orderId})%20and%20would%20like%20to%20follow%20up.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 bg-emerald-50 rounded-2xl p-4 border border-emerald-200 hover:bg-emerald-100 transition-all"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                  <MessageCircle size={20} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-emerald-800">Contact us on WhatsApp</p>
+                  <p className="text-xs text-emerald-600">{contactPhone}</p>
+                </div>
+              </a>
+            )}
 
             <div className="space-y-2">
               <p className="text-sm text-slate-500">

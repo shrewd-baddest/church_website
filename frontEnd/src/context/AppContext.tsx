@@ -13,11 +13,7 @@ export interface HireItem {
   quantity: number;
 }
 import apiService from '../pages/Landing/services/api';
-
-interface ToastMessage {
-    id: number;
-    message: string;
-}
+import type { ToastMessage } from '../pages/projects/components/ToastContainer';
 
 interface AppContextType {
     // Products & Config
@@ -46,8 +42,6 @@ interface AppContextType {
     setCustomerName: (name: string) => void;
     customerPhone: string;
     setCustomerPhone: (phone: string) => void;
-    customerEmail: string;
-    setCustomerEmail: (email: string) => void;
     deliveryAddress: string;
     setDeliveryAddress: (address: string) => void;
     collectionMethod: "pickup" | "delivery";
@@ -64,12 +58,14 @@ interface AppContextType {
 
     // Toasts
     toasts: ToastMessage[];
-    showToast: (message: string) => void;
+    showToast: (message: string, type?: ToastMessage['type']) => void;
+    dismissToast: (id: number) => void;
 
     // Global Filters/States
     sacCategory: SacramentalCategory;
     setSacCategory: (cat: SacramentalCategory) => void;
     sectionBanners: Record<string, { img: string; title: string; subtitle: string }> | null;
+    cashPhone: string;
 
     // Hire Cart
     hireItems: HireItem[];
@@ -98,16 +94,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [sacCategory, setSacCategory] = useState<SacramentalCategory>('all');
     const [cart, setCart] = useState<CartItem[]>(() => {
-        const saved = localStorage.getItem('csa_cart');
+        const saved = sessionStorage.getItem('csa_cart');
         return saved ? JSON.parse(saved) : [];
     });
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
-    const [customerEmail, setCustomerEmail] = useState('');
+
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [collectionMethod, setCollectionMethod] = useState<"pickup" | "delivery">("pickup");
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
+    const [settings, setSettings] = useState<Record<string, string>>({});
     const [hireItems, setHireItems] = useState<HireItem[]>([]);
     const [isHireModalOpen, setHireModalOpen] = useState(false);
 
@@ -157,10 +154,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
     }, [isDarkMode]);
 
-    // Persist Cart
+    // Persist Cart (per-session — each tab has its own cart)
     useEffect(() => {
-        localStorage.setItem('csa_cart', JSON.stringify(cart));
+        sessionStorage.setItem('csa_cart', JSON.stringify(cart));
     }, [cart]);
+
+    // Fetch system settings
+    useEffect(() => {
+        apiClient.get('/settings').then(res => setSettings(res.data)).catch(() => {});
+    }, []);
 
     // Persist Admin Auth
     useEffect(() => {
@@ -207,12 +209,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
-    const showToast = (message: string) => {
-        const newToast = { id: Date.now(), message };
+    const showToast = (message: string, type?: ToastMessage['type']) => {
+        const newToast: ToastMessage = { id: Date.now(), message, type: type || 'success' };
         setToasts(prev => [...prev, newToast]);
         setTimeout(() => {
             setToasts(prev => prev.filter(t => t.id !== newToast.id));
-        }, 3000);
+        }, 4000);
+    };
+
+    const dismissToast = (id: number) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
     };
 
     const updateCartQuantity = (indexToUpdate: number, delta: number) => {
@@ -242,7 +248,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return [...prev, { ...item, quantity: 1 }];
         });
         setIsCartOpen(true);
-        showToast(`Added ${item.item?.name || 'item'} to cart`);
+        showToast(`Added ${item.item?.name || 'item'} to cart`, 'success');
     };
 
     const removeFromCart = (indexToRemove: number) => {
@@ -259,94 +265,97 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const proceedToCheckout = async () => {
         if (cart.length === 0) return;
-        if (!customerName.trim() || !customerPhone.trim()) {
-            showToast("Please provide your name and phone number");
+        const phoneDigits = customerPhone.replace(/\D/g, '');
+        if (!customerName.trim() || !/^\d{10}$/.test(phoneDigits)) {
+            showToast(!customerName.trim() ? "Please provide your name" : "Enter a valid 10-digit phone number", 'warning');
             return;
         }
 
-        // Standardize phone number to 254 format for Safaricom
-        let phone = customerPhone.trim();
-        if (phone.startsWith('0')) phone = '254' + phone.slice(1);
-        else if (phone.startsWith('+')) phone = phone.slice(1);
+        let phone = '254' + phoneDigits.replace(/^0+/, '');
 
         let checkoutId: string | null = null;
         let orderCreated = false;
 
         try {
-            showToast("Initiating M-Pesa payment... Please check your phone.");
+            showToast("Initiating M-Pesa payment... Please check your phone.", 'info');
             const response = await apiService.initiateStkPush(phone, cartTotal, cart);
             
-            if (response && response.checkoutId) {
-                checkoutId = response.checkoutId;
-                setPendingCheckoutId(checkoutId);
-                setPendingPhone(phone);
+            if (!response || !response.checkoutId) {
+                showToast(response?.error || "Failed to initiate payment. Please try again.", 'error');
+                return;
+            }
 
-                // Create a pending order linked to this checkout
+            checkoutId = response.checkoutId;
+            setPendingCheckoutId(checkoutId);
+            setPendingPhone(phone);
+
+            // If backend already confirmed payment during its polling window
+            if (response.result?.status === 'paid') {
+                showToast("Payment successful! Order confirmed.", 'success');
+                setCart([]);
+                setIsCartOpen(false);
+                setCustomerName('');
+                setCustomerPhone('');
+                setDeliveryAddress('');
+                navigate(`/order-confirmation?order_id=${checkoutId}&method=mpesa`);
+                return;
+            }
+
+            // Create a pending order linked to this checkout
+            try {
+                await apiService.createRecord('orders', {
+                    amount: cartTotal,
+                    phone,
+                    customer_name: customerName.trim(),
+                    payment_method: 'mpesa',
+                    collection_method: collectionMethod,
+                    delivery_address: collectionMethod === 'delivery' ? deliveryAddress.trim() : null,
+                    checkout_id: checkoutId,
+                    items: cart,
+                    status: 'pending',
+                });
+                orderCreated = true;
+            } catch (e) {
+                console.error("Failed to create pending order:", e);
+                showToast("Warning: Order record failed, but payment will proceed.", 'warning');
+            }
+            
+            // Poll for status - longer timeout (3 min) for M-Pesa callbacks
+            let attempts = 0;
+            const maxAttempts = 36;
+            const pollInterval = setInterval(async () => {
+                attempts++;
                 try {
-                    await apiService.createRecord('orders', {
-                        amount: cartTotal,
-                        phone,
-                        customer_name: customerName.trim(),
-                        customer_email: customerEmail.trim() || null,
-                        payment_method: 'mpesa',
-                        collection_method: collectionMethod,
-                        delivery_address: collectionMethod === 'delivery' ? deliveryAddress.trim() : null,
-                        checkout_id: checkoutId,
-                        items: cart,
-                        status: 'pending',
-                    });
-                    orderCreated = true;
+                    const statusRes = await apiService.checkStkStatus(checkoutId!);
+                    
+                    if (statusRes.status === 'paid') {
+                        clearInterval(pollInterval);
+                        setPaymentPending(false);
+                        showToast("Payment successful! Order confirmed.", 'success');
+                        const orderId = statusRes.order_id || statusRes.orderId || checkoutId;
+                        setCart([]);
+                        setIsCartOpen(false);
+                        setCustomerName('');
+                        setCustomerPhone('');
+                        setDeliveryAddress('');
+                        navigate(`/order-confirmation?order_id=${orderId}&method=mpesa`);
+                    } else if (statusRes.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showToast(`Payment failed: ${statusRes.result_desc || 'Cancelled'}`, 'error');
+                    }
                 } catch (e) {
-                    console.error("Failed to create pending order:", e);
-                    showToast("Warning: Order record failed, but payment will proceed.");
+                    console.error("Error polling:", e);
                 }
                 
-                // Poll for status - longer timeout (3 min) for M-Pesa callbacks
-                let attempts = 0;
-                const maxAttempts = 36; // 3 minutes (5s * 36)
-                const pollInterval = setInterval(async () => {
-                    attempts++;
-                    try {
-                        const statusRes = await apiService.checkStkStatus(checkoutId!);
-                        
-                        if (statusRes.status === 'paid') {
-                            clearInterval(pollInterval);
-                            setPaymentPending(false);
-                            showToast("Payment successful! Order confirmed.");
-                            const orderId = statusRes.order_id || statusRes.orderId || checkoutId;
-                            // Clear cart and customer info
-                            setCart([]);
-                            setIsCartOpen(false);
-                            setCustomerName('');
-                            setCustomerPhone('');
-                            setCustomerEmail('');
-                            setDeliveryAddress('');
-                            // Navigate to confirmation
-                            navigate(`/order-confirmation?order_id=${orderId}&method=mpesa`);
-                        } else if (statusRes.status === 'failed') {
-                            clearInterval(pollInterval);
-                            showToast(`Payment failed: ${statusRes.result_desc || 'Cancelled'}`);
-                        }
-                    } catch (e) {
-                        console.error("Error polling:", e);
-                    }
-                    
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        if (checkoutId) {
-                            setPaymentPending(true);
-                            showToast("Payment sent to your phone. If you've already entered your PIN, enter the M-Pesa receipt from your SMS below.");
-                        } else {
-                            showToast("Payment timeout. Please try again.");
-                        }
-                    }
-                }, 5000);
-            } else {
-                showToast("Failed to initiate payment. Please try again.");
-            }
+                if (attempts >= maxAttempts) {
+                    clearInterval(pollInterval);
+                    setPaymentPending(true);
+                    showToast("Payment sent to your phone. If you've already entered your PIN, enter the M-Pesa receipt from your SMS below.", 'info');
+                }
+            }, 5000);
         } catch (err: any) {
             console.error("Checkout error:", err);
-            showToast(err?.response?.data?.error || "An error occurred during checkout.");
+            showToast(err?.response?.data?.message || err?.response?.data?.error || "Failed to initiate payment. Check your connection and try again.", 'error');
         }
     };
 
@@ -365,15 +374,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 setIsCartOpen(false);
                 setCustomerName('');
                 setCustomerPhone('');
-                setCustomerEmail('');
                 setDeliveryAddress('');
-                showToast("Payment confirmed! Order placed successfully.");
+                showToast("Payment confirmed! Order placed successfully.", 'success');
                 navigate(`/order-confirmation?order_id=${receipt}&method=mpesa`);
             } else {
-                showToast("Could not confirm payment. Check the receipt number and try again.");
+                showToast("Could not confirm payment. Check the receipt number and try again.", 'error');
             }
         } catch (err: any) {
-            showToast(err?.response?.data?.error || "Failed to confirm payment. Try again.");
+            showToast(err?.response?.data?.message || err?.response?.data?.error || "Failed to confirm payment. Try again.", 'error');
         }
     };
 
@@ -385,19 +393,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const proceedWithCash = async () => {
         if (cart.length === 0) return;
-        if (!customerName.trim() || !customerPhone.trim()) {
-            showToast("Please provide your name and phone number");
+        const phoneDigits = customerPhone.replace(/\D/g, '');
+        if (!customerName.trim() || !/^\d{10}$/.test(phoneDigits)) {
+            showToast(!customerName.trim() ? "Please provide your name" : "Enter a valid 10-digit phone number", 'warning');
             return;
         }
 
-        let phone = customerPhone.trim();
+        let phone = '254' + phoneDigits.replace(/^0+/, '');
 
         try {
             const order = await apiService.createRecord('orders', {
                 amount: cartTotal,
                 phone,
                 customer_name: customerName.trim(),
-                customer_email: customerEmail.trim() || null,
                 payment_method: 'cash',
                 collection_method: collectionMethod,
                 delivery_address: collectionMethod === 'delivery' ? deliveryAddress.trim() : null,
@@ -406,17 +414,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
 
             const orderRef = order?.order_reference || order?.id;
+            const cashPhone = settings.cash_phone || '254112051739';
             setCart([]);
             setIsCartOpen(false);
             setCustomerName('');
             setCustomerPhone('');
-            setCustomerEmail('');
             setDeliveryAddress('');
             setCollectionMethod('pickup');
-            navigate(`/order-confirmation?order_id=${orderRef}&method=cash`);
+            navigate(`/order-confirmation?order_id=${orderRef}&method=cash&phone=${encodeURIComponent(cashPhone)}`);
         } catch (err: any) {
             console.error("Cash checkout error:", err);
-            showToast(err?.response?.data?.error || "Failed to place order. Try again.");
+            showToast(err?.response?.data?.message || err?.response?.data?.error || "Failed to place order. Try again.", 'error');
         }
     };
 
@@ -427,16 +435,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             cart, addToCart, removeFromCart, updateCartQuantity, clearCart, cartTotal, cartItemsCount,
             isCartOpen, setIsCartOpen,
             customerName, setCustomerName, customerPhone, setCustomerPhone,
-            customerEmail, setCustomerEmail, deliveryAddress, setDeliveryAddress,
+            deliveryAddress, setDeliveryAddress,
             collectionMethod, setCollectionMethod,
             proceedToCheckout, proceedWithCash,
             paymentPending, pendingCheckoutId, pendingPhone,
             confirmMpesaPayment, dismissPaymentPending,
-            toasts, showToast,
+            toasts, showToast, dismissToast,
             sacCategory, setSacCategory,
             hireItems, addToHire, removeFromHire, updateHireQty, clearHire, hireItemsCount,
             isHireModalOpen, setHireModalOpen,
-            isAdmin, setIsAdmin
+            isAdmin, setIsAdmin,
+            cashPhone: settings.cash_phone || '254112051739'
         }}>
             {children}
         </AppContext.Provider>

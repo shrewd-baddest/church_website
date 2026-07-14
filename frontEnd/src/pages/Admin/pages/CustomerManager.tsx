@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import apiService from "../../Landing/services/api";
-import { Users, RefreshCcw, Loader2, Phone, Mail, ShoppingBag, User, CalendarDays } from "lucide-react";
+import { Users, RefreshCcw, Loader2, Phone, ShoppingBag, Package } from "lucide-react";
 import PanelHeader from "../components/PanelHeader";
 import EmptyState from "../components/EmptyState";
 
@@ -13,89 +13,75 @@ export default function CustomerManager() {
   const loadCustomers = async () => {
     setLoading(true);
     try {
-      const [members, orders, subGroups] = await Promise.all([
-        apiService.fetchTableData("members", true),
-        apiService.fetchTableData("orders", true),
-        apiService.fetchTableData("sub_groups", true),
-      ]);
-      const membersArr = Array.isArray(members) ? members : [];
+      const orders = await apiService.fetchTableData("orders", true);
       const ordersArr = Array.isArray(orders) ? orders : [];
-      const groupsArr = Array.isArray(subGroups) ? subGroups : [];
-      const groupMap: Record<string, string> = {};
-      groupsArr.forEach((g: any) => { if (g.group_id && g.name) groupMap[g.group_id] = g.name; });
-      const enriched = membersArr.map((m: any) => ({
-        ...m,
-        orderCount: ordersArr.filter((o: any) => o.phone === m.phone || o.user_id === m.id).length,
-        jumuiyaName: m.jumuiya_id ? (groupMap[m.jumuiya_id] || m.jumuiya_id) : "—",
-      }));
-      setCustomers(enriched);
+      const grouped: Record<string, { name: string; phone: string; items: string[]; count: number; total: number }> = {};
+      ordersArr.forEach((o: any) => {
+        const phone = o.phone || o.customer_phone || "";
+        if (!phone) return;
+        if (!grouped[phone]) grouped[phone] = { name: o.customer_name || "Unknown", phone, items: [], count: 0, total: 0 };
+        grouped[phone].name = o.customer_name || grouped[phone].name;
+        grouped[phone].count += 1;
+        grouped[phone].total += Number(o.amount || 0);
+        let parsed: any[] = [];
+        try { parsed = typeof o.items === "string" ? JSON.parse(o.items) : (Array.isArray(o.items) ? o.items : []); } catch { parsed = []; }
+        parsed.forEach((item: any) => {
+          const product = item.item || item;
+          const name = product.name || "Item";
+          const qty = item.quantity || 1;
+          const label = `${name} x${qty}`;
+          if (!grouped[phone].items.includes(label)) grouped[phone].items.push(label);
+        });
+      });
+      setCustomers(Object.values(grouped));
     } catch (err) { console.error(err); setCustomers([]); }
     finally { setLoading(false); }
   };
 
-  const getInitial = (name: string) => (name || "?").charAt(0).toUpperCase();
-  const getInitialBg = (name: string) => {
-    const colors = ['bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 'bg-sky-100 text-sky-700', 'bg-rose-100 text-rose-700'];
-    let hash = 0;
-    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PanelHeader
-        title="Customer Management"
-        subtitle={`View and manage your customers (${customers.length})`}
+        title="Customer Orders"
+        subtitle={`Customers who have placed orders (${customers.length})`}
         icon={Users}
         onRefresh={loadCustomers}
         loading={loading}
       />
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
-          <Loader2 size={24} className="animate-spin text-blue-600 mr-3" />
-          <span className="text-sm font-medium text-slate-500">Loading customers...</span>
+        <div className="flex items-center justify-center py-12 bg-white rounded-xl border border-slate-200">
+          <Loader2 size={16} className="animate-spin text-blue-600 mr-2" />
+          <span className="text-xs font-medium text-slate-500">Loading customers...</span>
         </div>
       ) : customers.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="No customers found"
-          subtitle="Customers will appear here once they place orders."
-        />
+        <EmptyState icon={Users} title="No customers found" subtitle="Customers will appear here once they place orders." />
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-2">
           {customers.map((c: any) => (
-            <div key={c.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm ${getInitialBg(c.name || c.first_name)}`}>
-                    {getInitial(c.name || c.first_name)}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-800 text-sm">{c.name || `${c.first_name || ""} ${c.last_name || ""}`.trim() || "—"}</h3>
-                    <span className="text-[11px] text-slate-400 font-medium">{c.email || "No email"}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 rounded-lg">
-                  <ShoppingBag size={12} className="text-blue-600" />
-                  <span className="text-xs font-bold text-blue-700">{c.orderCount || 0}</span>
-                </div>
+            <div key={c.phone} className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 hover:shadow-md transition-all duration-200 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-black text-xs">
+                {(c.name || "?").charAt(0).toUpperCase()}
               </div>
-              <div className="space-y-2.5 pt-3 border-t border-slate-100">
-                <div className="flex items-center gap-2.5 text-xs text-slate-500">
-                  <Phone size={12} className="shrink-0 text-slate-400" />
-                  <span className="font-medium text-slate-700">{c.phone || c.phone_number || "—"}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-bold text-slate-800 text-xs truncate">{c.name}</h3>
+                  <span className="shrink-0 text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">{c.count} order{c.count !== 1 ? 's' : ''}</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs text-slate-500">
-                  <User size={12} className="shrink-0 text-slate-400" />
-                  <span className="font-medium text-slate-700">{c.jumuiyaName}</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Phone size={10} className="text-slate-400 shrink-0" />
+                  <span className="text-[11px] font-medium text-slate-600">{c.phone}</span>
                 </div>
-                {c.created_at && (
-                  <div className="flex items-center gap-2.5 text-xs text-slate-500">
-                    <CalendarDays size={12} className="shrink-0 text-slate-400" />
-                    <span className="font-medium text-slate-700">{new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                )}
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {c.items.slice(0, 3).map((item: string, i: number) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 border border-slate-100 rounded-md text-[9px] font-semibold text-slate-600">
+                      <Package size={8} />
+                      {item}
+                    </span>
+                  ))}
+                  {c.items.length > 3 && (
+                    <span className="text-[9px] font-bold text-slate-400 px-1.5 py-0.5">+{c.items.length - 3} more</span>
+                  )}
+                </div>
               </div>
             </div>
           ))}

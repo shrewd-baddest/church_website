@@ -100,63 +100,63 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-6xl mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-          <LayoutGrid className="w-8 h-8 text-blue-600" />
+        <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <LayoutGrid className="w-5 h-5 text-blue-600" />
           Home Page Cards
         </h1>
-        <p className="text-slate-500 font-medium mt-1">
+        <p className="text-slate-500 font-medium mt-0.5 text-xs">
           Manage the category card images displayed on the home page.
         </p>
       </div>
 
       {/* Input Mode */}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <button
           onClick={() => setInputMode('url')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             inputMode === 'url'
               ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
               : 'bg-slate-50 text-slate-500 border-2 border-transparent hover:border-slate-200'
           }`}
         >
-          <LinkIcon size={14} /> Paste URL
+          <LinkIcon size={12} /> Paste URL
         </button>
         <button
           onClick={() => setInputMode('file')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             inputMode === 'file'
               ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
               : 'bg-slate-50 text-slate-500 border-2 border-transparent hover:border-slate-200'
           }`}
         >
-          <FileImage size={14} /> Upload from PC
+          <FileImage size={12} /> Upload from PC
         </button>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 size={24} className="animate-spin text-blue-600" />
+        <div className="flex items-center justify-center py-10">
+          <Loader2 size={18} className="animate-spin text-blue-600" />
         </div>
       ) : cards.length === 0 && !showNewCard ? (
-        <div className="text-center py-16 text-slate-400">
-          <LayoutGrid size={48} className="mx-auto mb-3 opacity-30" />
-          <p className="font-semibold text-slate-500">No home cards yet</p>
-          <p className="text-sm mt-1">Add your first card to appear on the home page.</p>
-          <button onClick={() => setShowNewCard(true)} className="mt-4 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all inline-flex items-center gap-2">
-            <Plus size={16} /> New Card
+        <div className="text-center py-10 text-slate-400">
+          <LayoutGrid size={32} className="mx-auto mb-2 opacity-30" />
+          <p className="font-semibold text-slate-500 text-xs">No home cards yet</p>
+          <p className="text-[11px] mt-1">Add your first card to appear on the home page.</p>
+          <button onClick={() => setShowNewCard(true)} className="mt-3 px-3.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all inline-flex items-center gap-1.5">
+            <Plus size={14} /> New Card
           </button>
         </div>
       ) : (
         <>
         {showNewCard && (
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
-            <h3 className="font-bold text-slate-800">New Home Card</h3>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+            <h3 className="font-bold text-slate-800 text-xs">New Home Card</h3>
             <select
               value={newCardCategory}
               onChange={e => setNewCardCategory(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Select category...</option>
               {(sectionFilter || ['sacramentals', 'tshirts', 'chairs', 'instruments']).map(cat => (
@@ -174,26 +174,26 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
                   setShowNewCard(false);
                 }}
                 disabled={!newCardCategory}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-sm font-bold transition-all"
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-xs font-bold transition-all"
               >
                 Add
               </button>
-              <button onClick={() => setShowNewCard(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all">
+              <button onClick={() => setShowNewCard(false)} className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all">
                 Cancel
               </button>
             </div>
           </div>
         )}
         <div className="flex justify-end">
-          <button onClick={() => setShowNewCard(true)} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm">
-            <Plus size={16} /> Add Card
+          <button onClick={() => setShowNewCard(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all flex items-center gap-1.5 shadow-sm">
+            <Plus size={14} /> Add Card
           </button>
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {cards.map(card => (
-            <div key={card.category} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div key={card.category} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               {/* Card Preview */}
-              <div className="relative h-48 bg-slate-100">
+              <div className="relative h-36 bg-slate-100">
                 {card.image_url ? (
                   <img
                     src={card.image_url}
@@ -203,20 +203,20 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-300">
-                    <LayoutGrid size={48} />
+                    <LayoutGrid size={36} />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-                  <span className="text-white font-bold text-lg drop-shadow-sm">{card.label}</span>
-                  <span className="bg-white/80 text-slate-800 text-[10px] font-semibold px-2 py-1 rounded-md">{card.tag}</span>
+                <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
+                  <span className="text-white font-bold text-sm drop-shadow-sm">{card.label}</span>
+                  <span className="bg-white/80 text-slate-800 text-[9px] font-semibold px-1.5 py-0.5 rounded-md">{card.tag}</span>
                 </div>
               </div>
 
               {/* Edit Form */}
-              <div className="p-5 space-y-4">
+              <div className="p-3 space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-600 mb-1">
                     {inputMode === 'url' ? 'Image URL *' : 'Upload Image'}
                   </label>
 
@@ -226,18 +226,18 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
                       value={card.image_url}
                       onChange={e => setCards(prev => prev.map(c => c.category === card.category ? { ...c, image_url: e.target.value } : c))}
                       placeholder="https://example.com/image.jpg"
-                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                     />
                   ) : (
                     <div
                       onDragOver={e => e.preventDefault()}
                       onDrop={e => handleDrop(e, card.category)}
                       onClick={() => { activeCategoryRef.current = card.category; fileInputRef.current?.click(); }}
-                      className="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer hover:border-blue-300 hover:bg-slate-50 transition-all"
+                      className="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer hover:border-blue-300 hover:bg-slate-50 transition-all"
                     >
                       {uploading === card.category ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <Loader2 size={24} className="text-blue-500 animate-spin" />
+                        <div className="flex flex-col items-center gap-1.5">
+                          <Loader2 size={18} className="text-blue-500 animate-spin" />
                           <p className="text-xs text-slate-600 font-medium">
                             {uploadProgress[card.category] > 0 ? `${uploadProgress[card.category]}%` : 'Compressing...'}
                           </p>
@@ -249,31 +249,31 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-2">
-                          <Upload size={24} className="text-slate-400" />
-                          <p className="text-xs text-slate-500">Click or drag image here</p>
+                          <Upload size={18} className="text-slate-400" />
+                          <p className="text-[11px] text-slate-500">Click or drag image here</p>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Label</label>
+                    <label className="block text-xs font-bold text-slate-600 mb-1">Label</label>
                     <input
                       type="text"
                       value={card.label}
                       onChange={e => setCards(prev => prev.map(c => c.category === card.category ? { ...c, label: e.target.value } : c))}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                      className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1.5">Tag</label>
+                    <label className="block text-xs font-bold text-slate-600 mb-1">Tag</label>
                     <input
                       type="text"
                       value={card.tag}
                       onChange={e => setCards(prev => prev.map(c => c.category === card.category ? { ...c, tag: e.target.value } : c))}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                      className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                     />
                   </div>
                 </div>
@@ -281,12 +281,12 @@ export default function CategoryCardManager({ sectionFilter }: Props) {
                 <button
                   onClick={() => handleSave(card)}
                   disabled={saving === card.category || !card.image_url.trim()}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
                 >
                   {saving === card.category ? (
-                    <><Loader2 size={16} className="animate-spin" /> Saving...</>
+                    <><Loader2 size={14} className="animate-spin" /> Saving...</>
                   ) : (
-                    <><Plus size={16} /> Save Card</>
+                    <><Plus size={14} /> Save Card</>
                   )}
                 </button>
               </div>
