@@ -159,6 +159,11 @@ export const initiateSTK = async (userId, phoneNumber, amount) => {
     process.env.CALLBACK_URL || "https://example.com/api/v1/stkPush/callback";
   const response = await MpesaService.stkPush(phoneNumber, amount, callbackUrl);
 
+  if (!response || !response.CheckoutRequestID) {
+    logger.error("STK Push failed — no CheckoutRequestID in response:", JSON.stringify(response));
+    throw new Error(response?.errorMessage || response?.ResponseDescription || "M-Pesa did not return a checkout ID");
+  }
+
   const checkoutId = response.CheckoutRequestID;
   const merchantRequestId = response.MerchantRequestID;
 

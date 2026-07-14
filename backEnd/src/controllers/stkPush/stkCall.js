@@ -7,11 +7,12 @@ export const stkCalls = async (req, res) => {
   const { amount, phoneNumber } = req.body;
 
   try {
-    const checkoutId = await payAndWait(id, phoneNumber, amount);
+    const { checkoutId, result } = await payAndWait(id, phoneNumber, amount);
     res.json({
       status: "success",
       message: "STK Push initiated successfully",
       checkoutId,
+      result,
     });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
@@ -22,11 +23,12 @@ export const stkGuestCalls = async (req, res) => {
   const { amount, phone: phoneNumber } = req.body;
 
   try {
-    const checkoutId = await payAndWait(null, phoneNumber, amount);
+    const { checkoutId, result } = await payAndWait(null, phoneNumber, amount);
     res.json({
       status: "success",
       message: "STK Push initiated successfully",
       checkoutId,
+      result,
     });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });

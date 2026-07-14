@@ -47,10 +47,14 @@ export class MpesaService {
       `${this.shortCode}${this.passKey}${timestamp}`,
     ).toString("base64");
 
-    // Transform 07... or 254... to 254...
-    let formattedPhone = phoneNumber.replace(/\+/g, "");
+    // Transform to 254XXXXXXXXX (12 digits)
+    let formattedPhone = phoneNumber.replace(/[^0-9]/g, "");
     if (formattedPhone.startsWith("0")) {
       formattedPhone = "254" + formattedPhone.slice(1);
+    }
+    // Handle "2540XXXXXXXX" (13 digits with extra 0 after 254)
+    if (formattedPhone.startsWith("2540")) {
+      formattedPhone = "254" + formattedPhone.slice(4);
     }
 
     const data = {

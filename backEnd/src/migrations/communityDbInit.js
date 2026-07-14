@@ -471,11 +471,12 @@ export const setupCommunityDatabase = async () => {
     `);
     logger.info("Table 'system_settings' ready");
 
-    // Seed default hire handler phone numbers if not present
+    // Seed default handler phone numbers if not present
     const defaultSettings = [
       { key: 'chairs_handler_phone', value: '254112051739', description: 'Phone number for chair hire requests' },
       { key: 'instruments_handler_phone', value: '254112051740', description: 'Phone number for instrument hire requests' },
       { key: 'hire_admin_phone', value: '254112051739', description: 'Default hire admin phone number' },
+      { key: 'cash_phone', value: '254112051739', description: 'Phone number for cash-on-pickup contact displayed in cart' },
     ];
     for (const s of defaultSettings) {
       await db.query(

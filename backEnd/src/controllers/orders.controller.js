@@ -49,6 +49,61 @@ export const getOrders = async (req, res) => {
   }
 };
 
+export const confirmPayment = async (req, res) => {
+  try {
+    const { phone, checkout_id, mpesa_receipt } = req.body;
+
+    if (!mpesa_receipt) {
+      return res.status(400).json({ error: "M-Pesa receipt number is required" });
+    }
+    if (!phone && !checkout_id) {
+      return res.status(400).json({ error: "Phone number or checkout ID is required" });
+    }
+
+    // Find the order — by checkout_id first, then fallback to phone
+    let order;
+    if (checkout_id) {
+      const result = await db.query(
+        `SELECT * FROM orders WHERE checkout_id = $1 AND status = 'pending' LIMIT 1`,
+        [checkout_id],
+      );
+      order = result.rows[0];
+    }
+
+    if (!order && phone) {
+      const result = await db.query(
+        `SELECT * FROM orders WHERE phone = $1 AND status = 'pending' ORDER BY created_at DESC LIMIT 1`,
+        [phone],
+      );
+      order = result.rows[0];
+    }
+
+    if (!order) {
+      return res.status(404).json({ error: "No pending order found for this phone/checkout" });
+    }
+
+    // Update the order
+    const updated = await db.query(
+      `UPDATE orders SET status = 'paid', mpesa_receipt = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+      [mpesa_receipt, order.id],
+    );
+
+    // Also update mpesa_request if checkout_id exists
+    if (order.checkout_id) {
+      await db.query(
+        `UPDATE mpesa_request SET status = 'paid', mpesa_receipt = $1, updated_at = CURRENT_TIMESTAMP WHERE checkout_id = $2`,
+        [mpesa_receipt, order.checkout_id],
+      );
+    }
+
+    logger.info(`Payment manually confirmed: Order ${order.order_reference}, Receipt=${mpesa_receipt}`);
+    res.json({ status: "paid", order: updated.rows[0] });
+  } catch (error) {
+    logger.error(error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
