@@ -83,6 +83,7 @@ const AnnouncementsAdmin = lazy(() =>
 );
 const CommunityDetailEditor = lazy(() => import("./pages/Admin/pages/CommunityDetailEditor"));
 const AdminSuggestions = lazy(() => import("./pages/Admin/pages/AdminSuggestions"));
+const SuggestionBin = lazy(() => import("./pages/Admin/pages/SuggestionBin"));
 const UnmaskApproval = lazy(() => import("./pages/Admin/pages/UnmaskApproval"));
 const DeletionApproval = lazy(() => import("./pages/Admin/pages/DeletionApproval"));
 const GalleryManager = lazy(() => import("./pages/Admin/pages/GalleryManager"));
@@ -91,6 +92,7 @@ const JumuiyaMembersAdmin = lazy(() => import("./pages/Admin/pages/JumuiyaMember
 const SettingsPage = lazy(() => import("./pages/Admin/pages/Settings"));
 const CsaSecretaryDashboard = lazy(() => import("./pages/Admin/pages/CsaSecretaryDashboard"));
 const ActivityLog = lazy(() => import("./pages/Admin/pages/ActivityLog"));
+const AdminBookings = lazy(() => import("./pages/Admin/pages/AdminBookings"));
 
 // Sacramental / Community
 import { CommunityProvider } from "./pages/sacramental/context/CommunityDataContext";
@@ -151,6 +153,7 @@ const App: React.FC = () => {
           <Route path="community-management" element={<CommunityManager />} />
           <Route path="community-management/:categoryId" element={<CommunityDetailEditor />} />
           <Route path="suggestions" element={<AdminSuggestions />} />
+          <Route path="suggestion-bin" element={<SuggestionBin />} />
           <Route path="gallery" element={<GalleryManager />} />
           <Route path="sacramentals-banners" element={<SacramentalsBannerManager />} />
           <Route path="projects" element={<ProjectsManager />} />
@@ -158,6 +161,7 @@ const App: React.FC = () => {
           <Route path="jumuiya-members/:id" element={<JumuiyaMembersAdmin />} />
           <Route path="registered-members" element={<CsaSecretaryDashboard />} />
           <Route path="activity-log" element={<ActivityLog />} />
+          <Route path="bookings" element={<AdminBookings />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 

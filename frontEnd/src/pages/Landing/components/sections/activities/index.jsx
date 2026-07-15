@@ -3,8 +3,11 @@
 // same loading/error states, same card design system (white bg, slate text, blue accents)
 import { useState, useEffect } from "react";
 import { useCachedData } from "../../../../../hooks/useCachedData";
-import { Clock, MapPin, Calendar, Plus, Trash2, RefreshCw, Activity, Zap } from "lucide-react";
+import { Clock, MapPin, Calendar, RefreshCw, Activity, Zap, X, CreditCard, CheckCircle, Loader2 } from "lucide-react";
 import apiService from "../../../services/api";
+import activitiesService from "../../../../../api/activitiesServices";
+import { useAuth } from "../../../../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import useCountdown from "../../../../../hooks/useCountdown";
 
@@ -63,9 +66,80 @@ const getWeeklyActivityImage = (activity) => {
   return null;
 };
 
+function BookingModal({ activity, onClose }) {
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handlePay = async (e) => {
+    e.preventDefault();
+    const cleaned = phone.replace(/\s+/g, "").replace(/^0/, "254");
+    if (!cleaned || cleaned.length < 10) {
+      toast.error("Enter a valid phone number");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await activitiesService.bookActivity(
+        activity._type || "weekly",
+        activity.id,
+        cleaned
+      );
+      setSuccess(true);
+      toast.success("STK Push sent! Check your phone.");
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || "Booking failed";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        {success ? (
+          <div className="text-center py-6">
+            <CheckCircle size={48} className="text-emerald-500 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-slate-800 mb-2">STK Push Sent!</h3>
+            <p className="text-sm text-slate-500">Check your phone to complete payment for <strong>{activity.activity || activity.title}</strong></p>
+            <button onClick={onClose} className="mt-6 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">Done</button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-800">Book & Pay</h3>
+              <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            </div>
+            <p className="text-sm text-slate-500 mb-1">{activity.activity || activity.title}</p>
+            <p className="text-2xl font-black text-emerald-600 mb-4">KES {Number(activity.fare).toLocaleString()}</p>
+            <form onSubmit={handlePay} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">M-Pesa Phone Number</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="0712 345 678"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                  required
+                />
+              </div>
+              <button type="submit" disabled={loading}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Processing...</> : <><CreditCard size={16} /> Pay via M-Pesa</>}
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Weekly Activity Card ───────────────────────────────────────────
 // ── Weekly Activity Card ───────────────────────────────────────────
-function WeeklyCard({ activity }) {
+function WeeklyCard({ activity, onBook }) {
   const colorClass = DAY_COLORS[activity.day] || "border-l-gray-300 bg-gray-50/40";
   const icon = ACTIVITY_ICONS[activity.activity] || "✝";
 
@@ -156,13 +230,19 @@ function WeeklyCard({ activity }) {
         <p className="flex items-center gap-2">
           <MapPin size={12} className="text-primary/60" />{activity.venue}
         </p>
+        {activity.fare && (
+          <button onClick={() => onBook(activity, "weekly")}
+            className="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+            <CreditCard size={12} /> Book Now — KES {Number(activity.fare).toLocaleString()}
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
 // ── Semester Event Card ────────────────────────────────────────────
-function SemesterCard({ event }) {
+function SemesterCard({ event, onBook }) {
   const dt = new Date(event.date_time);
   const isPast = dt < new Date();
 
@@ -213,13 +293,33 @@ function SemesterCard({ event }) {
           <MapPin size={12} className="text-primary/60" />
           {event.venue}
         </p>
+        {event.fare && (
+          <button onClick={() => onBook(event, "semester")}
+            className="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+            <CreditCard size={12} /> Book Now — KES {Number(event.fare).toLocaleString()}
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
+// ── Booking Modal ──────────────────────────────────────────────────
 // ── Main Section ───────────────────────────────────────────────────
 const ActivitiesSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [bookingActivity, setBookingActivity] = useState(null);
+
+  const handleBook = (activity, type) => {
+    if (!user) {
+      toast.error("Please log in first");
+      navigate("/login");
+      return;
+    }
+    setBookingActivity({ ...activity, _type: type });
+  };
+
   const { data: activitiesData, loading, error, refetch: loadActivities } = useCachedData(
     'csa_cache_public_activities',
     async () => {
@@ -294,7 +394,7 @@ const ActivitiesSection = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {weekly.map((a) => (
-                <WeeklyCard key={a.id} activity={a} />
+                <WeeklyCard key={a.id} activity={a} onBook={handleBook} />
               ))}
             </div>
           )}
@@ -317,12 +417,18 @@ const ActivitiesSection = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {semester.map((e) => (
-                <SemesterCard key={e.id} event={e} />
+                <SemesterCard key={e.id} event={e} onBook={handleBook} />
               ))}
             </div>
           )}
         </div>
       </div>
+      {bookingActivity && (
+        <BookingModal
+          activity={bookingActivity}
+          onClose={() => setBookingActivity(null)}
+        />
+      )}
     </div>
   );
 };

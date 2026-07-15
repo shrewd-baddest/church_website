@@ -1,7 +1,24 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { Login, refreshAccessToken, firstLoginSetup, verifyEmail, resendVerification } from "../../controllers/Login.js";
-import { OTPverification, Reset } from "../../controllers/Reset.js";
+import { OTPverification, Reset, resendOTP } from "../../controllers/Reset.js";
 import verifyToken from "../../middlewares/Tokens.js";
+
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: "Too many password reset requests. Try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many OTP attempts. Try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 import {
   stkCalls,
   stkGuestCalls,
@@ -38,9 +55,10 @@ route.post("/login", Login);
 route.post("/first-login-setup", firstLoginSetup);
 route.post("/verify-email", verifyEmail);
 route.post("/resend-verification", resendVerification);
-route.post("/reset", Reset);
+route.post("/reset", resetLimiter, Reset);
+route.post("/resend-otp", otpLimiter, resendOTP);
 route.post("/reset-email", verifyToken, Reset);
-route.post("/otp/:regNo", OTPverification);
+route.post("/otp/:token", otpLimiter, OTPverification);
 // route.post("/log-out", verifyToken, logOut);
 route.post("/refresh", refreshAccessToken);
 route.post("/stk-push", verifyToken, stkCalls);

@@ -31,6 +31,11 @@ const Reset: React.FC = () => {
       return;
     }
 
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -47,8 +52,9 @@ const Reset: React.FC = () => {
 
       if (response.data.status === "success") {
         setMessage("OTP sent to your email!");
+        const token = response.data.reset_token;
         setTimeout(() => {
-          navigate(`/otp/${email}`);
+          navigate(`/login/otp/${token}`);
         }, 1500);
       } else {
         setError(response.data.message || "Failed to send OTP");

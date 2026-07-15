@@ -27,6 +27,7 @@ export const Login = async (req, res) => {
         m.first_name, 
         m.last_name, 
         m.email,
+        m.pending_email,
         m.email_verified,
         m.email_verification_token,
         COALESCE(
@@ -37,7 +38,7 @@ export const Login = async (req, res) => {
       LEFT JOIN member_roles mr ON m.member_id = mr.member_id AND mr.status = 'approved'
       LEFT JOIN roles r ON mr.role_id = r.role_id 
       WHERE m.member_id = $1
-      GROUP BY m.member_id, m.password, m.jumuiya_id, m.first_name, m.last_name, m.email, m.email_verified, m.email_verification_token`,
+      GROUP BY m.member_id, m.password, m.jumuiya_id, m.first_name, m.last_name, m.email, m.pending_email, m.email_verified, m.email_verification_token`,
       [userReg],
     );
 
@@ -85,14 +86,15 @@ export const Login = async (req, res) => {
 
     // Block login if user has an unverified email from a recent first-login-setup
     // (email_verification_token is only set when firstLoginSetup added an email)
-    if (!forcePasswordChange && user.email && !user.email_verified && user.email_verification_token) {
+    const hasPendingOrVerifiedEmail = user.email || user.pending_email;
+    if (!forcePasswordChange && hasPendingOrVerifiedEmail && !user.email_verified && user.email_verification_token) {
       return res.status(403).json({
         status: false,
         message: "Please verify your email before logging in. Check your inbox for the verification link we sent."
       });
     }
 
-    const accessToken = generateAccesstoken(user.member_id, user.roles, user.first_name, user.last_name, user.email, user.jumuiya_id);
+    const accessToken = generateAccesstoken(user.member_id, user.roles, user.first_name, user.last_name, user.email || user.pending_email, user.jumuiya_id);
     const refreshToken = generateRefreshtoken(user.member_id, user.roles);
 
     // Save hashed refresh token to database
@@ -112,10 +114,10 @@ export const Login = async (req, res) => {
       refreshToken,
       role: user.roles,
       name: `${user.first_name} ${user.last_name}`.trim(),
-      email: user.email,
+      email: user.email || user.pending_email,
       jumuiya_id: user.jumuiya_id,
       forcePasswordChange,
-      hasEmail: !!user.email,
+      hasEmail: !!(user.email || user.pending_email),
     });
   } catch (err) {
     logger.error("Server error during login:", err);
@@ -258,12 +260,19 @@ export const firstLoginSetup = async (req, res) => {
 
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    // Update password and optionally email
+    // Update password and optionally set pending email (email saved only after verification)
     if (email && email.trim()) {
+      const dupCheck = await pool.query(
+        `SELECT 1 FROM members WHERE (email = $1 OR pending_email = $1) AND member_id != $2`,
+        [email.trim(), member_id]
+      );
+      if (dupCheck.rows.length > 0) {
+        return res.status(409).json({ status: false, message: "Email already in use" });
+      }
       const token = crypto.randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
       await pool.query(
-        `UPDATE members SET password = $1, email = $2, email_verified = FALSE,
+        `UPDATE members SET password = $1, pending_email = $2, email_verified = FALSE,
          email_verification_token = $4, email_verification_expires = $5 WHERE member_id = $3`,
         [hashed, email.trim(), member_id, token, expires]
       );
@@ -317,10 +326,13 @@ export const verifyEmail = async (req, res) => {
     }
 
     await pool.query(
-      `UPDATE members SET email_verified = TRUE, email_verification_token = NULL, email_verification_expires = NULL WHERE member_id = $1`,
+      `UPDATE members SET email = pending_email, pending_email = NULL,
+       email_verified = TRUE, email_verification_token = NULL, email_verification_expires = NULL
+       WHERE member_id = $1`,
       [reg]
     );
 
+    logger.info(`Email verified and saved for member: ${reg}`);
     res.json({ status: true, message: "Email verified successfully" });
   } catch (error) {
     logger.error("verifyEmail error:", error.message);
@@ -336,7 +348,7 @@ export const resendVerification = async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT email, email_verification_token, email_verification_expires, email_verified
+      `SELECT pending_email, email, email_verification_token, email_verification_expires, email_verified
        FROM members WHERE member_id = $1`,
       [member_id]
     );
@@ -351,7 +363,8 @@ export const resendVerification = async (req, res) => {
       return res.status(400).json({ status: false, message: "Email is already verified" });
     }
 
-    if (!member.email) {
+    const targetEmail = member.pending_email || member.email;
+    if (!targetEmail) {
       return res.status(400).json({ status: false, message: "No email on record to verify" });
     }
 
@@ -372,10 +385,11 @@ export const resendVerification = async (req, res) => {
     await sendMail(
       "Verify your email — CSA Kirinyaga",
       verificationEmailText({ name: member_id, verifyUrl }),
-      member.email,
+      targetEmail,
       verificationEmailHTML({ name: member_id, verifyUrl })
     );
 
+    logger.info(`Verification email resent to ${targetEmail} for member: ${member_id}`);
     res.json({ status: true, message: "Verification email sent" });
   } catch (error) {
     logger.error("resendVerification error:", error.message, error.stack);

@@ -88,6 +88,32 @@ const activitiesService = {
     clearPublicCache();
     return res.data.data;
   },
+
+  // ── Bookings ────────────────────────────────────
+  bookActivity: async (activity_type, activity_id, phone) => {
+    const res = await apiClient.post("/activities/book", { activity_type, activity_id, phone });
+    return res.data;
+  },
+
+  payBooking: async (id, phone, amount) => {
+    const res = await apiClient.post(`/activities/book/${id}/pay`, { phone, amount });
+    return res.data;
+  },
+
+  getMyBookings: async () => {
+    const res = await apiClient.get("/activities/my-bookings");
+    return res.data.data || [];
+  },
+
+  getAllBookings: async () => {
+    const res = await apiClient.get("/admin/activities/bookings");
+    return res.data.data || [];
+  },
+
+  exportBookingsCSV: async () => {
+    const res = await apiClient.get("/admin/activities/bookings/export", { responseType: "blob" });
+    return res.data;
+  },
 };
 
 export default activitiesService;

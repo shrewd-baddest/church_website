@@ -133,7 +133,7 @@ const JumuiyaDetail: React.FC = () => {
         { id: 'channels' as TabType, label: 'Channels', icon: <FaShareAlt /> },
         { id: 'tshirts' as TabType, label: 'T-Shirts', icon: <FaTshirt /> },
         ...(isAdmin ? [{ id: 'admin' as TabType, label: 'Admin', icon: <FaCog className="animate-spin-slow" /> }] : []),
-        ...(user ? [{ id: 'settings' as TabType, label: 'Settings', icon: <FaKey /> }] : []),
+        ...(user && isMemberOfThisJumuiya ? [{ id: 'settings' as TabType, label: 'Settings', icon: <FaKey /> }] : []),
     ];
 
     const renderTabContent = () => {
@@ -169,7 +169,7 @@ const JumuiyaDetail: React.FC = () => {
     };
 
     useEffect(() => {
-      if (!isMemberOfThisJumuiya && (activeTab === 'members' || activeTab === 'registration' || activeTab === 'stampcard')) {
+      if (!isMemberOfThisJumuiya && (activeTab === 'members' || activeTab === 'registration' || activeTab === 'stampcard' || activeTab === 'settings')) {
         setActiveTab('about');
       }
     }, [isMemberOfThisJumuiya]);

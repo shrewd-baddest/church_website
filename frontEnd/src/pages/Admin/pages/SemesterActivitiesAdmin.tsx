@@ -8,10 +8,11 @@ interface Event {
   description: string;
   date_time: string;
   venue: string;
+  fare: string | number | null;
   is_active: boolean;
 }
 
-const emptyForm = { title: "", description: "", date_time: "", venue: "" };
+const emptyForm = { title: "", description: "", date_time: "", venue: "", fare: "" };
 
 function formatDateForInput(iso: string) {
   if (!iso) return "";
@@ -79,6 +80,7 @@ export default function SemesterActivitiesAdmin() {
       description: e.description || "",
       date_time: formatDateForInput(e.date_time),
       venue: e.venue,
+      fare: e.fare ? String(e.fare) : "",
     });
     setEditingId(e.id);
   }
@@ -173,6 +175,18 @@ export default function SemesterActivitiesAdmin() {
                 />
               </div>
               <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Fare (KES)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.fare}
+                  onChange={(e) => setForm({ ...form, fare: e.target.value })}
+                  placeholder='e.g. "500" — leave empty for free'
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                />
+              </div>
+              <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description</label>
                 <textarea
                   value={form.description}
@@ -226,6 +240,7 @@ export default function SemesterActivitiesAdmin() {
                       <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
                         <span>{dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
                         <span>{e.venue}</span>
+                        {e.fare && <span className="font-semibold text-emerald-600">KES {Number(e.fare).toLocaleString()}</span>}
                       </div>
                       {e.description && <p className="text-xs text-slate-400 mt-1 line-clamp-1">{e.description}</p>}
                     </div>

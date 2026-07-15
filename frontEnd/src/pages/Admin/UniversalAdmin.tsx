@@ -12,9 +12,11 @@ import {
   Bell,
   LayoutGrid,
   MessageSquare,
+  Trash2,
   Image as ImageIcon,
   UserPlus,
   ClipboardList,
+  CalendarCheck,
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -41,10 +43,12 @@ const menuItems = [
   { id: 'donations', name: 'Donation Monitor', icon: Heart, path: '/admin/donations' },
   { id: 'devotions', name: 'Devotions & AI', icon: BookOpen, path: '/admin/devotions' },
   { id: 'suggestions', name: 'User Suggestions', icon: MessageSquare, path: '/admin/suggestions' },
+  { id: 'suggestion-bin', name: 'Suggestion Bin', icon: Trash2, path: '/admin/suggestion-bin' },
   { id: 'gallery', name: 'Gallery Manager', icon: ImageIcon, path: '/admin/gallery' },
   { id: 'jumuiya-members', name: 'Members', icon: UserPlus, path: '/admin/jumuiya-members' },
   { id: 'registered-members', name: 'Registered Members', icon: ClipboardList, path: '/admin/registered-members' },
   { id: 'projects', name: 'Project Management', icon: LayoutGrid, path: '/admin/projects' },
+  { id: 'bookings', name: 'Activity Bookings', icon: CalendarCheck, path: '/admin/bookings' },
   { id: 'activity-log', name: 'Activity Log', icon: ClipboardList, path: '/admin/activity-log' },
   { id: 'settings', name: 'Settings', icon: Settings, path: '/admin/settings' }
 ];
@@ -180,6 +184,11 @@ export default function UniversalAdmin() {
           break;
         case "CSA_VICE_CHAIR":
           allowedPrefixes.add("/admin/suggestions");
+          break;
+        case "CSA_CHAIR":
+        case "ADMIN":
+        case "SUPREME":
+          allowedPrefixes.add("/admin/bookings");
           break;
         case "JUMUIYA_CHAIRPERSON":
         case "JUMUIYA_SECRETARY":

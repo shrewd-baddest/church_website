@@ -50,8 +50,24 @@ export default function OTPInput({
     handleChange(e.target.value, index);
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
+    if (!pasted) return;
+    const newOtp = [...otp];
+    for (let i = 0; i < pasted.length; i++) {
+      newOtp[i] = pasted[i];
+    }
+    setOtp(newOtp);
+    const nextIndex = Math.min(pasted.length, length - 1);
+    inputsRef.current[nextIndex]?.focus();
+    if (newOtp.every((digit) => digit !== "")) {
+      onComplete(newOtp.join(""));
+    }
+  };
+
   return (
-    <div className="flex gap-2.5 justify-center lg:justify-start w-full">
+    <div className="flex gap-2.5 justify-center lg:justify-start w-full" onPaste={handlePaste}>
       {otp.map((digit, index) => (
         <input
           key={index}

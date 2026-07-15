@@ -167,7 +167,7 @@ const Login: React.FC = () => {
               </label>
               <button
                 type="button"
-                onClick={() => navigate("reset", { state: { purpose: "reset password" } })}
+                onClick={() => navigate("reset", { state: { purpose: "password" } })}
                 className="text-xs font-bold text-black hover:text-amber-500 transition-colors"
               >
                 Forgot password?

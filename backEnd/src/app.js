@@ -59,6 +59,7 @@ initializeSocketIO(io)
 setSocketInstance(io);
 
 app.use("/api/v1/authentication/mpesa/callback", cors());
+app.use("/api/v1/activities/bookings/callback", cors());
 
 // this is the best way to to get the actual ip adress of a device even if the server is behind a proxy
 //rather than getting the proxy ip adress , usefull in fare shairing of resorces

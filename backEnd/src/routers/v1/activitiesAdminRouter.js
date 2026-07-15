@@ -34,6 +34,11 @@ import {
   deactivateSemesterActivity,
 } from "../../controllers/activitiesController.js";
 
+import {
+  getAllBookings,
+  exportBookingsCSV,
+} from "../../controllers/activityBookingController.js";
+
 const router = Router();
 
 // Permission resources/actions (standard lowercase convention)
@@ -138,6 +143,11 @@ router.post(
   ...requireAdmin('reorder', 'novena_override_activities'),
   reorderNovenaOverrides
 );
+
+// ── Activity bookings (admin) ──────────────────────
+// Frontend controls sidebar visibility; verifyToken is sufficient here.
+router.get("/bookings", verifyToken, getAllBookings);
+router.get("/bookings/export", verifyToken, exportBookingsCSV);
 
 export default router;
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, CheckCircle2, User, Mail, Sparkles, Heart, Star, Eye, EyeOff, Clock, CheckCircle, RefreshCcw } from 'lucide-react';
+import { MessageSquare, Send, CheckCircle2, User, Mail, Heart, Star, Eye, EyeOff, Clock, CheckCircle, RefreshCcw } from 'lucide-react';
 import { apiClient } from '../../../../api/axiosInstance';
 import { useAuth } from '../../../../context/AuthContext';
 
@@ -67,15 +67,14 @@ const SuggestionBox: React.FC = () => {
             >
               <div className="flex items-center gap-4 p-2 md:p-3">
                 <div className={`p-3 rounded-2xl transition-all duration-700 ${isOpen ? 'bg-primary text-white scale-105' : 'bg-slate-50 text-primary group-hover:bg-primary/5'}`}>
-                  <MessageSquare size={24} className={isOpen ? 'animate-pulse' : ''} />
+                  <MessageSquare size={24} />
                 </div>
                 <div>
                   <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                     Suggestion Box
-                    {!isOpen && <Sparkles size={14} className="text-amber-400 animate-[bounce_2s_infinite]" />}
                   </h2>
                   <p className="text-slate-400 font-bold text-[10px] md:text-xs tracking-widest uppercase flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span> Help us Grow
+                    Help us Grow
                   </p>
                 </div>
               </div>

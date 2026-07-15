@@ -19,7 +19,7 @@ export const getWeeklyActivities = async (req, res) => {
 };
 
 export const createWeeklyActivity = async (req, res) => {
-  const { day, time, activity, venue } = req.body;
+  const { day, time, activity, venue, fare } = req.body;
 
   if (!day || !time || !activity || !venue) {
     return res.status(400).json({
@@ -30,10 +30,10 @@ export const createWeeklyActivity = async (req, res) => {
 
   try {
     const result = await db.query(
-      `INSERT INTO weekly_activities (day, time, activity, venue)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO weekly_activities (day, time, activity, venue, fare)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [day, time, activity, venue]
+      [day, time, activity, venue, fare || null]
     );
 
     res.status(201).json({ success: true, data: result.rows[0] });
@@ -45,15 +45,15 @@ export const createWeeklyActivity = async (req, res) => {
 
 export const updateWeeklyActivity = async (req, res) => {
   const { id } = req.params;
-  const { day, time, activity, venue } = req.body;
+  const { day, time, activity, venue, fare } = req.body;
 
   try {
     const result = await db.query(
       `UPDATE weekly_activities
-       SET day=$1, time=$2, activity=$3, venue=$4
-       WHERE id=$5
+       SET day=$1, time=$2, activity=$3, venue=$4, fare=$5
+       WHERE id=$6
        RETURNING *`,
-      [day, time, activity, venue, id]
+      [day, time, activity, venue, fare !== undefined ? fare : null, id]
     );
 
     if (result.rows.length === 0) {
@@ -187,7 +187,7 @@ export const getSemesterActivities = async (req, res) => {
 };
 
 export const createSemesterActivity = async (req, res) => {
-  const { title, date_time, venue, description } = req.body;
+  const { title, date_time, venue, description, fare } = req.body;
 
   if (!title || !date_time || !venue) {
     return res.status(400).json({
@@ -198,10 +198,10 @@ export const createSemesterActivity = async (req, res) => {
 
   try {
     const result = await db.query(
-      `INSERT INTO semester_activities (title, date_time, venue, description)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO semester_activities (title, date_time, venue, description, fare)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [title, date_time, venue, description || ""]
+      [title, date_time, venue, description || "", fare || null]
     );
 
     res.status(201).json({ success: true, data: result.rows[0] });
@@ -212,15 +212,15 @@ export const createSemesterActivity = async (req, res) => {
 
 export const updateSemesterActivity = async (req, res) => {
   const { id } = req.params;
-  const { title, date_time, venue, description } = req.body;
+  const { title, date_time, venue, description, fare } = req.body;
 
   try {
     const result = await db.query(
       `UPDATE semester_activities
-       SET title=$1, date_time=$2, venue=$3, description=$4
-       WHERE id=$5
+       SET title=$1, date_time=$2, venue=$3, description=$4, fare=$5
+       WHERE id=$6
        RETURNING *`,
-      [title, date_time, venue, description, id]
+      [title, date_time, venue, description, fare !== undefined ? fare : null, id]
     );
 
     if (result.rows.length === 0) {
