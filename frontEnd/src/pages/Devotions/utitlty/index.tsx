@@ -8,6 +8,27 @@ export const normalizeFiles = (files: File[] | File | null | undefined): File[] 
 
 
 
+// Maps MongoDB question objects from the API to the frontend Question format
+export const mapDbQuestions = (dbQuestions: any[]): Question[] => {
+  return dbQuestions.map((q, index) => {
+    const options = q.answers?.map((a: any) => a.text) || [];
+    const correctOption = q.correctAnswer?.option?.replace(")", "").trim().toLowerCase();
+    const correctIndex = q.answers?.findIndex(
+      (a: any) => a.option?.replace(")", "").trim().toLowerCase() === correctOption
+    );
+    return {
+      id: q._id || (index + 1),
+      question: q.questionText || "",
+      options,
+      correctAnswer: correctIndex >= 0 ? correctIndex : 0,
+      category: "General",
+      difficulty: "Medium" as const,
+      reward: 10,
+      explanation: q.correctAnswer?.explanation || "",
+    };
+  });
+};
+
   // ✅ PARSER (DB TEXT → STRUCTURED)
  export const parseQuestionsFromText = (text: string): Question[] => {
     const blocks = text.split(/\n(?=\d+\.\s)/);

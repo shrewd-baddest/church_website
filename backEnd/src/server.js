@@ -28,6 +28,8 @@ import { suggestionsEnrichment } from "./migrations/suggestionsEnrichment.js";
 import { deletionApprovalsMigration } from "./migrations/deletionApprovals.js";
 import { suggestionBinMigration } from "./migrations/suggestionBinMigration.js";
 import { activityBookingMigration } from "./migrations/activityBookingMigration.js";
+import publishStatsMigration from "./migrations/publishStatsMigration.js";
+import questionsMigration from "./migrations/questionsMigration.js";
 import { startKeepAliveWorker } from "./services/keep-alive.js";
 import { startImportSyncWorker } from "./services/importSyncJob.js";
 
@@ -161,6 +163,7 @@ const initServer = async () => {
 
   try {
     await connectDb();
+    await questionsMigration();
     await setupCommunityDatabase();
     await setupJumuiyaMemberSystem();
     await setupAssociatesSystem();
@@ -177,6 +180,7 @@ const initServer = async () => {
     await deletionApprovalsMigration();
     await suggestionBinMigration();
     await activityBookingMigration();
+    await publishStatsMigration();
 
     httpServer.on("error", (err) => {
       if (err?.code === "EADDRINUSE") {

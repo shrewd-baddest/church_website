@@ -2,7 +2,6 @@ import pg from "pg";
 const { Pool, types } = pg;
 import dotenv from "dotenv";
 import logger from "../logger/winston.js";
-import mongoose from "mongoose";
 
 // Parse timestamp without timezone (OID 1114) as UTC
 types.setTypeParser(1114, (str) => new Date(str + "Z"));
@@ -49,24 +48,4 @@ export const testDb = {
   query: (text, params) => pool.query(text, params)
 };
 
-// momgodb connection this will be used for storing questions
-// this is the reason for this
-//  You can insert 240 questions at once as an array of documents (insertMany), which fits MongoDB's design perfectly.
-// so you can automatically delete questions after 3 days without writing cron jobs. PostgreSQL doesn't have native TTL; you'd need scheduled jobs or triggers.
-// Questions can vary in structure (some may have 4 answers, others 5, some with longer explanations). MongoDB's document model makes it easy to store these without rigid table definitions.
-export let dbInstance = undefined;
 
-export const connectToMongoDb = async () => {
-  try {
-    const connectionInstance = await mongoose.connect(
-      `${process.env.MONGODB_URI}`,
-    );
-    dbInstance = connectionInstance;
-    logger.info(
-      `☘️  MongoDB Connected! Db host: ${connectionInstance.connection.host}`,
-    );
-  } catch (error) {
-    logger.error("MongoDB connection failed (non-fatal): ", error.message);
-    logger.info("Server will continue running without MongoDB features.");
-  }
-};

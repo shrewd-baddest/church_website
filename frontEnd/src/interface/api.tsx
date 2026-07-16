@@ -49,7 +49,8 @@ export interface JumuiyaStats {
   correctAttempts: number;
 }
 export interface DashboardProps {
-  jumuiyaId: number;
+  jumuiyaId: string;
+  jumuiyaName: string;
 }
 
 

@@ -95,16 +95,14 @@ export const GenerateQuestion = async (req, res) => {
     }
 
     try {
-      const insertedDocs = await Question.insertMany(questionsArray, {
-        ordered: false,
-      });
+      const insertedDocs = await Question.insertMany(questionsArray);
       return res.status(201).json({
         message: "Questions generated and saved successfully",
         count: insertedDocs.length,
       });
     } catch (err) {
-      console.error("Partial insert error:", err.message);
-      logger.error("Partial insert error:", err.message);
+      console.error("Insert error:", err.message);
+      logger.error("Insert error:", err.message);
       return res.status(500).json({ error: "Some questions failed to save" });
     }
   } catch (error) {

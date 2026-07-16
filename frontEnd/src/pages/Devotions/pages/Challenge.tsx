@@ -7,15 +7,17 @@ import {
 import type { Question } from "../data/questions";
 import { LocalStorage } from "../../../utils";
 import { fetchDailyQuestions } from "../../../api/axiosInstance"; // ✅ your API
-import { parseQuestionsFromText } from "../utitlty";
+import { parseQuestionsFromText, mapDbQuestions } from "../utitlty";
 import { useSocket } from "../../../context/SocketContext";
+import { useAuth } from "../../../context/AuthContext";
 import { ArrowRightIcon } from "lucide-react";
 
 // 🔁 TOGGLE HERE
-const USE_DB = false;
+const USE_DB = true;
 
 export default function Challenge() {
   const { socket } = useSocket();
+  const { user } = useAuth();
 
   const today = new Date().toDateString();
 
@@ -40,10 +42,9 @@ export default function Challenge() {
 
       try {
         if (USE_DB) {
-          // if the flag is true, fetch from DB and parse the text response into questions
-          //  API CALL - REPLACE WITH YOUR ENDPOINT
           const res = await fetchDailyQuestions(10);
-          const parsed = parseQuestionsFromText(res.data);
+          const data = Array.isArray(res.data) ? res.data : [];
+          const parsed = mapDbQuestions(data);
           if (!parsed.length) {
             setPortalStatus("closed");
             return;
@@ -108,8 +109,8 @@ export default function Challenge() {
     //  and track user progress. You can expand the payload with more user info or question details as needed.
     socket?.emit("attempt", {
       questionId: current.id,
-      memberId: "USER_ID",
-      jumuiyaId: "JUMUIYA_ID",
+      memberId: user?.member_id || "unknown",
+      jumuiyaId: user?.jumuiya_id || "unknown",
       selectedOption: current.options[selectedIndex],
       isCorrect,
     });

@@ -7,6 +7,8 @@ import {
   FaChurch,
   FaBed,
   FaStar,
+  FaChartBar,
+  FaUserGraduate,
 } from "react-icons/fa";
 
 // ✅ Your navigation items
@@ -17,6 +19,8 @@ const items = [
   { to: "liturgy", label: "Liturgy", icon: <FaChurch /> },
   { to: "rosary", label: "Rosary", icon: <FaBed /> },
   { to: "challenge", label: "Daily Challenge", icon: <FaStar /> },
+  { to: "comparison", label: "Jumuiya Comparison", icon: <FaChartBar /> },
+  { to: "progress", label: "My Progress", icon: <FaUserGraduate /> },
 ];
 
 // ✅ Carousel content (linked to nav)

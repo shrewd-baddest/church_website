@@ -7,21 +7,7 @@ import Question from "../../model/question.js";
 export const getDailyQuestions = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
-
-    // Fetch random questions using MongoDB aggregation
-    const questions = await Question.aggregate([
-      { $sample: { size: limit } },
-      {
-        $project: {
-          _id: 0,
-          questionText: 1,
-          answers: 1,
-          correctAnswer: 1,
-          createdAt: 1,
-        },
-      },
-    ]);
-
+    const questions = await Question.aggregateRandom(limit);
     return res.json(questions);
   } catch (err) {
     console.error("Error fetching questions:", err);

@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import logger from "../logger/winston.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { removeUnusedMulterImageFilesOnError } from "../utils/index.js";
@@ -25,11 +24,6 @@ function classifyError(err) {
   // ApiError already has everything
   if (err instanceof ApiError) {
     return { statusCode: err.statusCode, message: err.message };
-  }
-
-  // Mongoose validation or cast errors
-  if (err instanceof mongoose.Error) {
-    return { statusCode: 400, message: "Database validation error" };
   }
 
   // Multer upload errors

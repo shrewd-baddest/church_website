@@ -129,6 +129,13 @@ export const fetchDailyQuestions = (limit: number = 10) =>
 
 export const fetchJumuiyaComparisonData = () => apiClient.get("/csa/jumuiya-comparison");
 
+// Published stats (admin-controlled snapshots)
+export const publishStats = () => apiClient.post("/publish-stats");
+export const fetchPublishedComparison = () => apiClient.get("/published/comparison");
+export const fetchPublishedMemberProgress = () => apiClient.get("/published/member-progress");
+export const fetchPublishedJumuiyaDashboard = (jumuiyaId: string) =>
+  apiClient.get(`/published/jumuiya-dashboard/${jumuiyaId}`);
+
 export const fetchGalleryTeaser = () => apiClient.get("/gallery/teaser");
 
 export const memberProgressData = () => apiClient.get("/member/progress");

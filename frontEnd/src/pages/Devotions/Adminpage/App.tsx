@@ -1,18 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { FaUserCircle, FaCheckCircle, FaUsers } from "react-icons/fa";
-import { generateAndSaveQuestions } from "../../../api/axiosInstance";
-import type { Member } from "../../../interface/api";
+import { generateAndSaveQuestions, fetchTable, publishStats } from "../../../api/axiosInstance";
 import JumuiyaDashboard from "../jumuiyaStatus/JumuiyaDashboard";
 
-const members = [
-  { id: 1, jumuiaName: "St. Augustin" },
-  { id: 2, jumuiaName: "Antony" },
-  { id: 3, jumuiaName: "Cathline" },
-  { id: 4, jumuiaName: "Dominic" },
-  { id: 5, jumuiaName: "Elizabeth" },
-  { id: 6, jumuiaName: "Mariagoretti" },
-  { id: 7, jumuiaName: "Monica" },
-];
+interface JumuiyaRow {
+  group_id: string;
+  name: string;
+  slug?: string;
+}
 
 const carouselSlides = [
   {
@@ -341,32 +336,102 @@ function Carousel() {
   );
 }
 
-function MemberProfile({ member }: { member: Member }) {
+function PublishProgress() {
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(false);
+  const [lastPublished, setLastPublished] = useState<string | null>(null);
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    try {
+      const res = await publishStats();
+      if (res.data?.status) {
+        setPublished(true);
+        setLastPublished(new Date().toLocaleString());
+      }
+    } catch {
+      alert("Failed to publish stats. Try again.");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-md border border-stone-200 p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-bold text-stone-800">Progress Snapshots</h3>
+          <p className="text-xs text-stone-500 mt-1">
+            {lastPublished
+              ? `Last published: ${lastPublished}`
+              : "Publish latest attempt data so users see updated stats."}
+          </p>
+        </div>
+        <button
+          onClick={handlePublish}
+          disabled={publishing}
+          className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-all flex items-center gap-2"
+        >
+          {publishing ? (
+            <>
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Publishing...
+            </>
+          ) : (
+            "Publish Progress"
+          )}
+        </button>
+      </div>
+      {published && (
+        <p className="text-xs text-emerald-600 mt-3 flex items-center gap-1">
+          <span>Published successfully — users will now see the latest stats.</span>
+        </p>
+      )}
+    </div>
+  );
+}
+
+function MemberProfile({ member }: { member: JumuiyaRow }) {
   return (
     <div className="p-4 space-y-5">
       <div
         className="flex items-center gap-4 bg-white rounded-2xl p-5 shadow-sm border border-stone-100 
                    transition transform hover:bg-stone-50 hover:scale-[1.02] hover:shadow-md"
       >
-        {/* Icon instead of avatar */}
         <div className="w-16 h-16 flex items-center justify-center text-orange-500">
           <FaUserCircle className="w-14 h-14" />
         </div>
         <div>
           <h2 className="text-xl font-black text-stone-800">
-            {member.jumuiaName}
+            {member.name}
           </h2>
-          <p className="text-stone-400 text-sm">Jumui Member #{member.id}</p>
+          <p className="text-stone-400 text-sm">{member.slug || member.name}</p>
         </div>
       </div>
-      <JumuiyaDashboard jumuiyaId={member.id} />
+      <JumuiyaDashboard jumuiyaId={member.group_id} jumuiyaName={member.name} />
     </div>
   );
 }
 
 export default function Appadmin() {
-  const [view, setView] = useState<string | number>("dashboard");
-  const activeMember = members.find((m) => m.id === view);
+  const [view, setView] = useState<string>("dashboard");
+  const [members, setMembers] = useState<JumuiyaRow[]>([]);
+
+  useEffect(() => {
+    fetchTable("sub_groups", { limit: "50" })
+      .then((res) => {
+        const rows = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+        setMembers(rows);
+      })
+      .catch(() => {
+        setMembers([]);
+      });
+  }, []);
+
+  const activeMember = members.find((m) => m.group_id === view);
   
 
   return (
@@ -418,18 +483,18 @@ export default function Appadmin() {
           <ul className="space-y-0.5">
             <ul className="space-y-1">
               {members.map((m) => (
-                <li key={m.id}>
+                <li key={m.group_id}>
                   <button
-                    onClick={() => setView(m.id)}
+                    onClick={() => setView(m.group_id)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-200 ease-in-out
           ${
-            view === m.id
+            view === m.group_id
               ? "bg-orange-50 text-orange-600 font-semibold shadow-sm"
               : "text-stone-600 hover:bg-stone-100 hover:text-orange-500 hover:shadow"
           }`}
                   >
                     <FaUsers className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{m.jumuiaName}</span>
+                    <span className="truncate">{m.name}</span>
                   </button>
                 </li>
               ))}
@@ -466,7 +531,7 @@ export default function Appadmin() {
               </svg>
             </div>
             <span className="font-black text-stone-800 text-sm">
-              {view === "dashboard" ? "Dashboard" : activeMember?.jumuiaName}
+              {view === "dashboard" ? "Dashboard" : activeMember?.name}
             </span>
           </div>
           <div className="w-8 h-8 rounded-full bg-stone-700 flex items-center justify-center text-white text-xs font-bold">
@@ -474,12 +539,15 @@ export default function Appadmin() {
           </div>
         </header>
 
-        {view === "dashboard" ? (
+         {view === "dashboard" ? (
           <div className="p-4 space-y-5">
             <Carousel />
             <AIEngine />
+            <PublishProgress />
           </div>
-        ) : activeMember ? ( <MemberProfile member={activeMember} /> ) : null}
+        ) : activeMember ? ( <MemberProfile member={activeMember} /> ) : (
+          <div className="p-8 text-center text-stone-400 text-sm">Select a jumuiya from the sidebar</div>
+        )}
       </main>
 
       {/* Bottom nav mobile */}
@@ -505,12 +573,12 @@ export default function Appadmin() {
         </button>
         {members.map((m) => (
           <button
-            key={m.id}
-            onClick={() => setView(m.id)}
-            className={`flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2.5 text-[9px] font-bold transition-all ${view === m.id ? "text-orange-500" : "text-stone-400"}`}
+            key={m.group_id}
+            onClick={() => setView(m.group_id)}
+            className={`flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2.5 text-[9px] font-bold transition-all ${view === m.group_id ? "text-orange-500" : "text-stone-400"}`}
           >
             <span className="truncate w-10 text-center">
-              {m.jumuiaName.split(" ")[0]}
+              {m.name.split(" ")[0]}
             </span>
           </button>
         ))}

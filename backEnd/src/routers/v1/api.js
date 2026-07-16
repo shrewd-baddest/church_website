@@ -35,6 +35,7 @@ const allowedTables = [
   "orders",
   "hire_requests",
   "product_categories",
+  "sub_groups",
 ];
 
 // Tables that contain sensitive member/financial data — read access is admin-only

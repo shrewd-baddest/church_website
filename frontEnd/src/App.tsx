@@ -53,6 +53,8 @@ const Liturgy = lazy(() => import("./pages/Devotions/pages/Liturgy"));
 const Rosary = lazy(() => import("./pages/Devotions/pages/Rosary"));
 const Challenge = lazy(() => import("./pages/Devotions/pages/Challenge"));
 const Appadmin = lazy(() => import("./pages/Devotions/Adminpage/App"));
+const JumuiComparison = lazy(() => import("./pages/Devotions/csaComparison/CsaComparison"));
+const MemberDashboard = lazy(() => import("./pages/Devotions/individualStatus/IndividualProgress"));
 
 // Officials
 const AdminPanel = lazy(() => import("./pages/officials/AdminPanel"));
@@ -207,6 +209,8 @@ const App: React.FC = () => {
             <Route path="liturgy" element={<Liturgy />} />
             <Route path="rosary" element={<Rosary />} />
             <Route path="challenge" element={<Challenge />} />
+            <Route path="comparison" element={<JumuiComparison />} />
+            <Route path="progress" element={<MemberDashboard />} />
           </Route>
 
           {/* Jumuiya (Public with persistent provider wrapper to optimize load speed) */}

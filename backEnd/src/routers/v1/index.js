@@ -6,6 +6,7 @@ import memberProgressRoute from "./getMemberProgress.js"
 import JumuiComparisonRoutes from "./JumuiComparisonRoutes.js"
 import notificationRoutes from "./notification.js"
 import officialsRouter from "./officialsRouter.js";
+import statsPublishRoutes from "./statsPublishRoutes.js";
 import jumuiyaOfficialsRouter from "./jumuiyaOfficialsRouter.js";
 import galleryRouter from "./galleryRouter.js";
 import communityViewRouter from "./communityViewRouter.js";
@@ -96,6 +97,9 @@ router.use("/", activityLogRouter);
 
 // Suggestions system
 router.use("/", suggestionRoutes);
+
+// Stats publish (admin trigger + user-facing published endpoints)
+router.use("/", statsPublishRoutes);
 
 // Generic Table CRUD (should be last) — requires valid session token
 router.use("/", verifyToken, tableApi);
