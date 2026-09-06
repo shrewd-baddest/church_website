@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { FaChevronLeft, FaChevronRight, FaTrash } from 'react-icons/fa';
 import apiService from '../../../services/api';
 
@@ -16,7 +16,6 @@ interface HeroSliderProps {
     section?: string;
     fallbackImages?: SliderImg[];
     shopAnchor?: string;
-    /** Label for the primary CTA button */
     buttonLabel?: string;
 }
 
@@ -28,16 +27,26 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
     buttonLabel = 'Shop Now',
 }) => {
     const [idx, setIdx] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(false);
     const len = images.length;
+    const timeoutRef = useRef<number | null>(null);
 
-    const next = useCallback(() => setIdx(p => (p + 1) % len), [len]);
-    const prev = useCallback(() => setIdx(p => (p - 1 + len) % len), [len]);
+    const goTo = useCallback((newIdx: number) => {
+        if (newIdx === idx || isTransitioning || len <= 1) return;
+        setIsTransitioning(true);
+        setIdx(newIdx);
+        setTimeout(() => setIsTransitioning(false), 800);
+    }, [idx, isTransitioning, len]);
+
+    const next = useCallback(() => goTo((idx + 1) % len), [goTo, idx, len]);
+    const prev = useCallback(() => goTo((idx - 1 + len) % len), [goTo, idx, len]);
 
     useEffect(() => {
         if (len <= 1) return;
-        const t = setInterval(next, 5500);
-        return () => clearInterval(t);
-    }, [len, next]);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = window.setTimeout(next, 5500);
+        return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+    }, [len, next, idx]);
 
     if (!len) {
         return (
@@ -60,53 +69,70 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
 
     return (
         <div className="relative w-full h-[240px] sm:h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl md:rounded-3xl shadow-xl">
-            {images.map((img, i) => (
-                <div
-                    key={i}
-                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${i === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                >
-                    <img
-                        src={img.url}
-                        alt={img.title || img.message || 'slide'}
-                        className="w-full h-full object-cover"
-                    />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
+            {images.map((img, i) => {
+                const isActive = i === idx;
+                const isPast = i < idx || (idx === 0 && i === len - 1);
+                return (
+                    <div
+                        key={i}
+                        className="absolute inset-0 will-change-opacity"
+                        style={{
+                            opacity: isActive ? 1 : 0,
+                            zIndex: isActive ? 10 : 0,
+                            transition: 'opacity 1s cubic-bezier(0.4, 0, 0.2, 1)',
+                        }}
+                    >
+                        <img
+                            src={img.url}
+                            alt={img.title || img.message || 'slide'}
+                            className="w-full h-full object-cover"
+                            style={{
+                                transform: isActive ? 'scale(1)' : 'scale(1.05)',
+                                transition: 'transform 6s cubic-bezier(0.4, 0, 0.2, 1)',
+                            }}
+                            loading={i === 0 ? 'eager' : 'lazy'}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
 
-                    {/* Text */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 md:p-12">
-                        {img.title && (
-                            <p className="text-white/75 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-1.5">
-                                {img.title}
-                            </p>
-                        )}
-                        {img.message && (
-                            <h2 className="text-white text-lg sm:text-2xl md:text-4xl font-bold leading-tight drop-shadow-lg max-w-2xl">
-                                {img.message}
-                            </h2>
-                        )}
-                        <div className="mt-4 h-1 w-10 sm:w-16 bg-blue-400 rounded-full" />
-                        <a
-                            href={shopAnchor}
-                            className="mt-5 inline-block px-6 py-3 bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg hover:bg-blue-700 transition-colors"
+                        <div
+                            className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 md:p-12"
+                            style={{
+                                transform: isActive ? 'translateY(0)' : 'translateY(20px)',
+                                opacity: isActive ? 1 : 0,
+                                transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s',
+                            }}
                         >
-                            {buttonLabel}
-                        </a>
+                            {img.title && (
+                                <p className="text-white/75 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-1.5">
+                                    {img.title}
+                                </p>
+                            )}
+                            {img.message && (
+                                <h2 className="text-white text-lg sm:text-2xl md:text-4xl font-bold leading-tight drop-shadow-lg max-w-2xl">
+                                    {img.message}
+                                </h2>
+                            )}
+                            <div className="mt-4 h-1 w-10 sm:w-16 bg-blue-400 rounded-full" />
+                            <a
+                                href={shopAnchor}
+                                className="mt-5 inline-block px-6 py-3 bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg hover:bg-blue-700 transition-colors"
+                            >
+                                {buttonLabel}
+                            </a>
+                        </div>
+
+                        {isAdmin && img.id && onDelete && (
+                            <button
+                                onClick={() => onDelete(img.id!)}
+                                className="absolute top-3 right-3 z-20 bg-rose-600/90 hover:bg-rose-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg transition"
+                            >
+                                <FaTrash size={10} /> Delete Image
+                            </button>
+                        )}
                     </div>
+                );
+            })}
 
-                    {/* Admin delete */}
-                    {isAdmin && img.id && onDelete && (
-                        <button
-                            onClick={() => onDelete(img.id!)}
-                            className="absolute top-3 right-3 z-20 bg-rose-600/90 hover:bg-rose-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg transition"
-                        >
-                            <FaTrash size={10} /> Delete Image
-                        </button>
-                    )}
-                </div>
-            ))}
-
-            {/* Nav Arrows */}
             {len > 1 && (
                 <>
                     <button
@@ -122,12 +148,11 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
                         <FaChevronRight size={16} />
                     </button>
 
-                    {/* Dots */}
                     <div className="absolute bottom-3 sm:bottom-5 right-4 sm:right-8 z-20 flex gap-2">
                         {images.map((_, i) => (
                             <button
                                 key={i}
-                                onClick={() => setIdx(i)}
+                                onClick={() => goTo(i)}
                                 className={`h-2.5 rounded-full transition-all duration-300 ${i === idx ? 'w-7 bg-white' : 'w-2.5 bg-white/40 hover:bg-white/70'}`}
                             />
                         ))}
@@ -148,7 +173,6 @@ export const useSliderImages = (section: string, fallback: SliderImg[] = []) => 
         let mounted = true;
         setSliderLoading(true);
 
-        // Check admin status
         const admin = localStorage.getItem("csa_is_admin") === "true" ||
             sessionStorage.getItem("csa_is_admin") === "true";
         if (mounted) setIsAdmin(admin);
