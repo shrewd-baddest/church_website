@@ -71,7 +71,6 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
         <div className="relative w-full h-[240px] sm:h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl md:rounded-3xl shadow-xl">
             {images.map((img, i) => {
                 const isActive = i === idx;
-                const isPast = i < idx || (idx === 0 && i === len - 1);
                 return (
                     <div
                         key={i}
