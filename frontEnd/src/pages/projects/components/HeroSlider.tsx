@@ -28,12 +28,18 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
 }) => {
     const [idx, setIdx] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
     const len = images.length;
     const timeoutRef = useRef<number | null>(null);
+    const progressRef = useRef<number | null>(null);
+    const touchStartX = useRef(0);
+    const touchStartY = useRef(0);
 
     const goTo = useCallback((newIdx: number) => {
         if (newIdx === idx || isTransitioning || len <= 1) return;
         setIsTransitioning(true);
+        setProgress(0);
         setIdx(newIdx);
         setTimeout(() => setIsTransitioning(false), 800);
     }, [idx, isTransitioning, len]);
@@ -41,12 +47,44 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
     const next = useCallback(() => goTo((idx + 1) % len), [goTo, idx, len]);
     const prev = useCallback(() => goTo((idx - 1 + len) % len), [goTo, idx, len]);
 
+    // Auto-play timer
     useEffect(() => {
-        if (len <= 1) return;
+        if (len <= 1 || isPaused) return;
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = window.setTimeout(next, 5500);
         return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
-    }, [len, next, idx]);
+    }, [len, next, idx, isPaused]);
+
+    // Progress bar animation
+    useEffect(() => {
+        if (len <= 1 || isPaused) { setProgress(0); return; }
+        setProgress(0);
+        const start = Date.now();
+        const duration = 5500;
+        const tick = () => {
+            const elapsed = Date.now() - start;
+            const pct = Math.min((elapsed / duration) * 100, 100);
+            setProgress(pct);
+            if (pct < 100) progressRef.current = window.requestAnimationFrame(tick);
+        };
+        progressRef.current = window.requestAnimationFrame(tick);
+        return () => { if (progressRef.current) cancelAnimationFrame(progressRef.current); };
+    }, [idx, len, isPaused]);
+
+    // Touch/swipe handlers
+    const onTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: React.TouchEvent) => {
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        const dy = e.changedTouches[0].clientY - touchStartY.current;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+            if (dx < 0) next();
+            else prev();
+        }
+    };
 
     if (!len) {
         return (
@@ -55,10 +93,7 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
                     <p className="text-lg font-bold mb-2 text-slate-700">No slider images yet</p>
                     <p className="text-sm text-slate-400 mb-6">Upload images to display here</p>
                     {isAdmin && (
-                        <a
-                            href="/admin/projects"
-                            className="px-6 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg hover:bg-blue-700 transition-colors"
-                        >
+                        <a href="/admin/projects" className="px-6 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
                             Manage Slider Images
                         </a>
                     )}
@@ -68,7 +103,24 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
     }
 
     return (
-        <div className="relative w-full h-[240px] sm:h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl md:rounded-3xl shadow-xl">
+        <div
+            className="relative w-full h-[240px] sm:h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl md:rounded-3xl shadow-xl"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+        >
+            {/* Progress bar */}
+            {len > 1 && (
+                <div className="absolute top-0 left-0 right-0 z-30 h-[3px] bg-white/10">
+                    <div
+                        className="h-full bg-white/70 transition-none"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+            )}
+
+            {/* Slides */}
             {images.map((img, i) => {
                 const isActive = i === idx;
                 return (
@@ -132,29 +184,50 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
                 );
             })}
 
+            {/* Arrows */}
             {len > 1 && (
                 <>
                     <button
-                        onClick={prev}
-                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full shadow-lg transition-all hover:scale-110"
+                        onClick={(e) => { e.stopPropagation(); prev(); }}
+                        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 flex items-center justify-center bg-black/25 hover:bg-black/45 backdrop-blur-md text-white rounded-full shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 border border-white/10 hover:border-white/25 group"
+                        aria-label="Previous slide"
                     >
-                        <FaChevronLeft size={16} />
+                        <FaChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform duration-200" />
                     </button>
                     <button
-                        onClick={next}
-                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full shadow-lg transition-all hover:scale-110"
+                        onClick={(e) => { e.stopPropagation(); next(); }}
+                        className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 flex items-center justify-center bg-black/25 hover:bg-black/45 backdrop-blur-md text-white rounded-full shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 border border-white/10 hover:border-white/25 group"
+                        aria-label="Next slide"
                     >
-                        <FaChevronRight size={16} />
+                        <FaChevronRight size={18} className="group-hover:translate-x-0.5 transition-transform duration-200" />
                     </button>
 
-                    <div className="absolute bottom-3 sm:bottom-5 right-4 sm:right-8 z-20 flex gap-2">
-                        {images.map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => goTo(i)}
-                                className={`h-2.5 rounded-full transition-all duration-300 ${i === idx ? 'w-7 bg-white' : 'w-2.5 bg-white/40 hover:bg-white/70'}`}
-                            />
-                        ))}
+                    {/* Dots + counter */}
+                    <div className="absolute bottom-3 sm:bottom-5 right-4 sm:right-8 z-20 flex items-center gap-3">
+                        <span className="text-white/50 text-xs font-mono tabular-nums hidden sm:inline">
+                            {idx + 1}/{len}
+                        </span>
+                        <div className="flex gap-1.5">
+                            {images.map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => goTo(i)}
+                                    className="relative h-2 rounded-full transition-all duration-400 overflow-hidden"
+                                    style={{
+                                        width: i === idx ? '28px' : '8px',
+                                        backgroundColor: i === idx ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                                    }}
+                                    aria-label={`Go to slide ${i + 1}`}
+                                >
+                                    {i === idx && (
+                                        <div
+                                            className="absolute inset-y-0 left-0 bg-white/50 rounded-full"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </>
             )}
