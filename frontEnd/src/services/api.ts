@@ -320,6 +320,18 @@ class ApiService {
     });
   }
 
+  async getHeroSlides(): Promise<{ slides: any[]; dynamic_enabled: boolean }> {
+    return this.cacheGet('hero_slides', 300_000, async () => {
+      try {
+        const { data } = await apiClient.get('/hero-slides');
+        return data || { slides: [], dynamic_enabled: false };
+      } catch (error) {
+        console.error('Error fetching hero slides:', error);
+        return { slides: [], dynamic_enabled: false };
+      }
+    });
+  }
+
   private clearSliderCache() {
     Object.keys(localStorage).forEach(k => { if (k.startsWith('csa_cache_slider_')) localStorage.removeItem(k); });
   }

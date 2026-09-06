@@ -11,6 +11,7 @@ import {
   formatPhoneForExcel 
 } from '../utils/helpers.js';
 import { autoAssignRoleForOfficial, removeRoleForOfficial } from '../utils/positionToRole.js';
+import { normalizeDancePosition, syncDancerToGroups, syncDancerDeletion } from '../utils/danceSync.js';
 import logger from "../logger/winston.js";
 import { emitSocketEvent } from "../socket/index.js";
 import { isOfficial } from "../middlewares/requireRole.js";
@@ -588,6 +589,10 @@ export const createOfficial = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Name and category are required' });
     }
 
+    const effectivePosition = category === 'Liturgical Dancers' && position 
+      ? normalizeDancePosition(position) 
+      : position;
+
     const normalizedContact = normalizePhone(contact);
     if (contact && !isValidPhone(contact)) {
       return res.status(400).json({ success: false, message: 'Please provide a valid phone number' });
@@ -638,8 +643,12 @@ export const createOfficial = async (req, res) => {
       const result = await pool.query(
         `INSERT INTO officials (name, category, position, contact, photo, election_term_id, status, term_of_service, reg_number)
          VALUES ($1, $2, $3, $4, $5, $6, 'archived', $7, $8) RETURNING *`,
-        [name, category, position || null, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
+        [name, category, effectivePosition || null, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
       );
+
+      if (category === 'Liturgical Dancers') {
+        await syncDancerToGroups(result.rows[0]);
+      }
 
       emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "create", data: result.rows[0] });
       return res.status(201).json({ success: true, data: result.rows[0] });
@@ -686,9 +695,9 @@ export const createOfficial = async (req, res) => {
     }
 
     let positionQueryIndex = -1;
-    if (position && position.trim() !== '') {
+    if (effectivePosition && effectivePosition.trim() !== '') {
       promises.push(
-        pool.query("SELECT name FROM officials WHERE LOWER(position) = LOWER($1) AND (status = 'active' OR status IS NULL)", [position.trim()])
+        pool.query("SELECT name FROM officials WHERE LOWER(position) = LOWER($1) AND (status = 'active' OR status IS NULL)", [effectivePosition.trim()])
       );
       positionQueryIndex = promises.length - 1;
     }
@@ -717,7 +726,7 @@ export const createOfficial = async (req, res) => {
       if (posDup.rows.length > 0) {
         return res.status(409).json({
           success: false,
-          message: `The position '${position}' is already occupied by ${posDup.rows[0].name}`
+          message: `The position '${effectivePosition}' is already occupied by ${posDup.rows[0].name}`
         });
       }
     }
@@ -728,13 +737,13 @@ export const createOfficial = async (req, res) => {
     const result = await pool.query(
       `INSERT INTO officials (name, category, position, contact, photo, election_term_id, status, term_of_service, reg_number) 
        VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, $8) RETURNING *`,
-      [name, category, position || null, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
+      [name, category, effectivePosition || null, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
     );
 
     let roleWarning = null;
-    if (validatedRegNumber && position) {
+    if (validatedRegNumber && effectivePosition) {
       const roleResult = await autoAssignRoleForOfficial(
-        validatedRegNumber, position, false, category, req.user?.member_id || null
+        validatedRegNumber, effectivePosition, false, category, req.user?.member_id || null
       );
       if (roleResult?.status === 'conflict') {
         roleWarning = roleResult.message;
@@ -742,6 +751,10 @@ export const createOfficial = async (req, res) => {
       } else if (roleResult) {
         logger.info(`Auto-assigned role for official ${name}: ${JSON.stringify(roleResult)}`);
       }
+    }
+
+    if (category === 'Liturgical Dancers') {
+      await syncDancerToGroups(result.rows[0]);
     }
 
     await syncCurrentTerm(term_of_service);
@@ -850,6 +863,12 @@ export const updateOfficial = async (req, res) => {
       }
     }
 
+    const effectiveCategory = category || existing.rows[0].category;
+    let effectivePosition = position;
+    if (effectiveCategory === 'Liturgical Dancers' && (position || !existing.rows[0].position?.startsWith('Dance'))) {
+      effectivePosition = normalizeDancePosition(position || existing.rows[0].position);
+    }
+
     const setParts = [
       'name = COALESCE($1, name)',
       'category = COALESCE($2, category)',
@@ -859,7 +878,7 @@ export const updateOfficial = async (req, res) => {
       'term_of_service = COALESCE($6, term_of_service)',
       'reg_number = COALESCE($7, reg_number)',
     ];
-    const values = [name, category, position, normalizedContact, photoUrl, term_of_service || null, validatedRegNumber];
+    const values = [name, category, effectivePosition !== undefined ? effectivePosition : position, normalizedContact, photoUrl, term_of_service || null, validatedRegNumber];
     if (resolvedTermId !== undefined) {
       setParts.push(`election_term_id = $${values.length + 1}`);
       values.push(resolvedTermId);
@@ -876,7 +895,7 @@ export const updateOfficial = async (req, res) => {
     if (!isArchivedUpdate) {
       const oldPosition = existing.rows[0].position;
       const oldRegNumber = existing.rows[0].reg_number;
-      const newPosition = position || oldPosition;
+      const newPosition = effectivePosition || oldPosition;
       const newRegNumber = validatedRegNumber || oldRegNumber;
 
       if (oldPosition !== newPosition || oldRegNumber !== newRegNumber) {
@@ -894,9 +913,9 @@ export const updateOfficial = async (req, res) => {
             logger.info(`Auto-assigned role for updated official: ${JSON.stringify(roleResult)}`);
           }
         }
-      } else if (validatedRegNumber && position && oldPosition === position) {
+      } else if (validatedRegNumber && (effectivePosition || position) && oldPosition === (effectivePosition || position)) {
         const roleResult = await autoAssignRoleForOfficial(
-          validatedRegNumber, position, false, result.rows[0].category, req.user?.member_id || null
+          validatedRegNumber, effectivePosition || position, false, result.rows[0].category, req.user?.member_id || null
         );
         if (roleResult?.status === 'conflict') {
           roleWarning = roleResult.message;
@@ -909,6 +928,12 @@ export const updateOfficial = async (req, res) => {
       if (term_of_service) {
         await syncCurrentTerm(term_of_service);
       }
+    }
+
+    if (result.rows[0].category === 'Liturgical Dancers') {
+      await syncDancerToGroups(result.rows[0]);
+    } else if (existing.rows[0].category === 'Liturgical Dancers') {
+      await syncDancerDeletion('officials', existing.rows[0]);
     }
 
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "update", id, data: result.rows[0] });
@@ -941,6 +966,9 @@ export const deleteOfficial = async (req, res) => {
     }
 
     await pool.query('DELETE FROM officials WHERE id = $1', [id]);
+    if (official.category === 'Liturgical Dancers') {
+      await syncDancerDeletion('officials', official);
+    }
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete", id });
     res.json({ success: true, message: 'Official deleted successfully' });
   } catch (error) {
@@ -1100,6 +1128,9 @@ export const deleteArchivedOfficial = async (req, res) => {
 
 
     await pool.query('DELETE FROM officials WHERE id = $1', [officialId]);
+    if (official.category === 'Liturgical Dancers') {
+      await syncDancerDeletion('officials', official);
+    }
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete_archived", id: officialId });
     res.json({ success: true, message: 'Archived official deleted successfully' });
   } catch (error) {
@@ -1142,12 +1173,55 @@ export const bulkDeleteArchivedOfficials = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Official IDs are required' });
     }
 
+    const toDelete = await pool.query('SELECT * FROM officials WHERE id = ANY($1)', [officialIds]);
     await pool.query('DELETE FROM officials WHERE id = ANY($1)', [officialIds]);
+    for (const off of toDelete.rows) {
+      if (off.category === 'Liturgical Dancers') {
+        await syncDancerDeletion('officials', off);
+      }
+    }
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "bulk_delete_archived", ids: officialIds });
     res.json({ success: true, message: `Successfully deleted ${officialIds.length} archived officials` });
   } catch (error) {
     logger.error('Error bulk deleting archived officials: ' + error.message);
     res.status(500).json({ success: false, message: 'Failed to perform bulk delete' });
+  }
+};
+
+/**
+ * GET /officials/lookup-member/:regNumber
+ * Lightweight member lookup for handover form — returns name only.
+ */
+export const lookupMember = async (req, res) => {
+  try {
+    const { regNumber } = req.params;
+    if (!regNumber || !regNumber.trim()) {
+      return res.status(400).json({ success: false, message: 'Reg number is required' });
+    }
+    const trimmed = regNumber.trim();
+    const result = await pool.query(
+      `SELECT member_id, first_name, last_name FROM members
+       WHERE member_id LIKE '%/' || $1 || '/%'
+          OR LOWER(TRIM(member_id)) = LOWER(TRIM($2))
+          OR member_id ILIKE $3
+       ORDER BY CASE WHEN LOWER(TRIM(member_id)) = LOWER(TRIM($2)) THEN 1 ELSE 2 END
+       LIMIT 1`,
+      [trimmed, trimmed, `%${trimmed}%`]
+    );
+    if (result.rows.length === 0) {
+      return res.json({ success: true, data: null });
+    }
+    const m = result.rows[0];
+    res.json({
+      success: true,
+      data: {
+        member_id: m.member_id,
+        name: `${m.first_name || ''} ${m.last_name || ''}`.trim(),
+      },
+    });
+  } catch (error) {
+    logger.error('Error looking up member: ' + error.message);
+    res.status(500).json({ success: false, message: 'Failed to look up member' });
   }
 };
 

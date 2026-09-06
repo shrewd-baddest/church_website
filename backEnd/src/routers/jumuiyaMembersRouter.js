@@ -1,5 +1,5 @@
 import express from 'express';
-import verifyToken from '../middlewares/Tokens.js';
+import verifyToken, { optionalAuth } from '../middlewares/Tokens.js';
 import requireRole, { enforceJumuiyaScope, OFFICIAL_ROLES } from '../middlewares/requireRole.js';
 import {
   getAllJumuiyaMembers,
@@ -52,6 +52,7 @@ const TREASURY_ROLES = ["treasurer", ...CSA_ROLES];
 router.get('/', verifyToken, enforceJumuiyaScope((req) => req.query?.jumuiya_id), getAllJumuiyaMembers);
 router.get('/registered', verifyToken, enforceJumuiyaScope((req) => req.query?.jumuiya_id), getRegisteredJumuiyaMembers);
 router.get('/unregistered', verifyToken, enforceJumuiyaScope((req) => req.query?.jumuiya_id), getUnregisteredMembers);
+router.get('/associates', optionalAuth, getAssociatesList);
 router.get('/lookup', verifyToken, getJumuiyaLookup);
 router.get('/:jumuiyaId/pending-self-registrations', verifyToken, requireRole(...CSA_ROLES), getPendingSelfRegistrations);
 
@@ -95,7 +96,7 @@ router.delete('/unregister', verifyToken, requireRole(...OFFICIAL_ROLES), unregi
 
 router.get('/associates/pending', verifyToken, requireRole(...CSA_ROLES), getPendingMigrationMembers);
 router.post('/associates/migrate', verifyToken, requireRole(...CSA_ROLES), migrateToAssociates);
-router.get('/associates/list', verifyToken, requireRole(...CSA_ROLES), getAssociatesList);
+router.get('/associates/list', optionalAuth, getAssociatesList);
 router.get('/associates/export', verifyToken, requireRole(...CSA_ROLES), exportAssociates);
 router.post('/associates/undo', verifyToken, requireRole(...CSA_ROLES), undoMigration);
 

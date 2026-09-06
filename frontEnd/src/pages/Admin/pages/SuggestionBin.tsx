@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Trash, Loader2, MessageSquare, XCircle, Shield } from 'lucide-react';
+import { Trash2, Trash, Loader2, MessageSquare, XCircle, Shield, RotateCcw } from 'lucide-react';
 import { apiClient } from '../../../api/axiosInstance';
 import { useAuth } from '../../../context/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -8,7 +8,17 @@ import PageLoader from '../../../assets/Layouts/PageLoader';
 export default function SuggestionBin() {
   const { user } = useAuth();
   const userRoles = Array.isArray(user?.role) ? user.role : [user?.role].filter(Boolean);
-  const isChair = userRoles.some((r: any) => ['csa_chair', 'jumuiya_chairperson'].includes(r));
+  const isCSAOfficial = userRoles.some((r: any) =>
+    ['csa_vice_chair', 'csa_chair', 'admin', 'developer'].includes(r)
+  );
+  
+  // Only the CSA Chairperson (or admin/developer) can permanently delete CSA suggestions.
+  // The CSA Vice Chairperson can soft-delete and view/restore from bin, but cannot permanently delete.
+  const canPermanentlyDelete = isCSAOfficial
+    ? userRoles.some((r: any) => ['csa_chair', 'admin', 'developer'].includes(r))
+    : userRoles.some((r: any) => ['jumuiya_chairperson', 'admin', 'developer'].includes(r));
+
+  const jumuiyaTarget = isCSAOfficial ? 'csa' : (user?.jumuiya_id || '');
 
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +27,8 @@ export default function SuggestionBin() {
   const loadBin = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/suggestions/bin');
+      const params = jumuiyaTarget ? { jumuiya_id: jumuiyaTarget } : { jumuiya_id: 'csa' };
+      const res = await apiClient.get('/suggestions/bin', { params });
       setItems(res.data.data || []);
     } catch {
       toast.error('Failed to load suggestion bin');
@@ -28,6 +39,19 @@ export default function SuggestionBin() {
 
   useEffect(() => { loadBin(); }, []);
 
+  const handleRestore = async (id: number) => {
+    setActionLoading(id);
+    try {
+      await apiClient.patch(`/suggestions/bin/${id}/restore`);
+      toast.success('Suggestion restored to suggestion box');
+      setItems(prev => prev.filter(i => i.id !== id));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to restore');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleClearOne = async (id: number) => {
     if (!window.confirm('Permanently delete this suggestion? This cannot be undone.')) return;
     setActionLoading(id);
@@ -36,7 +60,7 @@ export default function SuggestionBin() {
       toast.success('Permanently deleted');
       setItems(prev => prev.filter(i => i.id !== id));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to delete');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to delete');
     } finally {
       setActionLoading(null);
     }
@@ -46,11 +70,12 @@ export default function SuggestionBin() {
     if (!window.confirm(`Permanently delete all ${items.length} suggestions from the bin? This cannot be undone.`)) return;
     setActionLoading('all');
     try {
-      const res = await apiClient.delete('/suggestions/bin/clear');
+      const params = jumuiyaTarget ? { jumuiya_id: jumuiyaTarget } : { jumuiya_id: 'csa' };
+      const res = await apiClient.delete('/suggestions/bin/clear', { params });
       toast.success(res.data?.message || 'Bin cleared');
       setItems([]);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to clear bin');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to clear bin');
     } finally {
       setActionLoading(null);
     }
@@ -76,7 +101,7 @@ export default function SuggestionBin() {
           <span className="px-3 py-1.5 bg-orange-100 text-orange-800 text-sm font-bold rounded-xl">
             {items.length} item{items.length !== 1 ? 's' : ''}
           </span>
-          {items.length > 0 && isChair && (
+          {items.length > 0 && canPermanentlyDelete && (
             <button onClick={handleClearAll} disabled={actionLoading === 'all'}
               className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
             >
@@ -121,19 +146,28 @@ export default function SuggestionBin() {
                       </span>
                     )}
                   </div>
-                  {isChair ? (
-                    <button onClick={() => handleClearOne(item.id)} disabled={actionLoading === item.id}
-                      className="shrink-0 px-4 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-xl text-xs transition-all disabled:opacity-50 flex items-center gap-1.5"
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => handleRestore(item.id)} disabled={actionLoading === item.id}
+                      className="px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                      title="Restore suggestion back to active list"
                     >
-                      {actionLoading === item.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                      Delete
+                      {actionLoading === item.id ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+                      Restore
                     </button>
-                  ) : (
-                    <span className="shrink-0 px-4 py-2.5 bg-slate-50 text-slate-400 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200">
-                      <Shield size={14} />
-                      Chair only
-                    </span>
-                  )}
+                    {canPermanentlyDelete ? (
+                      <button onClick={() => handleClearOne(item.id)} disabled={actionLoading === item.id}
+                        className="px-4 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-xl text-xs transition-all disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        {actionLoading === item.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                        Delete
+                      </button>
+                    ) : (
+                      <span className="px-3.5 py-2.5 bg-slate-50 text-slate-400 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200">
+                        <Shield size={14} />
+                        Chair only
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

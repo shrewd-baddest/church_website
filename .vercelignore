@@ -1,0 +1,14 @@
+/backEnd
+/attendanceApp
+/logs
+/src
+/.github
+/.kilo
+*.md
+*.json
+!vercel.json
+!frontEnd/*.json
+frontEnd/node_modules
+frontEnd/dist
+.env*
+*.log

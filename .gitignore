@@ -41,3 +41,5 @@ git_status_output.txt
 check_roles.mjs
 backEnd/verify_login_hash.mjs
 backEnd/cleanup_db.js
+.vercel
+.env*

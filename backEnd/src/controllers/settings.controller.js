@@ -14,12 +14,15 @@ const PUBLIC_SAFE_KEYS = new Set([
   "developer_team",
   "schema_version",
   "explore_jumuiya_image",
+  "community_jumuiya_image",
+  "community_jumuiyas_image",
   "explore_activities_image",
   "explore_projects_image",
   "explore_officials_image",
   "explore_background_image",
   "gallery_items",
   "semester_default_image",
+  "hero_dynamic_enabled",
 ]);
 
 // Keys that the settings write endpoint will accept. Anything else is dropped,
@@ -34,12 +37,15 @@ const WRITE_ALLOWED_KEYS = new Set([
   "hire_pickup_instructions",
   "developer_team",
   "explore_jumuiya_image",
+  "community_jumuiya_image",
+  "community_jumuiyas_image",
   "explore_activities_image",
   "explore_projects_image",
   "explore_officials_image",
   "explore_background_image",
   "gallery_items",
   "semester_default_image",
+  "hero_dynamic_enabled",
 ]);
 
 // GET all settings — only public-safe keys are returned to anonymous clients.
@@ -79,3 +85,24 @@ export const updateSettings = async (req, res) => {
     res.status(500).json({ error: "Failed to save settings" });
   }
 };
+
+/**
+ * POST /settings/upload-explore
+ * Accepts a single image file (via the uploadExploreImage multer middleware)
+ * and returns its Cloudinary URL. The image is processed with landscape
+ * transformations (900×500, fill, gravity:auto) suitable for card headers.
+ */
+export const uploadExploreCardImage = (req, res) => {
+  const file = req.file || req.files?.[0];
+  if (!file) {
+    return res.status(400).json({ error: "No image file provided" });
+  }
+  // multer's Cloudinary storage sets file.path to the secure_url
+  const url = file.path;
+  if (!url) {
+    return res.status(500).json({ error: "Upload succeeded but no URL was returned" });
+  }
+  logger.info(`Explore card image uploaded: ${url}`);
+  res.json({ success: true, data: { url } });
+};
+

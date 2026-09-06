@@ -8,6 +8,7 @@ import CommunityDetail from './CommunityDetail';
 import CommunityAboutTab from './components/tabs/CommunityAboutTab';
 import { FaUserTie, FaUsers, FaCalendarAlt, FaShareAlt, FaTshirt, FaCommentDots, FaChurch, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 import { FaBars } from 'react-icons/fa';
+import '../Jumuiya/JumuiyaLanding.css';
 
 const MINISTRY_COLORS: Record<string, string> = {
   choir: '#1e40af',
@@ -48,7 +49,7 @@ const TAB_LABELS: Record<string, string> = {
 // The community hub shows exactly these five groups. Anything else in
 // hub_modules (e.g. a "General Parish" entry) is not a ministry group and is
 // hidden from the grid — jumuiyas get their own dedicated card below.
-const GROUP_MODULE_IDS = new Set(['choir', 'dancers', 'charismatic', 'st-francis', 'youth']);
+const GROUP_MODULE_IDS = new Set(['choir', 'dancers', 'charismatic', 'st-francis', 'youth', 'mentorship']);
 
 const Community: React.FC = () => {
   const navigate = useNavigate();
@@ -66,6 +67,18 @@ const Community: React.FC = () => {
     staleTime: 60000,
   });
 
+  // Fetch system settings for the Our Jumuiyas card image
+  const { data: settingsData } = useQuery({
+    queryKey: ['system-settings-jumuiya-card'],
+    queryFn: async () => {
+      const res = await apiClient.get('/settings');
+      return res.data || {};
+    },
+    staleTime: 60000,
+  });
+
+  const jumuiyaCardImage = settingsData?.community_jumuiya_image || settingsData?.explore_jumuiya_image || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=800';
+
   const myCommunities: Array<{
     module_id: string;
     status: string;
@@ -75,9 +88,16 @@ const Community: React.FC = () => {
   }> = myCommunitiesData || [];
 
   // The hub is public — every visitor sees all five groups plus the
-  // Jumuiyas card. Role restrictions live on the ADMIN side only
-  // (/admin/community-management via utils/adminAccess.ts).
-  const activeModules = (modules || []).filter((m) => GROUP_MODULE_IDS.has(String(m.id)));
+  // Jumuiyas card.
+  const seenModuleKeys = new Set<string>();
+  const activeModules = (modules || []).filter((m) => {
+    const rawId = String(m.id || '').toLowerCase();
+    const key = rawId === 'youth' || rawId === 'mentorship' ? 'mentorship' : rawId;
+    if (!GROUP_MODULE_IDS.has(rawId) && !GROUP_MODULE_IDS.has(key)) return false;
+    if (seenModuleKeys.has(key)) return false;
+    seenModuleKeys.add(key);
+    return true;
+  });
 
   const handleCardClick = (moduleId: string) => {
     navigate(`/community/${moduleId}`);
@@ -103,23 +123,23 @@ const Community: React.FC = () => {
             const color = MINISTRY_COLORS[community.id] || community.color || '#7c2d12';
 
             return (
-              <button
+              <div
                 key={community.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 aria-label={`View ${community.title}`}
-                className="jumuiya-card card card-clickable animate-fade-in"
+                className="jumuiya-card card-clickable animate-fade-in"
                 style={{
                   ['--jumuiya-color' as any]: color,
+                  cursor: 'pointer',
+                  backgroundImage: `url(${image.replace(/^http:\/\//i, 'https://')})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
                 }}
                 onClick={() => handleCardClick(community.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCardClick(community.id); }}
               >
-                {/* Background Image with Color Overlay */}
-                <div
-                  className="card-background"
-                  style={{ backgroundImage: `url(${image})` }}
-                >
-                  <div className="card-overlay" />
-                </div>
+                <div className="card-overlay" />
 
                 {/* Card Content */}
                 <div className="card-content">
@@ -131,24 +151,27 @@ const Community: React.FC = () => {
                     <span className="card-link">Explore Ministry →</span>
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
 
           {/* Our Jumuiyas — dedicated link card (not a ministry group) */}
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={0}
             aria-label="View Our Jumuiyas"
-            className="jumuiya-card card card-clickable animate-fade-in"
-            style={{ ['--jumuiya-color' as any]: '#1d4ed8' }}
+            className="jumuiya-card card-clickable animate-fade-in"
+            style={{
+              ['--jumuiya-color' as any]: '#1d4ed8',
+              cursor: 'pointer',
+              backgroundImage: `url(${jumuiyaCardImage.replace(/^http:\/\//i, 'https://')})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
             onClick={() => navigate('/jumuiya')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/jumuiya'); }}
           >
-            <div
-              className="card-background"
-              style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=800)' }}
-            >
-              <div className="card-overlay" />
-            </div>
+            <div className="card-overlay" />
             <div className="card-content">
               <div className="card-header">
                 <h2 className="card-title">Our Jumuiyas</h2>
@@ -160,7 +183,7 @@ const Community: React.FC = () => {
                 <span className="card-link">Visit the Jumuiyas →</span>
               </div>
             </div>
-          </button>
+          </div>
         </div>
 
         {/* My Communities — logged-in members see their enrollment status */}

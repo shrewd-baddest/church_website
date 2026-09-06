@@ -86,7 +86,7 @@ OFFICIALS & LEADERSHIP STRUCTURE:
 - Liturgist: Liturgist, Assistant Liturgist
 - Choir Officials: Choir Chairperson, Choir Vice Chairperson
 - Instrument Managers: Instrument Manager, Assistant Instrument Manager
-- Liturgical Dancers: Dance Coordinator, Assistant Dance Coordinator
+- Liturgical Dancers: Dance Chairperson, Dance Vice Chairperson
 - Catechist: Catechist
 - The current people holding these roles are listed live in the Officials directory at /officials (do not guess names).`;
 
@@ -102,7 +102,7 @@ const COMMUNITY_FACTS = `
 COMMUNITY GROUPS (each with its own detail page under /community):
 - CSA Choir: worship, fellowship and musical excellence. Practice on Tuesday 18:00-20:00 and Saturday 13:00-16:00 at the Church Hall; also offers music classes (e.g. Sight Reading).
 - Liturgical Dancers, Charismatic, and St. Francis groups (each has a Chairperson etc.).
-- Leadership roles per group: Choir (Secretary, Vice Secretary, Treasurer, Project Manager, Male/Female Representative, Choir Master, Choir Mistress), Dancers (Chairperson, Vice Chairperson), Charismatic (Chairperson, Vice Chairperson, Secretary, Treasurer), St. Francis (Chairperson, Vice Chairperson).`;
+- Leadership roles per group: Choir (Secretary, Vice Secretary, Treasurer, Project Manager, Male/Female Representative, Choir Master, Choir Mistress), Dancers (Dance Chairperson, Dance Vice Chairperson), Charismatic (Chairperson, Vice Chairperson, Secretary, Treasurer), St. Francis (Chairperson, Vice Chairperson).`;
 
 const ADMIN_KNOWLEDGE = `
 ADMIN AREA (user is currently on /admin):

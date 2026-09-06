@@ -13,13 +13,16 @@ import {
 import { Link } from 'react-router-dom';
 import ClickableCard from '../../../components/ClickableCard';
 
+const JUMUIYA_CARD_IMAGE_DEFAULT = "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=600";
+
 const COMMUNITY_IMAGES: Record<string, string> = {
   choir: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=600",
   dancers: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&q=80&w=600",
   charismatic: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?auto=format&fit=crop&q=80&w=600",
   "st-francis": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=600",
   youth: "https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&q=80&w=600",
-  mentorship: "https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&q=80&w=600"
+  mentorship: "https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&q=80&w=600",
+  "our-jumuiyas": JUMUIYA_CARD_IMAGE_DEFAULT,
 };
 
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1438029071396-1e831a7fa6d8?auto=format&fit=crop&q=80&w=600";
@@ -30,10 +33,37 @@ export default function CommunityManager() {
   const { data: modules = [], loading, refetch: loadModules } = useCachedData<any[]>(
     'csa_cache_hub_modules',
     async () => {
-      const response = await apiClient.get('/hub_modules');
-      const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      const [modulesRes, settingsRes] = await Promise.all([
+        apiClient.get('/hub_modules').catch(() => ({ data: [] })),
+        apiClient.get('/settings').catch(() => ({ data: {} })),
+      ]);
+      const data = Array.isArray(modulesRes.data) ? modulesRes.data : (modulesRes.data?.data || []);
       const allowedIds = ['choir', 'dancers', 'st-francis', 'charismatic', 'youth', 'mentorship'];
-      return Array.isArray(data) ? data.filter((m: any) => allowedIds.includes(m.id)) : [];
+      
+      const seen = new Set<string>();
+      const filtered: any[] = [];
+      for (const m of (Array.isArray(data) ? data : [])) {
+        const id = m.id?.toLowerCase();
+        if (!allowedIds.includes(id)) continue;
+        const key = id === 'youth' || id === 'mentorship' ? 'mentorship' : id;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        filtered.push(m);
+      }
+
+      const settings = settingsRes.data || {};
+      const jumuiyaImg = settings.community_jumuiya_image || settings.explore_jumuiya_image || JUMUIYA_CARD_IMAGE_DEFAULT;
+      
+      const ourJumuiyasCard = {
+        id: 'our-jumuiyas',
+        title: 'Our Jumuiyas',
+        description: 'Small Christian Communities link card banner',
+        saint_image_url: jumuiyaImg,
+        theme_color: '#1d4ed8',
+        public_url: '/jumuiya',
+      };
+
+      return [...filtered, ourJumuiyasCard];
     },
     []
   );
@@ -68,7 +98,7 @@ export default function CommunityManager() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="h-40 sm:h-56 w-full overflow-hidden relative">
             <img
-              src={COMMUNITY_IMAGES[module.id] || DEFAULT_IMAGE}
+              src={module.saint_image_url || module.image_url || COMMUNITY_IMAGES[module.id] || DEFAULT_IMAGE}
               alt={module.title}
               className="w-full h-full object-cover"
             />
@@ -131,7 +161,7 @@ export default function CommunityManager() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         {filteredModules.length > 0 ? filteredModules.map((module) => (
           <ClickableCard
             key={module.id}
@@ -139,9 +169,9 @@ export default function CommunityManager() {
             ariaLabel={`Manage ${module.title}`}
             className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-blue-200 transition-all duration-300 overflow-hidden flex flex-col group"
           >
-            <div className="h-36 sm:h-44 w-full overflow-hidden relative bg-slate-100">
+            <div className="h-36 sm:h-40 w-full overflow-hidden relative bg-slate-100">
               <img
-                src={COMMUNITY_IMAGES[module.id] || DEFAULT_IMAGE}
+                src={module.saint_image_url || module.image_url || COMMUNITY_IMAGES[module.id] || DEFAULT_IMAGE}
                 alt={module.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -154,7 +184,7 @@ export default function CommunityManager() {
             </div>
             <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-center">
               <Link
-                to={`/community/${module.id}`}
+                to={module.public_url || `/community/${module.id}`}
                 target="_blank"
                 onClick={(e) => e.stopPropagation()}
                 className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors"

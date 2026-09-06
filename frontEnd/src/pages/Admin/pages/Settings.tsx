@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sliders,
@@ -24,7 +24,7 @@ import apiService from '../../../services/api';
 import { apiClient } from '../../../api/axiosInstance';
 import { semesterServices, SemesterConfig } from '../../../api/semesterServices';
 import { useAuth } from '../../../context/AuthContext';
-import { API_HANDOVER } from '../../../utils/officialsApi';
+import { API_HANDOVER, API_LOOKUP_MEMBER } from '../../../utils/officialsApi';
 import { toast } from 'react-hot-toast';
 
 interface Assignment {
@@ -39,6 +39,7 @@ interface Assignment {
   created_at: string;
   role_name: string;
   role_description: string;
+  source_position: string | null;
   first_name: string;
   last_name: string;
   jumuiya_name: string | null;
@@ -50,7 +51,7 @@ interface Assignment {
 
 const ROLE_PAGES_MAP: Record<string, string[]> = {
   csa_chair: ['All pages (Super Admin)'],
-  csa_vice_chair: ['Suggestion Box'],
+  csa_vice_chair: ['Suggestion Box', 'T-Shirts'],
   jumuiya_coordinator: ['Officials Management', 'Members'],
   project_manager: ['Sacramentals Banners', 'Products', 'Orders', 'Hire Requests', 'Project Management'],
   instrument_manager: ['Seats and Instruments'],
@@ -106,20 +107,56 @@ const getPagesForRole = (roleName: string): string[] => {
   return ROLE_PAGES_MAP[key] || [`Role: ${roleName}`];
 };
 
+const ROLE_LABEL_MAP: Record<string, string> = {
+  csa_chair: 'CSA Chairperson',
+  csa_vice_chair: 'CSA Vice Chairperson',
+  csa_secretary: 'CSA Secretary',
+  jumuiya_coordinator: 'Jumuiya Coordinator',
+  os: 'Organizing Secretary',
+  project_manager: 'Project Manager',
+  instrument_manager: 'Instrument Manager',
+  treasurer: 'Treasurer',
+  liturgist: 'Liturgist',
+  jumuiya_chairperson: 'Jumuiya Chairperson',
+  jumuiya_vice_chairperson: 'Jumuiya Vice Chairperson',
+  jumuiya_os: 'Jumuiya Organizing Secretary',
+  jumuiya_secretary: 'Jumuiya Secretary',
+};
+
+const getRoleDisplayName = (assignment: Assignment): string => {
+  if (assignment.source_position) return assignment.source_position;
+  const key = (assignment.role_name || '').toLowerCase().trim();
+  return ROLE_LABEL_MAP[key] || assignment.role_name.replace(/_/g, ' ');
+};
+
 const roleBelongsToTab = (roleName: string, tab: TabKey): boolean => {
   const name = (roleName || '').toLowerCase().trim();
-  switch (tab) {
-    case 'jumuiya':
-      return JUMUIYA_ROLES.includes(name) || name.includes('jumuiya');
-    case 'subgroup':
-      return SUBGROUP_ROLES.includes(name) || name.includes('choir') || name.includes('dance') || name.includes('charismatic') || name.includes('francis') || name.includes('mentorship');
-    case 'csa':
-      return CSA_ROLES.includes(name) || (!JUMUIYA_ROLES.includes(name) && !SUBGROUP_ROLES.includes(name) && !name.includes('jumuiya') && !name.includes('choir') && !name.includes('dance') && !name.includes('charismatic') && !name.includes('francis') && !name.includes('mentorship'));
-  }
+  if (CSA_ROLES.includes(name)) return tab === 'csa';
+  if (JUMUIYA_ROLES.includes(name) || (name.startsWith('jumuiya_') && !name.includes('coordinator'))) return tab === 'jumuiya';
+  if (SUBGROUP_ROLES.includes(name) || name.includes('choir') || name.includes('dance') || name.includes('charismatic') || name.includes('francis') || name.includes('mentorship')) return tab === 'subgroup';
+  return tab === 'csa';
 };
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<TabKey>('csa');
+  const [pendingCounts, setPendingCounts] = useState<Record<TabKey, number>>({ csa: 0, jumuiya: 0, subgroup: 0 });
+  const [pendingRefresh, setPendingRefresh] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    apiService.getRoleAssignments('pending').then((assignments) => {
+      if (!mounted) return;
+      const counts: Record<TabKey, number> = { csa: 0, jumuiya: 0, subgroup: 0 };
+      assignments.forEach((assignment) => {
+        const tab = (['csa', 'jumuiya', 'subgroup'] as TabKey[]).find((key) => roleBelongsToTab(assignment.role_name, key));
+        if (tab) counts[tab] += 1;
+      });
+      setPendingCounts(counts);
+    }).catch(() => {
+      if (mounted) setPendingCounts({ csa: 0, jumuiya: 0, subgroup: 0 });
+    });
+    return () => { mounted = false; };
+  }, [pendingRefresh]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -148,13 +185,18 @@ export default function Settings() {
             }`}
           >
             {tab.label}
+            {pendingCounts[tab.key] > 0 && (
+              <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+                {pendingCounts[tab.key]}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
       {(activeTab === 'csa' || activeTab === 'all') && <SemesterConfigPanel />}
       {activeTab === 'csa' && <TermHandoverPanel />}
-      <ApprovalsPanel activeTab={activeTab} />
+      <ApprovalsPanel activeTab={activeTab} onChanged={() => setPendingRefresh((value) => value + 1)} />
       <ActiveRolesPanel activeTab={activeTab} />
       <RevokedRolesPanel activeTab={activeTab} />
     </div>
@@ -309,6 +351,9 @@ function TermHandoverPanel() {
     .some((r) => String(r).toLowerCase().trim() === 'csa_chair');
 
   const [successorRegNumber, setSuccessorRegNumber] = useState('');
+  const [successorName, setSuccessorName] = useState('');
+  const [lookingUp, setLookingUp] = useState(false);
+  const lookupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [termName, setTermName] = useState('');
   const [termYear, setTermYear] = useState('');
   const [confirming, setConfirming] = useState(false);
@@ -319,6 +364,31 @@ function TermHandoverPanel() {
     revoked_roles: number;
     term_name: string;
   } | null>(null);
+
+  const lookupMember = useCallback((reg: string) => {
+    if (lookupTimerRef.current) clearTimeout(lookupTimerRef.current);
+    if (!reg.trim()) {
+      setSuccessorName('');
+      setLookingUp(false);
+      return;
+    }
+    setLookingUp(true);
+    lookupTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await apiClient.get(`${API_LOOKUP_MEMBER}/${encodeURIComponent(reg.trim())}`);
+        setSuccessorName(res.data?.data?.name || '');
+      } catch {
+        setSuccessorName('');
+      } finally {
+        setLookingUp(false);
+      }
+    }, 400);
+  }, []);
+
+  const handleRegChange = (val: string) => {
+    setSuccessorRegNumber(val);
+    lookupMember(val);
+  };
 
   if (!isChair) return null;
 
@@ -442,11 +512,28 @@ function TermHandoverPanel() {
               <input
                 type="text"
                 value={successorRegNumber}
-                onChange={(e) => setSuccessorRegNumber(e.target.value)}
+                onChange={(e) => handleRegChange(e.target.value)}
                 placeholder="e.g. CS/0012/2022"
                 disabled={executing || confirming}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm disabled:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition-all"
               />
+              {successorRegNumber.trim() && (
+                <div className="mt-1.5">
+                  {lookingUp ? (
+                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Loader2 size={10} className="animate-spin" /> Looking up...
+                    </span>
+                  ) : successorName ? (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200 rounded-xl">
+                      <UserCheck size={12} className="text-violet-600" />
+                      <span className="text-xs font-bold text-violet-800">{successorName}</span>
+                      <span className="text-[10px] text-violet-400 ml-1">Incoming Chairperson</span>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-rose-500 font-medium">No member found with this reg number</span>
+                  )}
+                </div>
+              )}
               <p className="text-[11px] text-slate-400 mt-1">They log in with their usual reg number &amp; password and take over from there.</p>
             </div>
             <div>
@@ -476,7 +563,7 @@ function TermHandoverPanel() {
           {confirming ? (
             <div className="bg-rose-50 border border-rose-300 rounded-xl p-3 space-y-2">
               <p className="text-xs font-bold text-rose-800">
-                Final confirmation — this cannot be undone. Hand over to "{successorRegNumber.trim()}"?
+                Final confirmation — this cannot be undone. Hand over to "{successorName || successorRegNumber.trim()}"?
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -512,7 +599,7 @@ function TermHandoverPanel() {
   );
 }
 
-function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
+function ApprovalsPanel({ activeTab, onChanged }: { activeTab: TabKey; onChanged: () => void }) {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -539,6 +626,7 @@ function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
       await apiService.approveAssignment(id);
       toast.success('Assignment approved');
       setAssignments((prev) => prev.filter((a) => a.id !== id));
+      onChanged();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to approve');
     } finally {
@@ -552,6 +640,7 @@ function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
       await apiService.rejectAssignment(id);
       toast.success('Assignment rejected');
       setAssignments((prev) => prev.filter((a) => a.id !== id));
+      onChanged();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to reject');
     } finally {
@@ -593,7 +682,7 @@ function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+      <div className="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
           <Clock className="w-5 h-5 text-amber-500" />
           Pending Approvals
@@ -609,8 +698,9 @@ function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
           Refresh
         </button>
       </div>
-      <table className="w-full text-left border-collapse table-fixed">
-        <thead>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] text-left border-collapse table-fixed">
+          <thead>
           <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
             <th className="px-3 py-3 w-[18%]">Member</th>
             <th className="pl-1 pr-2 py-3 w-[12%]">Role</th>
@@ -620,8 +710,8 @@ function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
             <th className="px-3 py-3 w-[8%]">Date</th>
             <th className="px-3 py-3 w-[16%] text-right">Actions</th>
           </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+          </thead>
+          <tbody className="divide-y divide-slate-100">
           {filtered.map((a) => (
             <tr key={a.id} className="hover:bg-slate-50/80 transition-colors">
               <td className="px-3 py-3">
@@ -637,7 +727,7 @@ function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
               </td>
               <td className="pl-1 pr-2 py-3">
                 <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-100 capitalize block truncate">
-                  {a.role_name.replace(/_/g, ' ')}
+                  {getRoleDisplayName(a)}
                 </span>
               </td>
               <td className="px-3 py-3">
@@ -690,8 +780,9 @@ function ApprovalsPanel({ activeTab }: { activeTab: TabKey }) {
               </td>
             </tr>
           ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -737,20 +828,21 @@ function ActiveRolesPanel({ activeTab }: { activeTab: TabKey }) {
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+      <div className="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50">
         <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
           <Shield className="w-5 h-5 text-emerald-500" />
           Active Role Assignments
           <span className="ml-2 px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
-            {active.length}
+            {filtered.length}
           </span>
         </h2>
         <p className="text-sm text-slate-500 mt-1">
           Officials with approved access. You can revoke access at any time.
         </p>
       </div>
-      <table className="w-full text-left border-collapse table-fixed">
-        <thead>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] text-left border-collapse table-fixed">
+          <thead>
           <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
             <th className="px-3 py-3 w-[18%]">Member</th>
             <th className="pl-1 pr-2 py-3 w-[12%]">Role</th>
@@ -760,8 +852,8 @@ function ActiveRolesPanel({ activeTab }: { activeTab: TabKey }) {
             <th className="px-3 py-3 w-[8%]">Approved At</th>
             <th className="px-3 py-3 w-[16%] text-right">Actions</th>
           </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
+          </thead>
+          <tbody className="divide-y divide-slate-100">
           {filtered.map((a) => (
             <tr key={a.id} className="hover:bg-slate-50/80 transition-colors">
               <td className="px-3 py-3">
@@ -777,7 +869,7 @@ function ActiveRolesPanel({ activeTab }: { activeTab: TabKey }) {
               </td>
               <td className="pl-1 pr-2 py-3">
                 <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-100 capitalize block truncate">
-                  {a.role_name.replace(/_/g, ' ')}
+                  {getRoleDisplayName(a)}
                 </span>
               </td>
               <td className="px-3 py-3">
@@ -820,8 +912,9 @@ function ActiveRolesPanel({ activeTab }: { activeTab: TabKey }) {
               </td>
             </tr>
           ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -933,7 +1026,7 @@ function RevokedRolesPanel({ activeTab }: { activeTab: TabKey }) {
                 </td>
                 <td className="pl-1 pr-2 py-3">
                   <span className="px-2 py-0.5 bg-rose-50 text-rose-700 text-[10px] font-bold rounded-lg border border-rose-100 capitalize block truncate">
-                    {a.role_name.replace(/_/g, ' ')}
+                    {getRoleDisplayName(a)}
                   </span>
                 </td>
                 <td className="px-3 py-3">

@@ -10,15 +10,16 @@ import { getAvatarForCategory } from './constants/positionInfo'
 import PageLoader from '../../assets/Layouts/PageLoader'
 
 const CATEGORY_ORDER = [
-  'Executive','Jumuiya Coordinators','Bible Coordinators','Rosary',
+  'Executive','Jumuiya Coordinators','Bible Coordinators','Rosary Coordinators',
   'Pamphlet Managers','Project Managers','Instrument Managers',
-  'Choir Officials','Liturgical Dancers','Liturgist','Catechist'
+  'Choir Officials','Liturgical Dancers','Liturgists','Catechist'
 ]
 
 const CATEGORY_ALIAS_MAP: Record<string, string> = {
   'Bible Coordinator': 'Bible Coordinators',
   'Bible Study Coordinator': 'Bible Coordinators',
-  'Rosary Coordinator': 'Rosary',
+  'Rosary': 'Rosary Coordinators',
+  'Rosary Coordinator': 'Rosary Coordinators',
   'Pamphlet Manager': 'Pamphlet Managers',
   'Jumuiya Coordinator': 'Jumuiya Coordinators',
   'Project Manager': 'Project Managers',
@@ -26,16 +27,17 @@ const CATEGORY_ALIAS_MAP: Record<string, string> = {
   'Choir Official': 'Choir Officials',
   'Liturgical Dance': 'Liturgical Dancers',
   'Liturgical Dancer': 'Liturgical Dancers',
+  'Liturgist': 'Liturgists',
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
   'Executive': 'from-purple-600 to-purple-700',
   'Jumuiya Coordinators': 'from-blue-600 to-blue-700',
   'Bible Coordinators': 'from-emerald-600 to-emerald-700',
-  'Rosary': 'from-pink-600 to-rose-700',
+  'Rosary Coordinators': 'from-pink-600 to-rose-700',
   'Pamphlet Managers': 'from-amber-600 to-orange-700',
   'Project Managers': 'from-indigo-600 to-indigo-700',
-  'Liturgist': 'from-cyan-600 to-cyan-700',
+  'Liturgists': 'from-cyan-600 to-cyan-700',
   'Choir Officials': 'from-red-600 to-red-700',
   'Instrument Managers': 'from-sky-600 to-blue-700',
   'Liturgical Dancers': 'from-violet-600 to-purple-700',
@@ -149,6 +151,28 @@ function OfficialCard({ off, cat, navigate, threeCol }: OfficialCardProps) {
           {off.position && (
             <p className="text-slate-500 text-xs mt-1 line-clamp-1">{off.position}</p>
           )}
+          {off.contact && (
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center gap-2">
+              <a
+                href={`tel:${off.contact.replace(/[^+0-9]/g, '')}`}
+                onClick={(e) => e.stopPropagation()}
+                className="w-9 h-9 rounded-xl bg-slate-50 text-slate-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all shadow-sm"
+                title="Call"
+              >
+                <FaPhoneAlt size={13} />
+              </a>
+              <a
+                href={`https://wa.me/${off.contact.replace(/[^+0-9]/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="w-9 h-9 rounded-xl bg-emerald-50 text-[#25D366] hover:bg-[#25D366] hover:text-white flex items-center justify-center transition-all shadow-sm"
+                title="WhatsApp"
+              >
+                <FaWhatsapp size={17} />
+              </a>
+            </div>
+          )}
         </div>
       </article>
     </>
@@ -255,7 +279,7 @@ export default function PublicView() {
     const explicitPairs: Record<string, string> = {
       'Project Managers': 'Instrument Managers',
       'Choir Officials': 'Liturgical Dancers',
-      'Liturgist': 'Catechist'
+      'Liturgists': 'Catechist'
     };
     const isPairedRight = Object.values(explicitPairs);
 

@@ -1,63 +1,107 @@
 import { useState, useEffect, useCallback } from 'react'
 import apiService from '../../../services/api'
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
+import { FaArrowLeft, FaArrowRight, FaClock, FaShoppingBag, FaImage } from 'react-icons/fa'
 
-interface GalleryItem {
-  id: number
+interface HeroSlide {
+  id: string | number
   title: string
   description: string
   image_url: string
   category: string
-  event_date: string
+  event_date?: string
+  slide_type?: 'gallery' | 'activity' | 'product'
+  link?: string | null
+  happening_soon?: boolean
+  price?: string | number
+  product_category?: string
 }
 
-const SLIDE_DURATION_MS = 12000   // How long each slide stays visible
-const ANIM_LOCK_MS = 300    // Execution lock time for transition
-const MIN_SWIPE_PX = 50      // Minimum px to register as a swipe
+const SLIDE_DURATION_MS = 12000
+const ANIM_LOCK_MS = 300
+const MIN_SWIPE_PX = 50
 
-function enrichSlides(dbSlides: GalleryItem[]): GalleryItem[] {
-  return dbSlides.map((slide) => ({
-    ...slide,
-    title: slide.title?.length > 3 ? slide.title : 'CSA Kirinyaga',
-    description: slide.description ? slide.description : '',
-  }))
-}
-
-function buildDisplaySlides(dbSlides: GalleryItem[]): GalleryItem[] {
-  return enrichSlides(dbSlides)
-}
-
-/** Fire-and-forget browser image pre-fetch */
 function preloadImage(url: string) {
   const img = new Image()
   img.src = url
 }
 
-function ImageSlider() {
+function getSlideIcon(type?: string) {
+  switch (type) {
+    case 'activity': return <FaClock size={14} className="text-amber-300" />
+    case 'product': return <FaShoppingBag size={14} className="text-emerald-300" />
+    default: return <FaImage size={14} className="text-blue-300" />
+  }
+}
 
-  const [dbSlides, setDbSlides] = useState<GalleryItem[]>([])
+function ImageSlider() {
+  const [dbSlides, setDbSlides] = useState<HeroSlide[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
-  const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({})
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({})
+  const [dynamicEnabled, setDynamicEnabled] = useState(true)
 
-  const displaySlides = buildDisplaySlides(dbSlides)
+  const displaySlides = dbSlides
   const total = displaySlides.length
 
-  const handleImageLoad = (id: number) => {
+  const handleImageLoad = (id: string | number) => {
     setLoadedImages(prev => ({ ...prev, [id]: true }))
   }
 
+  // Fetch hero slides with caching (5 min TTL)
   useEffect(() => {
-    apiService.getGallery()
-      .then((data: GalleryItem[]) => {
-        const sorted = data
-          .filter(item => item.image_url && item.category === 'Hero Slider')
-          .sort((a, b) => new Date(b.event_date ?? 0).getTime() - new Date(a.event_date ?? 0).getTime())
-        setDbSlides(sorted)
-      })
-      .catch(() => setDbSlides([]))
+    let cancelled = false
+    const cacheKey = 'csa_hero_slides_cache'
+    const cacheTTL = 5 * 60 * 1000 // 5 minutes
+
+    const loadFromCache = () => {
+      try {
+        const cached = localStorage.getItem(cacheKey)
+        if (cached) {
+          const { slides, timestamp, dynamic_enabled } = JSON.parse(cached)
+          if (Date.now() - timestamp < cacheTTL) {
+            setDbSlides(slides)
+            setDynamicEnabled(dynamic_enabled)
+            return true
+          }
+        }
+      } catch {}
+      return false
+    }
+
+    const fetchSlides = async () => {
+      if (loadFromCache()) return
+      try {
+        const res = await apiService.getHeroSlides?.()
+        if (cancelled) return
+        const slides = res?.slides || []
+        setDbSlides(slides)
+        setDynamicEnabled(res?.dynamic_enabled ?? true)
+        localStorage.setItem(cacheKey, JSON.stringify({
+          slides,
+          timestamp: Date.now(),
+          dynamic_enabled: res?.dynamic_enabled ?? true
+        }))
+      } catch {
+        if (cancelled) return
+        // Fallback: try old gallery endpoint
+        try {
+          const gallery = await apiService.getGallery()
+          const sorted = (gallery as any[])
+            .filter(item => item.image_url && item.category === 'Hero Slider')
+            .sort((a, b) => new Date(b.event_date ?? 0).getTime() - new Date(a.event_date ?? 0).getTime())
+          setDbSlides(sorted)
+          setDynamicEnabled(false)
+        } catch {
+          setDbSlides([])
+          setDynamicEnabled(false)
+        }
+      }
+    }
+
+    fetchSlides()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
@@ -66,14 +110,14 @@ function ImageSlider() {
     const prevIdx = (currentSlide - 1 + total) % total
     preloadImage(displaySlides[nextIdx].image_url)
     preloadImage(displaySlides[prevIdx].image_url)
-  }, [currentSlide, total]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentSlide, total])
 
   useEffect(() => {
     if (total === 0) return
     displaySlides.forEach((slide) => {
       preloadImage(slide.image_url)
     })
-  }, [total]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [total])
 
   useEffect(() => {
     if (total === 0) return
@@ -103,9 +147,15 @@ function ImageSlider() {
     if (d < -MIN_SWIPE_PX) prevSlide()
   }
 
+  const handleSlideClick = (slide: HeroSlide) => {
+    if (slide.link) {
+      window.location.href = slide.link
+    }
+  }
+
   if (total === 0) {
     return (
-      <section className="relative h-[60vh] md:h-[85vh] min-h-[450px] overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 flex items-center justify-center">
+      <section className="relative h-[60vh] md:h-[75vh] lg:h-[70vh] xl:h-[65vh] max-h-[700px] xl:max-h-[800px] min-h-[450px] overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 flex items-center justify-center mx-auto max-w-[1920px]">
         <div className="text-center px-6">
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
             <svg className="w-8 h-8 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +172,7 @@ function ImageSlider() {
 
   return (
     <section
-      className="relative h-[60vh] md:h-[85vh] min-h-[450px] overflow-hidden bg-black group"
+      className="relative h-[60vh] md:h-[75vh] lg:h-[70vh] xl:h-[65vh] max-h-[700px] xl:max-h-[800px] min-h-[450px] overflow-hidden bg-black group mx-auto max-w-[1920px]"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -132,7 +182,8 @@ function ImageSlider() {
         return (
           <div
             key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${i === currentSlide ? 'opacity-100 z-0' : 'opacity-0 -z-10'}`}
+            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${i === currentSlide ? 'opacity-100 z-0' : 'opacity-0 -z-10'} cursor-pointer`}
+            onClick={() => handleSlideClick(slide)}
           >
             {/* Shimmer / blur background placeholder while loading */}
             {!isLoaded && (
@@ -140,16 +191,37 @@ function ImageSlider() {
             )}
             <img
               src={slide.image_url}
-              alt={slide.title.replace('\n', ' ') || `CSA Gathering ${i + 1}`}
+              alt={slide.title.replace('\n', ' ') || `CSA ${slide.category} ${i + 1}`}
               loading="eager"
               decoding="async"
               onLoad={() => handleImageLoad(slide.id)}
               className={`object-cover w-full h-full transition-all duration-[2000ms] ease-out ${
                 isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-md'
-              } ${i === currentSlide ? 'scale-110' : 'scale-100'}`}
+              } ${i === currentSlide ? 'scale-[1.03] md:scale-[1.05] lg:scale-[1.04] xl:scale-[1.03]' : 'scale-100'}`}
             />
             {/* Centered vignette overlay — darkens edges, keeps center clear */}
             <div className="absolute inset-0 bg-black/40" />
+            {/* Slide type badge */}
+            {slide.slide_type && slide.slide_type !== 'gallery' && (
+              <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-black/60 backdrop-blur rounded-full text-white text-[11px] font-bold uppercase tracking-wider">
+                {getSlideIcon(slide.slide_type)}
+                <span>{slide.category}</span>
+              </div>
+            )}
+            {/* Happening Soon badge */}
+            {slide.happening_soon && (
+              <div className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-amber-500 text-white text-[10px] font-black rounded-full animate-pulse flex items-center gap-1">
+                <FaClock size={10} />
+                Happening Soon
+              </div>
+            )}
+            {/* Price badge for products */}
+            {slide.slide_type === 'product' && slide.price && (
+              <div className="absolute bottom-4 left-4 z-20 px-3 py-1.5 bg-emerald-500 text-white text-sm font-bold rounded-full flex items-center gap-1">
+                <FaShoppingBag size={12} />
+                KES {Number(slide.price).toLocaleString()}
+              </div>
+            )}
           </div>
         )
       })}
@@ -160,22 +232,22 @@ function ImageSlider() {
         return (
           <div
             key={`txt-${slide.id}`}
-            className={`absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-8 text-center text-white pointer-events-none z-10
+            className={`absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 text-center text-white pointer-events-none z-10
               transition-all duration-[1500ms] ease-out ${active ? 'opacity-100 delay-300' : 'opacity-0 delay-0'}`}
           >
-            <h1 className={`mb-3 sm:mb-5 text-[26px] sm:text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight
+            <h1 className={`mb-3 sm:mb-5 text-[26px] sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight
               drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] transition-all duration-[1500ms] ease-[cubic-bezier(0.23,1,0.32,1)]
               ${active ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-8 scale-95 opacity-0'}`}
             >
               {line1}
               {line2 && (
-                <span className="block mt-2 text-lg sm:text-2xl md:text-4xl text-blue-300 font-bold drop-shadow-xl">
+                <span className="block mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-blue-300 font-bold drop-shadow-xl">
                   {line2}
                 </span>
               )}
             </h1>
 
-            <p className={`max-w-[320px] sm:max-w-lg md:max-w-2xl text-[13px] sm:text-base md:text-xl italic font-light leading-relaxed
+            <p className={`max-w-[320px] sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl text-[13px] sm:text-base md:text-lg lg:text-xl xl:text-2xl italic font-light leading-relaxed
               drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-gray-200 mx-auto
               transition-all duration-[1500ms] ease-[cubic-bezier(0.23,1,0.32,1)] delay-[400ms]
               ${active ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}

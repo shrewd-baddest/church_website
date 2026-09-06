@@ -115,6 +115,25 @@ const CommunityDetail: React.FC = () => {
   const groupRoles = moduleIdClean ? (GROUP_ROLES_BY_MODULE[moduleIdClean] || []) : [];
   const userRoles = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : [];
   const isGroupOfficial = groupRoles.length > 0 && userRoles.some(r => groupRoles.includes(r));
+  // Query user's enrolled communities to verify membership in this specific module
+  const { data: myCommunities = [] } = useQuery<any[]>({
+    queryKey: ['my-communities', user?.email, user?.member_id],
+    queryFn: async () => {
+      const res = await apiClient.get('/community-enrollment/my-communities');
+      return res.data?.communities || [];
+    },
+    enabled: !!user,
+    staleTime: 60000,
+  });
+
+  const isEnrolledMember = Array.isArray(myCommunities) && myCommunities.some(
+    (c: any) =>
+      c.module_id === moduleIdClean &&
+      (c.status || '').toLowerCase() === 'approved'
+  );
+
+  // Consider user a member if they are a group official, global admin, or verified approved enrolled member
+  const isMember = isGlobalAdmin || isGroupOfficial || isEnrolledMember;
   const isAdmin = isGlobalAdmin || isGroupOfficial;
 
   const setTabWithUrl = (tab: TabType) => {
@@ -164,7 +183,7 @@ const CommunityDetail: React.FC = () => {
       case 'activities':
         return <CommunityActivitiesTab moduleId={moduleIdClean} color={detailColor} module={moduleData} />;
       case 'channels':
-        return <CommunityChannelsTab moduleId={moduleIdClean} module={moduleData} color={detailColor} />;
+        return <CommunityChannelsTab moduleId={moduleIdClean} module={moduleData} color={detailColor} isMember={isMember} />;
       case 'tshirts':
         return <CommunityTshirtsTab moduleId={moduleIdClean} moduleName={moduleData.title} color={detailColor} />;
       case 'suggestions':

@@ -54,6 +54,13 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
+// Force reload when a new service worker takes control (clears stale caches)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>

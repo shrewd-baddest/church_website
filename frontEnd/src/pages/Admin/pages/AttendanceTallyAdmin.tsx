@@ -871,7 +871,7 @@ export default function AttendanceTallyAdmin() {
       : "bg-blue-50 border-blue-200 text-blue-700";
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Attendance Tally & Analytics</h2>
@@ -880,46 +880,51 @@ export default function AttendanceTallyAdmin() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-200/70 rounded-xl p-1 w-fit">
+        <div className="grid w-full grid-cols-5 gap-1 bg-slate-200/70 rounded-xl p-1 sm:flex sm:w-fit sm:gap-2">
           <button
             onClick={() => setTab("tally")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            title="Take Tally"
+            className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
               tab === "tally" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-800"
             }`}
           >
-            <CalendarCheck size={16} /> Take Tally
+            <CalendarCheck size={16} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">Tally</span><span className="hidden sm:inline">Take Tally</span></span>
           </button>
           <button
             onClick={() => setTab("analytics")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            title="Analytics"
+            className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
               tab === "analytics" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-800"
             }`}
           >
-            <BarChart3 size={16} /> Analytics
+            <BarChart3 size={16} className="shrink-0" /> <span className="truncate">Analytics</span>
           </button>
           <button
             onClick={() => setTab("config")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            title="Meeting Days"
+            className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
               tab === "config" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-800"
             }`}
           >
-            <Settings2 size={16} /> Meeting Days
+            <Settings2 size={16} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">Days</span><span className="hidden sm:inline">Meeting Days</span></span>
           </button>
           <button
             onClick={() => setTab("novena")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            title="Novena"
+            className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
               tab === "novena" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-800"
             }`}
           >
-            <CalendarRange size={16} /> Novena
+            <CalendarRange size={16} className="shrink-0" /> <span className="truncate">Novena</span>
           </button>
           <button
             onClick={() => setTab("history")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            title="History"
+            className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
               tab === "history" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-800"
             }`}
           >
-            <History size={16} /> History
+            <History size={16} className="shrink-0" /> <span className="truncate">History</span>
           </button>
         </div>
       </div>
@@ -1265,9 +1270,9 @@ export default function AttendanceTallyAdmin() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Who took this tally?
               </span>
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
                 <label
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold cursor-pointer transition-colors ${
+                  className={`flex min-w-0 items-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold cursor-pointer transition-colors sm:px-4 ${
                     recordedRole === "coordinator"
                       ? "border-indigo-400 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200"
                       : "border-slate-200 text-slate-600 hover:border-indigo-300"
@@ -1279,10 +1284,10 @@ export default function AttendanceTallyAdmin() {
                     onChange={() => setRecordedRole("coordinator")}
                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/30"
                   />
-                  Jumuiya Coordinator
+                  <span className="truncate">Jumuiya Coordinator</span>
                 </label>
                 <label
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold cursor-pointer transition-colors ${
+                  className={`flex min-w-0 items-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold cursor-pointer transition-colors sm:px-4 ${
                     recordedRole === "assistant"
                       ? "border-indigo-400 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200"
                       : "border-slate-200 text-slate-600 hover:border-indigo-300"
@@ -1294,7 +1299,7 @@ export default function AttendanceTallyAdmin() {
                     onChange={() => setRecordedRole("assistant")}
                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/30"
                   />
-                  Assistant Jumuiya Coordinator
+                  <span className="truncate">Assistant Jumuiya Coordinator</span>
                 </label>
               </div>
               <p className="text-xs text-slate-400 sm:ml-auto">

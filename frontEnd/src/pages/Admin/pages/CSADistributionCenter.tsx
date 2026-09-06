@@ -123,7 +123,7 @@ export default function CSADistributionCenter() {
 
   // Balance mode: "membership" levels against the full jumuiya membership,
   // "equal" (equal-split) spreads the new intake evenly ignoring seniors.
-  const [strategy, setStrategy] = useState<"membership" | "equal">("membership");
+  const [strategy, setStrategy] = useState<"membership" | "equal">("equal");
   const strategyParam = strategy === "equal" ? "equal-split" : undefined;
 
   // Approval workflow state
@@ -650,23 +650,23 @@ export default function CSADistributionCenter() {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex w-full min-w-0 gap-1.5 sm:gap-2">
           {mode === "manual" && (
-            <button onClick={addRow} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:border-slate-300 rounded-lg transition-colors">
-              <Plus size={14} /> Add Row
+            <button onClick={addRow} title="Add Row" aria-label="Add Row" className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-2 text-xs sm:text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:border-slate-300 rounded-lg transition-colors">
+              <Plus size={14} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">Add</span><span className="hidden sm:inline">Add Row</span></span>
             </button>
           )}
           <button onClick={handleValidate}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition-colors">
-            <CheckCircle size={14} /> Validate
+            title="Validate" aria-label="Validate" className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-2 text-xs sm:text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition-colors">
+            <CheckCircle size={14} className="shrink-0" /> <span className="truncate">Validate</span>
           </button>
           <button onClick={handleImport} disabled={importing || Object.keys(memberErrors).length > 0 || !validated}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 rounded-lg transition-colors">
-            {importing ? "Importing..." : "Import to CSA"}
+            title="Import to CSA" aria-label="Import to CSA" className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-2 text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 rounded-lg transition-colors">
+            <span className="truncate">{importing ? "Importing..." : <><span className="sm:hidden">Import</span><span className="hidden sm:inline">Import to CSA</span></>}</span>
           </button>
           <button onClick={handleDownloadQR}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:border-slate-300 rounded-lg transition-colors">
-            <QrCode size={14} /> Download QR
+            title="Download QR" aria-label="Download QR" className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-2 text-xs sm:text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:border-slate-300 rounded-lg transition-colors">
+            <QrCode size={14} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">QR</span><span className="hidden sm:inline">Download QR</span></span>
           </button>
         </div>
 

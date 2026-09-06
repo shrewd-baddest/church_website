@@ -24,8 +24,12 @@ export const GROUP_CATEGORY_POSITION_TO_ROLE = {
     'Female Representative': 'choir_female_representative',
   },
   'Dancers': {
+    'Dance Chairperson': 'dance_chair',
+    'Dance Vice Chairperson': 'dance_vice_chair',
     'Chairperson': 'dance_chair',
     'Vice Chairperson': 'dance_vice_chair',
+    'Dance Coordinator': 'dance_chair',
+    'Assistant Dance Coordinator': 'dance_vice_chair',
   },
   'Charismatic': {
     'Chairperson': 'charismatic_chair',
@@ -59,6 +63,10 @@ export const getGroupRoleName = (category, position) => {
   const cleanPos = position.toString().trim();
   if (groupMap[cleanPos]) return groupMap[cleanPos];
   const lower = cleanPos.toLowerCase();
+  if (category === 'Dancers') {
+    if (lower.includes('vice') || lower.includes('ass') || lower.includes('deputy')) return 'dance_vice_chair';
+    return 'dance_chair';
+  }
   if (category === 'Choir' && (lower.includes('master') || lower.includes('mistress'))) return 'choir_chairperson';
   if (category === 'Choir' && lower.includes('vice') && lower.includes('chair')) return 'choir_vice_chair';
   if (category === 'Mentorship' && lower.includes('coordinator')) {
@@ -99,6 +107,10 @@ export const CSA_POSITION_TO_ROLE = {
   'Treasurer': 'treasurer',
   'Choir Chairperson': 'choir_chairperson',
   'Choir Vice Chairperson': 'choir_vice_chair',
+  'Dance Chairperson': 'dance_chair',
+  'Dance Vice Chairperson': 'dance_vice_chair',
+  'Dance Coordinator': 'dance_chair',
+  'Assistant Dance Coordinator': 'dance_vice_chair',
 };
 
 export const JUMUIYA_POSITION_TO_ROLE = {
@@ -206,6 +218,10 @@ export const getRoleNameForPosition = (position, isJumuiya) => {
   // Choir liaison posts live in the CSA officials table — never executive roles
   if (lower.includes('choir') && lower.includes('chair')) {
     return (lower.includes('vice') || lower.includes('ass')) ? 'choir_vice_chair' : 'choir_chairperson';
+  }
+  // Liturgical Dancers officials live in both CSA and Groups tables — never executive roles
+  if (lower.includes('danc')) {
+    return (lower.includes('vice') || lower.includes('ass') || lower.includes('deputy')) ? 'dance_vice_chair' : 'dance_chair';
   }
   if (lower.includes('jumuiya') && lower.includes('coord')) return 'jumuiya_coordinator';
   if (lower.includes('chair') && (lower.includes('vice') || lower.includes('ass') || lower.includes('vc') || lower.includes('deputy'))) {

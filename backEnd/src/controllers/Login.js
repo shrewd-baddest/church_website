@@ -20,6 +20,25 @@ import {
 } from "../utils/passwordPolicy.js";
 dotenv.config();
 
+const logLoginAttempt = async ({ member_id, email, action, req }) => {
+  try {
+    await pool.query(
+      `INSERT INTO login_audit_log (member_id, email, action, ip_address, user_agent, details)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        member_id || null,
+        email || null,
+        action,
+        req?.ip || null,
+        req?.get?.("user-agent") || null,
+        JSON.stringify({ path: req?.originalUrl || req?.path }),
+      ]
+    );
+  } catch {
+    // audit logging must never block the request
+  }
+};
+
 // The refresh token lives in an httpOnly cookie so injected JS (XSS) can't read
 // it. SameSite=None is required because the frontend (Vercel) and API (Render)
 // are different sites; Secure is mandatory alongside it. When running over
@@ -90,6 +109,7 @@ export const Login = async (req, res) => {
 
     if (result.rows.length === 0) {
       logger.error(`Invalid username or password for '${userReg || "<empty>"}'`);
+      await logLoginAttempt({ member_id: userReg, action: "login_failed_unknown", req });
       await normalizeLoginTiming();
       return res.status(401).json({ status: false, message: "Invalid username or password" });
     }
@@ -101,6 +121,7 @@ export const Login = async (req, res) => {
     if (user.locked_until && new Date(user.locked_until) > now) {
       const minsLeft = Math.ceil((new Date(user.locked_until) - now) / 60000);
       logger.warn(`Login blocked for locked account '${userReg}'`);
+      await logLoginAttempt({ member_id: userReg, action: "login_blocked_locked", req });
       return res.status(429).json({
         status: false,
         message: `Too many failed attempts. Try again in about ${minsLeft} minute${minsLeft === 1 ? "" : "s"}.`,
@@ -119,6 +140,7 @@ export const Login = async (req, res) => {
 
     if (!match) {
       logger.error(`Invalid username or password for '${userReg}'`);
+      await logLoginAttempt({ member_id: userReg, action: "login_failed_wrong_password", req });
       const attempts = (user.failed_login_attempts || 0) + 1;
       if (attempts >= MAX_LOGIN_ATTEMPTS) {
         await pool.query(
@@ -126,6 +148,7 @@ export const Login = async (req, res) => {
           [userReg, LOGIN_LOCK_MINUTES]
         );
         logger.warn(`Account '${userReg}' locked after ${attempts} failed attempts`);
+        await logLoginAttempt({ member_id: userReg, action: "login_account_locked", req });
         return res.status(429).json({
           status: false,
           message: `Too many failed attempts. Try again in ${LOGIN_LOCK_MINUTES} minutes.`,
@@ -166,6 +189,8 @@ export const Login = async (req, res) => {
 
     // Only the access token is exposed to JS; the refresh token is httpOnly.
     setRefreshTokenCookie(res, req, refreshToken);
+
+    await logLoginAttempt({ member_id: user.member_id, email: user.email, action: "login_success", req });
 
     res.status(200).json({
       status: "success",

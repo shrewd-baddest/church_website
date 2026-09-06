@@ -9,6 +9,9 @@ const ResetPasswordPage = () => {
   const email = useParams().reg || "";
   const [countdown, setCountdown] = useState<number>(0);
   const [resending, setResending] = useState<boolean>(false);
+  const [notice, setNotice] = useState<string>(
+    `A 6-digit verification code has been sent to ${email}. Please check your inbox and spam folder, then enter the code below. This message will stay here while you complete the reset.`
+  );
 
   useEffect(() => {
     if (countdown > 0) {
@@ -22,7 +25,7 @@ const ResetPasswordPage = () => {
     try {
       setResending(true);
       await apiClient.post(`/authentication/resend-otp/${email}`);
-      alert("A new OTP has been sent to your email.");
+      setNotice(`A new 6-digit verification code has been sent to ${email}. Please check your inbox and spam folder, then enter the newest code below.`);
       setCountdown(60); // 60 seconds cooldown
     } catch (err: any) {
       console.error(err);
@@ -104,6 +107,10 @@ const ResetPasswordPage = () => {
             <p className="text-sm text-gray-500 font-medium mt-2 max-w-[260px] lg:max-w-none">
               We've sent a 6-digit code to <span className="font-bold text-black">{email}</span>.
             </p>
+          </div>
+
+          <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm font-semibold leading-relaxed text-emerald-800" role="status">
+            {notice}
           </div>
 
           {/* OTP Component */}

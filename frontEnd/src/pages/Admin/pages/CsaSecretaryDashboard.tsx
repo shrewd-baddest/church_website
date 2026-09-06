@@ -427,54 +427,58 @@ export default function CsaSecretaryDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+        <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="min-w-0 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1 w-fit">
+      <div className="grid w-full grid-cols-4 gap-1 bg-slate-100 rounded-xl p-1 sm:flex sm:w-fit sm:gap-2">
         <button
           onClick={() => setActiveTab("members")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          title="Members"
+          className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-all sm:gap-2 sm:px-4 sm:text-sm ${
             activeTab === "members"
               ? "bg-white text-slate-800 shadow-sm"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <List size={16} /> Members
+          <List size={16} className="shrink-0" /> <span className="truncate">Members</span>
         </button>
         <button
           onClick={() => setActiveTab("history")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          title="Registration History"
+          className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-all sm:gap-2 sm:px-4 sm:text-sm ${
             activeTab === "history"
               ? "bg-white text-slate-800 shadow-sm"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <History size={16} /> Registration History
+          <History size={16} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">History</span><span className="hidden sm:inline">Registration History</span></span>
         </button>
         <button
           onClick={() => setActiveTab("analytics")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          title="Reports & Analytics"
+          className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-all sm:gap-2 sm:px-4 sm:text-sm ${
             activeTab === "analytics"
               ? "bg-white text-slate-800 shadow-sm"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <BarChart3 size={16} /> Reports & Analytics
+          <BarChart3 size={16} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">Reports</span><span className="hidden sm:inline">Reports & Analytics</span></span>
         </button>
         <button
           onClick={() => { setActiveTab("pending"); fetchPendingPayments(); }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          title="Jumuiya Pending"
+          className={`flex min-w-0 items-center justify-center gap-1 px-1 py-2 rounded-lg text-[10px] font-semibold transition-all sm:gap-2 sm:px-4 sm:text-sm ${
             activeTab === "pending"
               ? "bg-white text-slate-800 shadow-sm"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <Clock size={16} /> Jumuiya Pending
+          <Clock size={16} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">Pending</span><span className="hidden sm:inline">Jumuiya Pending</span></span>
           {pendingPayments.length > 0 && (
             <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{pendingPayments.length}</span>
           )}
@@ -559,8 +563,8 @@ export default function CsaSecretaryDashboard() {
         </>
       ) : activeTab === "pending" ? (
         <>
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center justify-between flex-wrap gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             <h2 className="text-lg font-bold text-slate-800">Jumuiya Payments</h2>
             <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
               <button onClick={() => { setCsaPaymentFilter("pending"); fetchPendingPayments("pending"); }}
@@ -579,7 +583,7 @@ export default function CsaSecretaryDashboard() {
         </div>
         {loadingPending ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={24} className="text-blue-500 animate-spin" />
+            <div className="w-6 h-6 border-3 border-blue-100 border-t-blue-500 rounded-full animate-spin" />
           </div>
         ) : pendingPayments.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
@@ -598,10 +602,10 @@ export default function CsaSecretaryDashboard() {
               });
               return Object.entries(groups).map(([jumuiyaName, payments]) => (
                 <div key={jumuiyaName} className="border-b border-slate-200 last:border-b-0">
-                  <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200 sm:px-5">
+                    <div className="flex min-w-0 items-center gap-2">
                       <Church size={15} className="text-slate-500" />
-                      <h3 className="font-bold text-sm text-slate-700">{jumuiyaName}</h3>
+                      <h3 className="max-w-[12rem] truncate font-bold text-sm text-slate-700">{jumuiyaName}</h3>
                       <span className="text-xs text-slate-400 bg-white px-2 py-0.5 rounded-full">{payments.length} pending</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -759,7 +763,7 @@ export default function CsaSecretaryDashboard() {
           disabled={serialSaving}
           className="px-4 py-1.5 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
         >
-          {serialSaving ? <Loader2 size={13} className="animate-spin" /> : <Settings2 size={13} />}
+          {serialSaving ? <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Settings2 size={13} />}
           {serialSaving ? "Saving..." : "Save"}
         </button>
         {serialConfig && (
@@ -774,7 +778,8 @@ export default function CsaSecretaryDashboard() {
 
       {/* Search & Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="flex w-full items-center gap-3 sm:contents">
+        <div className="relative min-w-0 flex-1 sm:order-1 sm:min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -784,10 +789,18 @@ export default function CsaSecretaryDashboard() {
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
           />
         </div>
+        <button
+          onClick={() => setShowRegister(true)}
+          className="flex shrink-0 items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors sm:order-5"
+        >
+          <UserPlus size={16} /> Register Member
+        </button>
+        </div>
+        <div className="flex w-full items-center gap-3 sm:contents">
         <select
           value={filterJumuiya}
           onChange={e => setFilterJumuiya(e.target.value)}
-          className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-w-0 flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:order-2 sm:flex-none"
         >
           <option value="all">All Jumuiyas</option>
           {JUMUIYAS.map(j => (
@@ -797,7 +810,7 @@ export default function CsaSecretaryDashboard() {
         <select
           value={filterSemester}
           onChange={e => setFilterSemester(e.target.value)}
-          className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-w-0 flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:order-3 sm:flex-none"
         >
           <option value="all">All Semesters</option>
           <option value="current">Current Semester</option>
@@ -806,24 +819,21 @@ export default function CsaSecretaryDashboard() {
             <option key={s.label} value={s.label}>{s.label}</option>
           ))}
         </select>
+        </div>
+        <div className="flex w-full items-center gap-3 sm:contents">
         <button
           onClick={() => setShowExport(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors"
+          className="flex flex-1 items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors sm:order-4 sm:flex-none"
         >
           <Download size={16} /> Export
         </button>
         <button
-          onClick={() => setShowRegister(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
-        >
-          <UserPlus size={16} /> Register Member
-        </button>
-        <button
           onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors"
+          className="flex flex-1 items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors sm:order-6 sm:flex-none"
         >
           <RefreshCw size={16} /> Refresh
         </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -946,7 +956,7 @@ export default function CsaSecretaryDashboard() {
                     onChange={e => searchMember(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
-                  {regSearching && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
+                  {regSearching && <span className="absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 border-2 border-blue-100 border-t-blue-500 rounded-full animate-spin" />}
                 </div>
                 {regResults.length > 0 ? (
                   <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -1056,7 +1066,7 @@ export default function CsaSecretaryDashboard() {
                     disabled={!regJumuiya || regSubmitting}
                     className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                   >
-                    {regSubmitting ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                    {regSubmitting ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <UserPlus size={16} />}
                     {regSubmitting ? "Registering..." : "Register Member"}
                   </button>
                 </div>

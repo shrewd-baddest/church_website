@@ -33,6 +33,7 @@ import { pendingPaymentsMigration } from "./migrations/pendingPaymentsMigration.
 import attendanceMigration from "./migrations/attendanceMigration.js";
 import jumuiyaAttendanceMigration from "./migrations/jumuiyaAttendanceMigration.js";
 import activityLogMigration from "./migrations/activityLogMigration.js";
+import loginAuditMigration from "./migrations/loginAuditMigration.js";
 import semesterConfigMigration from "./migrations/semesterConfigMigration.js";
 import whatsappLinksMigration from "./migrations/whatsappLinksMigration.js";
 import profileImageMigration from "./migrations/profileImageMigration.js";
@@ -55,6 +56,8 @@ import relaxEnrollmentClassId from "./migrations/relaxEnrollmentClassId.js";
 import productReviewsMigration from "./migrations/productReviewsMigration.js";
 import jumuiyaChannelsMigration from "./migrations/jumuiyaChannelsMigration.js";
 import whatsappSyncMigration from "./migrations/whatsappSyncMigration.js";
+import heroSliderDynamicMigration from "./migrations/heroSliderDynamicMigration.js";
+import communityModuleChannelsMigration from "./migrations/communityModuleChannelsMigration.js";
 
 process.on("uncaughtException", (err) => {
   logger.error("Uncaught Exception:", err);
@@ -206,6 +209,7 @@ const initServer = async () => {
     await attendanceMigration();
     await jumuiyaAttendanceMigration();
     await activityLogMigration();
+    await loginAuditMigration();
     await semesterConfigMigration();
     await whatsappLinksMigration();
     await profileImageMigration();
@@ -224,6 +228,8 @@ const initServer = async () => {
     await choirMusicClassMigration();
     await jumuiyaChannelsMigration();
     await whatsappSyncMigration();
+    await heroSliderDynamicMigration();
+    await communityModuleChannelsMigration();
     await refreshTokenGraceWindow();
     await relaxEnrollmentClassId();
     await productReviewsMigration();

@@ -24,7 +24,8 @@ import {
   FaVenus,
   FaMale,
   FaFemale,
-  FaLayerGroup
+  FaLayerGroup,
+  FaTimes
 } from 'react-icons/fa';
 import '../../../Jumuiya/components/TabsSystem.css';
 
@@ -90,15 +91,40 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
 
   const allEnrollments = (enrollmentsData.enrollments || []) as any[];
 
+  // Helper to deduce year from registration number like PA106/G/33764/26
+  const deduceYearFromReg = (reg: string): string => {
+    if (!reg) return '';
+    const clean = String(reg).trim();
+    const match = clean.match(/\/(\d{2})$/) || clean.match(/\/(\d{2})\b/);
+    if (match) {
+      const yr = parseInt(match[1], 10);
+      if (yr === 26) return '1';
+      if (yr === 25) return '2';
+      if (yr === 24) return '3';
+      if (yr === 23) return '4';
+      if (yr <= 22) return 'alumni';
+    }
+    return '';
+  };
+
   const getYearRaw = (m: any): string => {
     const val = m.year_of_study || m.academic_year || m.year || '';
-    return String(val).toLowerCase();
+    if (val) return String(val).toLowerCase();
+    const reg = m.reg_number || m.regNumber || m.member_id || m.memberId || '';
+    const deduced = deduceYearFromReg(reg);
+    if (deduced) return deduced;
+    return '';
   };
 
   const getYearInfo = (m: any) => {
     if (m.year_of_study || m.academic_year || m.year) {
       const val = m.year_of_study || m.academic_year || m.year;
       return typeof val === 'number' || !String(val).toLowerCase().includes('year') ? `Year ${val}` : String(val);
+    }
+    const reg = m.reg_number || m.regNumber || m.member_id || m.memberId || '';
+    const deduced = deduceYearFromReg(reg);
+    if (deduced) {
+      return deduced === 'alumni' ? 'Alumni' : `Year ${deduced}`;
     }
     if (m.created_at || m.joined_date || m.registration_date) {
       const d = new Date(m.created_at || m.joined_date || m.registration_date);
@@ -107,7 +133,22 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
     return 'Member';
   };
 
-  // Helper: Extract or assign voice part deterministically
+  // Helper: Extract or assign gender (Gents / Ladies)
+  const getGender = (m: any): 'Gent' | 'Lady' => {
+    // 1. Explicit voice section takes precedence
+    const v = (m.voice_type || m.voiceType || m.voice || m.part || '').toLowerCase();
+    if (v.includes('soprano') || v.includes('alto')) return 'Lady';
+    if (v.includes('tenor') || v.includes('bass')) return 'Gent';
+
+    // 2. Gender check (MUST check female first because substring 'female' contains 'male'!)
+    const g = (m.gender || m.sex || '').toLowerCase().trim();
+    if (g.includes('female') || g === 'f' || g.includes('lady') || g.includes('woman') || g.includes('girl')) return 'Lady';
+    if (g.includes('male') || g === 'm' || g.includes('gent') || g.includes('man') || g.includes('boy')) return 'Gent';
+
+    return 'Lady';
+  };
+
+  // Helper: Extract or assign voice part deterministically respecting SATB gender separation
   const getVoiceType = (m: any): 'Soprano' | 'Alto' | 'Tenor' | 'Bass' => {
     const v = (m.voice_type || m.voiceType || m.voice || m.part || '').toLowerCase();
     if (v.includes('soprano')) return 'Soprano';
@@ -115,21 +156,18 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
     if (v.includes('tenor')) return 'Tenor';
     if (v.includes('bass')) return 'Bass';
 
+    const gender = getGender(m);
     const seed = (m.id || m.fullName || m.full_name || 'member').toString();
     let hash = 0;
     for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) % 100;
-    const voices: ('Soprano' | 'Alto' | 'Tenor' | 'Bass')[] = ['Soprano', 'Alto', 'Tenor', 'Bass'];
-    return voices[hash % 4];
-  };
 
-  // Helper: Extract or assign gender (Gents / Ladies)
-  const getGender = (m: any): 'Gent' | 'Lady' => {
-    const g = (m.gender || m.sex || '').toLowerCase();
-    if (g.includes('male') || g === 'm' || g.includes('gent') || g.includes('man') || g.includes('boy')) return 'Gent';
-    if (g.includes('female') || g === 'f' || g.includes('lady') || g.includes('woman') || g.includes('girl')) return 'Lady';
-    const voice = getVoiceType(m);
-    if (voice === 'Tenor' || voice === 'Bass') return 'Gent';
-    return 'Lady';
+    if (gender === 'Gent') {
+      const maleVoices: ('Tenor' | 'Bass')[] = ['Tenor', 'Bass'];
+      return maleVoices[hash % 2];
+    } else {
+      const femaleVoices: ('Soprano' | 'Alto')[] = ['Soprano', 'Alto'];
+      return femaleVoices[hash % 2];
+    }
   };
 
   // Regular members only see approved members
@@ -144,14 +182,19 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
     let soprano = 0, alto = 0, tenor = 0, bass = 0, gents = 0, ladies = 0;
     visibleEnrollments.forEach((m) => {
       const v = getVoiceType(m);
-      const g = getGender(m);
-      if (v === 'Soprano') soprano++;
-      else if (v === 'Alto') alto++;
-      else if (v === 'Tenor') tenor++;
-      else if (v === 'Bass') bass++;
-
-      if (g === 'Gent') gents++;
-      else ladies++;
+      if (v === 'Soprano') {
+        soprano++;
+        ladies++;
+      } else if (v === 'Alto') {
+        alto++;
+        ladies++;
+      } else if (v === 'Tenor') {
+        tenor++;
+        gents++;
+      } else if (v === 'Bass') {
+        bass++;
+        gents++;
+      }
     });
     return { soprano, alto, tenor, bass, gents, ladies, total: visibleEnrollments.length };
   }, [visibleEnrollments, isChoir]);
@@ -165,10 +208,12 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
       const q = search.toLowerCase();
       result = result.filter((m) => {
         const name = (m.fullName || m.full_name || '').toLowerCase();
+        const reg = (m.reg_number || m.regNumber || m.member_id || m.memberId || '').toLowerCase();
         const email = isAdmin ? (m.email || '').toLowerCase() : '';
         const phone = isAdmin ? (m.phoneNumber || m.phone || '').toLowerCase() : '';
         const voice = isChoir ? getVoiceType(m).toLowerCase() : '';
-        return name.includes(q) || email.includes(q) || phone.includes(q) || voice.includes(q);
+        const year = getYearRaw(m);
+        return name.includes(q) || reg.includes(q) || email.includes(q) || phone.includes(q) || voice.includes(q) || year.includes(q);
       });
     }
 
@@ -198,9 +243,9 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
     // Choir Gender Filter (Gents / Ladies)
     if (isChoir && genderFilter !== 'all') {
       result = result.filter((m) => {
-        const g = getGender(m);
-        if (genderFilter === 'male') return g === 'Gent';
-        if (genderFilter === 'female') return g === 'Lady';
+        const v = getVoiceType(m);
+        if (genderFilter === 'male') return v === 'Tenor' || v === 'Bass';
+        if (genderFilter === 'female') return v === 'Soprano' || v === 'Alto';
         return true;
       });
     }
@@ -313,78 +358,127 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
         </div>
       </div>
 
-      {/* CHOIR VOICE SECTIONS SUMMARY BAR */}
+      {/* CHOIR VOICE SECTIONS SUMMARY BAR (Interactive Filter Cards) */}
       {isChoir && choirVoiceCounts && (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 mb-6">
-          <div
-            onClick={() => { setVoiceFilter('all'); setGenderFilter('all'); }}
+          <button
+            type="button"
+            onClick={() => {
+              setVoiceFilter('all');
+              setGenderFilter('all');
+              setCurrentPage(1);
+            }}
             className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-              voiceFilter === 'all' && genderFilter === 'all' ? 'ring-2 ring-blue-500 shadow-md bg-blue-50/70 border-blue-200' : 'bg-white border-slate-100 hover:border-slate-300'
+              voiceFilter === 'all' && genderFilter === 'all'
+                ? 'ring-2 ring-blue-500 shadow-md bg-blue-50/70 border-blue-200'
+                : 'bg-white border-slate-100 hover:border-slate-300'
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Total Choir</span>
             <span className="text-xl font-black text-slate-900 leading-none">{choirVoiceCounts.total}</span>
-          </div>
+          </button>
 
-          <div
-            onClick={() => { setVoiceFilter('soprano'); setGenderFilter('all'); }}
+          <button
+            type="button"
+            onClick={() => {
+              setVoiceFilter((prev) => (prev === 'soprano' ? 'all' : 'soprano'));
+              setGenderFilter('all');
+              setCurrentPage(1);
+            }}
             className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-              voiceFilter === 'soprano' ? 'ring-2 ring-pink-500 shadow-md bg-pink-50/70 border-pink-200' : 'bg-white border-slate-100 hover:border-pink-200'
+              voiceFilter === 'soprano'
+                ? 'ring-2 ring-pink-500 shadow-md bg-pink-50/70 border-pink-200'
+                : 'bg-white border-slate-100 hover:border-pink-200'
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-wider text-pink-600 block mb-0.5">Soprano</span>
             <span className="text-xl font-black text-pink-700 leading-none">{choirVoiceCounts.soprano}</span>
-          </div>
+          </button>
 
-          <div
-            onClick={() => { setVoiceFilter('alto'); setGenderFilter('all'); }}
+          <button
+            type="button"
+            onClick={() => {
+              setVoiceFilter((prev) => (prev === 'alto' ? 'all' : 'alto'));
+              setGenderFilter('all');
+              setCurrentPage(1);
+            }}
             className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-              voiceFilter === 'alto' ? 'ring-2 ring-amber-500 shadow-md bg-amber-50/70 border-amber-200' : 'bg-white border-slate-100 hover:border-amber-200'
+              voiceFilter === 'alto'
+                ? 'ring-2 ring-amber-500 shadow-md bg-amber-50/70 border-amber-200'
+                : 'bg-white border-slate-100 hover:border-amber-200'
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 block mb-0.5">Alto</span>
             <span className="text-xl font-black text-amber-700 leading-none">{choirVoiceCounts.alto}</span>
-          </div>
+          </button>
 
-          <div
-            onClick={() => { setVoiceFilter('tenor'); setGenderFilter('all'); }}
+          <button
+            type="button"
+            onClick={() => {
+              setVoiceFilter((prev) => (prev === 'tenor' ? 'all' : 'tenor'));
+              setGenderFilter('all');
+              setCurrentPage(1);
+            }}
             className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-              voiceFilter === 'tenor' ? 'ring-2 ring-sky-500 shadow-md bg-sky-50/70 border-sky-200' : 'bg-white border-slate-100 hover:border-sky-200'
+              voiceFilter === 'tenor'
+                ? 'ring-2 ring-sky-500 shadow-md bg-sky-50/70 border-sky-200'
+                : 'bg-white border-slate-100 hover:border-sky-200'
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-wider text-sky-600 block mb-0.5">Tenor</span>
             <span className="text-xl font-black text-sky-700 leading-none">{choirVoiceCounts.tenor}</span>
-          </div>
+          </button>
 
-          <div
-            onClick={() => { setVoiceFilter('bass'); setGenderFilter('all'); }}
+          <button
+            type="button"
+            onClick={() => {
+              setVoiceFilter((prev) => (prev === 'bass' ? 'all' : 'bass'));
+              setGenderFilter('all');
+              setCurrentPage(1);
+            }}
             className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-              voiceFilter === 'bass' ? 'ring-2 ring-indigo-500 shadow-md bg-indigo-50/70 border-indigo-200' : 'bg-white border-slate-100 hover:border-indigo-200'
+              voiceFilter === 'bass'
+                ? 'ring-2 ring-indigo-500 shadow-md bg-indigo-50/70 border-indigo-200'
+                : 'bg-white border-slate-100 hover:border-indigo-200'
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 block mb-0.5">Bass</span>
             <span className="text-xl font-black text-indigo-700 leading-none">{choirVoiceCounts.bass}</span>
-          </div>
+          </button>
 
-          <div
-            onClick={() => { setGenderFilter('male'); setVoiceFilter('all'); }}
+          <button
+            type="button"
+            onClick={() => {
+              setGenderFilter((prev) => (prev === 'male' ? 'all' : 'male'));
+              setVoiceFilter('all');
+              setCurrentPage(1);
+            }}
             className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-              genderFilter === 'male' ? 'ring-2 ring-blue-600 shadow-md bg-blue-100/70 border-blue-300' : 'bg-white border-slate-100 hover:border-blue-200'
+              genderFilter === 'male'
+                ? 'ring-2 ring-blue-600 shadow-md bg-blue-100/70 border-blue-300'
+                : 'bg-white border-slate-100 hover:border-blue-200'
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 block mb-0.5">Gents (T&B)</span>
             <span className="text-xl font-black text-blue-800 leading-none">{choirVoiceCounts.gents}</span>
-          </div>
+          </button>
 
-          <div
-            onClick={() => { setGenderFilter('female'); setVoiceFilter('all'); }}
+          <button
+            type="button"
+            onClick={() => {
+              setGenderFilter((prev) => (prev === 'female' ? 'all' : 'female'));
+              setVoiceFilter('all');
+              setCurrentPage(1);
+            }}
             className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-              genderFilter === 'female' ? 'ring-2 ring-rose-500 shadow-md bg-rose-50/70 border-rose-200' : 'bg-white border-slate-100 hover:border-rose-200'
+              genderFilter === 'female'
+                ? 'ring-2 ring-rose-500 shadow-md bg-rose-50/70 border-rose-200'
+                : 'bg-white border-slate-100 hover:border-rose-200'
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 block mb-0.5">Ladies (S&A)</span>
             <span className="text-xl font-black text-rose-700 leading-none">{choirVoiceCounts.ladies}</span>
-          </div>
+          </button>
         </div>
       )}
 
@@ -413,12 +507,12 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
         </div>
       )}
 
-      {/* Filter Bar: Search + Voice Dropdown + Gender Dropdown + Sorting */}
+      {/* Filter Bar: Search + Sorting + View Mode (Voice & Gender dropdowns removed in favor of cards) */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm mb-6 space-y-4">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
           {/* Search */}
-          <div className="flex-1 relative">
-            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+          <div className="flex-1 relative flex items-center">
+            <FaSearch className="absolute left-3.5 text-slate-400 pointer-events-none" size={14} />
             <input
               type="text"
               value={search}
@@ -426,52 +520,29 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder={isChoir ? 'Search chorister by name, voice part, or year…' : isAdmin ? 'Search by name, email, or phone…' : 'Search members by name…'}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all"
+              placeholder={
+                isChoir
+                  ? 'Search chorister by name, voice part, or year…'
+                  : 'Search members by name or year…'
+              }
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setCurrentPage(1);
+                }}
+                className="absolute right-3 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Clear search"
+              >
+                <FaTimes size={12} />
+              </button>
+            )}
           </div>
 
-          {/* CHOIR VOICE SECTION DROPDOWN */}
-          {isChoir && (
-            <div className="relative flex items-center">
-              <FaMusic className="absolute left-3 text-pink-500 pointer-events-none" size={12} />
-              <select
-                value={voiceFilter}
-                onChange={(e: any) => {
-                  setVoiceFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-8 pr-7 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:bg-white cursor-pointer"
-              >
-                <option value="all">All Voice Parts (SATB)</option>
-                <option value="soprano">Soprano (High Female)</option>
-                <option value="alto">Alto (Low Female)</option>
-                <option value="tenor">Tenor (High Male)</option>
-                <option value="bass">Bass (Deep Male)</option>
-              </select>
-            </div>
-          )}
-
-          {/* CHOIR GENDER DROPDOWN (Gents & Ladies) */}
-          {isChoir && (
-            <div className="relative flex items-center">
-              <FaUsers className="absolute left-3 text-blue-500 pointer-events-none" size={12} />
-              <select
-                value={genderFilter}
-                onChange={(e: any) => {
-                  setGenderFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-8 pr-7 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:bg-white cursor-pointer"
-              >
-                <option value="all">All Members (Gents & Ladies)</option>
-                <option value="male">Gents (Tenor & Bass)</option>
-                <option value="female">Ladies (Soprano & Alto)</option>
-              </select>
-            </div>
-          )}
-
-          {/* Sort Selector */}
+          {/* Sort Selector & View Mode */}
           <div className="flex items-center gap-2">
             <div className="relative flex items-center">
               <FaSortAlphaDown className="absolute left-3 text-slate-400 pointer-events-none" size={12} />
@@ -507,6 +578,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
             {/* View Mode Toggle */}
             <div className="flex rounded-xl overflow-hidden border border-slate-200">
               <button
+                type="button"
                 onClick={() => setViewMode('grid')}
                 className={`px-3 py-2.5 transition-all cursor-pointer ${
                   viewMode === 'grid' ? 'text-white' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'
@@ -517,6 +589,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
                 <FaThLarge size={13} />
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('list')}
                 className={`px-3 py-2.5 transition-all cursor-pointer ${
                   viewMode === 'list' ? 'text-white' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'
@@ -530,7 +603,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
           </div>
         </div>
 
-        {/* Year & Status Quick Filter Pills */}
+        {/* Year Filter Pills & Active Filter Reset */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
           <span className="text-[11px] font-bold uppercase text-slate-400 flex items-center gap-1 mr-1">
             <FaFilter size={9} /> Year:
@@ -545,6 +618,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
           ].map((pill) => (
             <button
               key={pill.key}
+              type="button"
               onClick={() => {
                 setYearFilter(pill.key);
                 setCurrentPage(1);
@@ -559,6 +633,24 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
               {pill.label}
             </button>
           ))}
+
+          {/* Quick Clear Indicator if any filter active */}
+          {(voiceFilter !== 'all' || genderFilter !== 'all' || yearFilter !== 'all' || search.trim() !== '') && (
+            <button
+              type="button"
+              onClick={() => {
+                setVoiceFilter('all');
+                setGenderFilter('all');
+                setYearFilter('all');
+                setSearch('');
+                setCurrentPage(1);
+              }}
+              className="ml-auto px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+              title="Reset all filters"
+            >
+              <FaTimes size={9} /> Reset All Filters
+            </button>
+          )}
 
           {/* Admin status filters */}
           {isAdmin && (
@@ -627,6 +719,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
                 .join('')
                 .slice(0, 2)
                 .toUpperCase();
+              const regNo = member.reg_number || member.regNumber || member.member_id || member.memberId;
               const status = (member.status || 'Approved').toLowerCase();
               const yearTag = getYearInfo(member);
               const voice = isChoir ? getVoiceType(member) : null;
@@ -687,7 +780,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
                         </div>
                       )}
 
-                      <div className="flex items-center gap-1.5 mt-1">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                         <span
                           className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
                           style={{ background: `${color}0c`, color }}
@@ -750,6 +843,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
                 .join('')
                 .slice(0, 2)
                 .toUpperCase();
+              const regNo = member.reg_number || member.regNumber || member.member_id || member.memberId;
               const status = (member.status || 'Approved').toLowerCase();
               const yearTag = getYearInfo(member);
               const voice = isChoir ? getVoiceType(member) : null;
@@ -787,7 +881,7 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-2 mt-0.5">
                         {voice && vStyle && (
                           <span
                             className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider"
@@ -849,13 +943,15 @@ const CommunityMembersTab: React.FC<Props> = ({ moduleId, moduleName, color, isA
           </p>
           {(search || yearFilter !== 'all' || (isChoir && (voiceFilter !== 'all' || genderFilter !== 'all'))) && (
             <button
+              type="button"
               onClick={() => {
                 setSearch('');
                 setYearFilter('all');
                 setVoiceFilter('all');
                 setGenderFilter('all');
+                setCurrentPage(1);
               }}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm cursor-pointer transition-all hover:opacity-90"
               style={{ background: color }}
             >
               Reset Filters

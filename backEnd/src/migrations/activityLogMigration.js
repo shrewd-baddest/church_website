@@ -6,7 +6,7 @@ const activityLogMigration = async () => {
 
   const columns = [
     "id SERIAL PRIMARY KEY",
-    "actor_id INTEGER",
+    "actor_id VARCHAR(30)",
     "actor_name VARCHAR(255) NOT NULL DEFAULT 'Unknown'",
     "actor_role VARCHAR(200)",
     "jumuiya_id VARCHAR(50)",
@@ -32,6 +32,27 @@ const activityLogMigration = async () => {
       detail: error.detail,
       hint: error.hint,
       stack: error.stack,
+    });
+  }
+
+  // Fix actor_id type: was INTEGER but members.member_id is VARCHAR(30).
+  try {
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'activity_logs' AND column_name = 'actor_id'
+            AND data_type = 'integer'
+        ) THEN
+          ALTER TABLE activity_logs ALTER COLUMN actor_id TYPE VARCHAR(30);
+        END IF;
+      END $$;
+    `);
+  } catch (error) {
+    logger.error("activity_logs actor_id type fix failed:", {
+      message: error.message,
+      code: error.code,
     });
   }
 

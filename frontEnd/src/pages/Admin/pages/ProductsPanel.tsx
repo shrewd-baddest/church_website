@@ -26,11 +26,11 @@ type ProductForm = Omit<Product, 'id' | 'created_at'> & {
   imagePreview?: string;
 };
 
-interface Props { categoryFilter?: string[] }
+interface Props { categoryFilter?: string[]; readOnly?: boolean }
 
 const allCats = ['sacramentals', 'tshirts', 'chairs', 'instruments'];
 
-const ProductsPanel = ({ categoryFilter }: Props) => {
+const ProductsPanel = ({ categoryFilter, readOnly }: Props) => {
   const activeCategories = categoryFilter || allCats;
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -240,9 +240,11 @@ const ProductsPanel = ({ categoryFilter }: Props) => {
         onRefresh={loadProducts}
         loading={loading}
         actions={
-          <button onClick={() => openProductForm()} className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-200">
-            <Plus size={13} /> Add
-          </button>
+          !readOnly && (
+            <button onClick={() => openProductForm()} className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-200">
+              <Plus size={13} /> Add
+            </button>
+          )
         }
       />
 
@@ -288,9 +290,11 @@ const ProductsPanel = ({ categoryFilter }: Props) => {
         </div>
       ) : filteredProducts.length === 0 ? (
         <EmptyState icon={ShoppingBag} title="No products found" subtitle={selectedCategory !== 'all' ? `No products in "${selectedCategory}".` : 'Add your first product.'} action={
-          <button onClick={() => openProductForm()} className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-200">
-            <Plus size={13} /> Add Product
-          </button>
+          !readOnly ? (
+            <button onClick={() => openProductForm()} className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-200">
+              <Plus size={13} /> Add Product
+            </button>
+          ) : undefined
         } />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -319,14 +323,16 @@ const ProductsPanel = ({ categoryFilter }: Props) => {
                     {(product.stock ?? 0) > 0 ? `${product.stock} in stock` : 'Out of stock'}
                   </span>
                 </div>
-                <div className="flex gap-1.5 pt-1.5 border-t border-slate-100">
-                  <button onClick={() => openProductForm(product)} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all">
-                    <Pencil size={10} /> Edit
-                  </button>
-                  <button onClick={() => deleteProduct(product.id as string | number)} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-all">
-                    <Trash2 size={10} /> Delete
-                  </button>
-                </div>
+                {!readOnly && (
+                  <div className="flex gap-1.5 pt-1.5 border-t border-slate-100">
+                    <button onClick={() => openProductForm(product)} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all">
+                      <Pencil size={10} /> Edit
+                    </button>
+                    <button onClick={() => deleteProduct(product.id as string | number)} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] font-bold bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-all">
+                      <Trash2 size={10} /> Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

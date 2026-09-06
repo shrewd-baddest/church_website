@@ -61,6 +61,62 @@ const buildCloudinaryStorage = (folder = "church_officials") => ({
 // Default storage — church officials photos
 const cloudinaryStorage = buildCloudinaryStorage("church_officials");
 
+/**
+ * Landscape-optimised storage for card/banner images (Explore Our Community section).
+ * Crops to 900 × 500 with smart gravity so the image always fills a wide card header.
+ */
+const buildLandscapeStorage = (folder = "explore_cards") => ({
+  _handleFile(req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        public_id: `${file.fieldname}-${uniqueSuffix}`,
+        resource_type: "image",
+        transformation: [
+          { width: 900, height: 500, crop: "fill", gravity: "auto" },
+          { quality: "auto:good" },
+          { fetch_format: "auto" },
+        ],
+      },
+      (error, result) => {
+        if (error) {
+          logger.error("Cloudinary landscape upload error: " + error.message);
+          return cb(new UploadError("Failed to upload image to Cloudinary", "CLOUDINARY_UPLOAD_ERROR"));
+        }
+        cb(null, {
+          path: result.secure_url,
+          filename: result.public_id,
+          size: result.bytes,
+          mimetype: file.mimetype,
+          cloudinary: result,
+        });
+      }
+    );
+
+    file.stream.pipe(uploadStream);
+  },
+
+  _removeFile(req, file, cb) {
+    if (file.filename) {
+      cloudinary.uploader.destroy(file.filename, (error) => {
+        if (error) logger.warn("Failed to remove file from Cloudinary: " + error.message);
+        cb(null);
+      });
+    } else {
+      cb(null);
+    }
+  },
+});
+
+// Explore Our Community card images — landscape 900×500 crop
+const uploadExploreImage = multer({
+  storage: buildLandscapeStorage("explore_cards"),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter,
+});
+
 // File type validation (checks both the declared mimetype and the extension)
 function fileFilter(req, file, cb) {
   const allowedExt = /jpeg|jpg|png|gif|webp/;
@@ -152,4 +208,4 @@ const uploadMemoryForOcr = multer({
 });
 
 export default upload;
-export { uploadTshirt, uploadJumuiyaTshirt, uploadChoirSong, uploadMemoryForOcr };
+export { uploadTshirt, uploadJumuiyaTshirt, uploadChoirSong, uploadMemoryForOcr, uploadExploreImage };

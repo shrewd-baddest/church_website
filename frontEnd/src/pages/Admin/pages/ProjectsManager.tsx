@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { toast } from 'react-hot-toast';
 import { apiClient } from "../../../api/axiosInstance";
+import { useAuth } from "../../../context/AuthContext";
 import ProductsPanel from "./ProductsPanel";
 import OrdersPanel from "./ordersmanager";
 import HireRequestsPanel from "./hirerequestsmanager";
@@ -67,6 +68,10 @@ const hireNav: SidebarItem[] = [
 type SectionId = typeof sections[number]["id"];
 
 export default function ProjectsManager() {
+  const { user } = useAuth();
+  const userRoles = Array.isArray(user?.role) ? user.role : [user?.role].filter(Boolean);
+  const readOnly = userRoles.some((r: any) => r === 'csa_vice_chair');
+
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
   const [activeNav, setActiveNav] = useState("dashboard");
   const [pendingCount, setPendingCount] = useState(0);
@@ -273,15 +278,15 @@ export default function ProjectsManager() {
   const renderPanel = () => {
     switch (activeNav) {
       case "dashboard": return renderDashboard();
-      case "products": return <ProductsPanel categoryFilter={['sacramentals', 'tshirts']} />;
-      case "orders": return <OrdersPanel typeFilter="sale" />;
+      case "products": return <ProductsPanel categoryFilter={['sacramentals', 'tshirts']} readOnly={readOnly} />;
+      case "orders": return <OrdersPanel typeFilter="sale" readOnly={readOnly} />;
       case "categories": return <CategoriesPanel typeFilter="sale" />;
       case "customers": return <CustomersPanel />;
       case "cards": return <CategoryCardManager sectionFilter={['sacramentals', 'tshirts']} />;
       case "sliders": return <SliderManager sectionFilter={['sacramentals', 'tshirts']} />;
       case "testimonials": return <TestimonialManager />;
       case "reports": return <ReportsPanel typeFilter="sale" />;
-      case "hire-products": return <ProductsPanel categoryFilter={['chairs', 'instruments']} />;
+      case "hire-products": return <ProductsPanel categoryFilter={['chairs', 'instruments']} readOnly={readOnly} />;
       case "hire-requests": return <HireRequestsPanel />;
       case "hire-settings": return <HireSettingsSection />;
       case "hire-categories": return <CategoriesPanel typeFilter="hire" />;

@@ -66,7 +66,7 @@ export const ALL_ADMIN_PATHS = [
   "/admin/jumuiya-channels",
   "/admin/community-updates",
   "/admin/jumuiya-tshirts",
-  "/admin/jumuiya-suggestions",
+  "/admin/csa-tshirts",
   "/admin/bookings",
 ];
 
@@ -86,7 +86,6 @@ const CHAIR_FORBIDDEN_PATHS = [
   "/admin/secretary-dashboard",
   "/admin/community-updates",
   "/admin/jumuiya-tshirts",
-  "/admin/jumuiya-suggestions",
   "/admin/jumuiya-channels",
 ];
 
@@ -114,6 +113,10 @@ const COMMUNITY_MODULES_BY_ROLE: Record<string, string[]> = {
   ST_FRANCIS_TREASURER: ["st-francis"],
   MENTORSHIP_CHAIR: ["mentorship", "youth"], // mentorship community historically lives under both ids
   MENTORSHIP_VICE_CHAIR: ["mentorship", "youth"],
+  JUMUIYA_COORDINATOR: ["our-jumuiyas"],
+  JUMUIYA_CHAIRPERSON: ["our-jumuiyas"],
+  JUMUIYA_VICE_CHAIRPERSON: ["our-jumuiyas"],
+  JUMUIYA_OS: ["our-jumuiyas"],
 };
 
 /**
@@ -173,6 +176,8 @@ export const getAllowedPrefixes = (roles: string[]): Set<string> => {
         break;
       case "CSA_VICE_CHAIR":
         prefixes.add("/admin/suggestions");
+        prefixes.add("/admin/csa-tshirts");
+        prefixes.add("/admin/projects");
         break;
       case "LITURGIST":
         prefixes.add("/admin/devotions");
@@ -184,7 +189,6 @@ export const getAllowedPrefixes = (roles: string[]): Set<string> => {
         break;
       case "JUMUIYA_CHAIRPERSON":
         prefixes.add("/admin/suggestions");
-        prefixes.add("/admin/jumuiya-suggestions");
         prefixes.add("/admin/suggestion-bin");
         prefixes.add("/admin/secretary-dashboard");
         prefixes.add("/admin/jumuiya-members");
@@ -197,7 +201,7 @@ export const getAllowedPrefixes = (roles: string[]): Set<string> => {
       case "JUMUIYA_VICE_CHAIRPERSON":
         prefixes.add("/admin/community-updates");
         prefixes.add("/admin/jumuiya-tshirts");
-        prefixes.add("/admin/jumuiya-suggestions");
+        prefixes.add("/admin/suggestions");
         break;
       case "JUMUIYA_SECRETARY":
         prefixes.add("/admin/secretary-dashboard");

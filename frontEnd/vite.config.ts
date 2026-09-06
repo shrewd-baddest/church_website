@@ -75,6 +75,8 @@ export default defineConfig(({ mode }) => {
         prefer_related_applications: false
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2,ttf}'],
         runtimeCaching: [
           {

@@ -7,10 +7,14 @@ import {
   getSongs,
   getCategoriesAndStats,
   getSongById,
+  checkDuplicateSong,
+  batchCreateSongs,
   extractLyricsOcr,
   createSong,
   updateSong,
   deleteSong,
+  getProgrammes,
+  toggleSongInProgramme,
 } from "../../controllers/choirSongsController.js";
 
 const router = Router();
@@ -19,7 +23,10 @@ const handleMulterSong = (req, res, next) => {
   if (req.is && !req.is("multipart/form-data")) {
     return next();
   }
-  uploadChoirSong.single("sheet_image")(req, res, (err) => {
+  uploadChoirSong.fields([
+    { name: "sheet_image", maxCount: 1 },
+    { name: "additional_sheets", maxCount: 6 },
+  ])(req, res, (err) => {
     if (err) {
       return res.status(400).json({ success: false, error: err.message || "File upload failed" });
     }
@@ -28,7 +35,10 @@ const handleMulterSong = (req, res, next) => {
 };
 
 const handleMulterOcr = (req, res, next) => {
-  uploadMemoryForOcr.single("image")(req, res, (err) => {
+  uploadMemoryForOcr.fields([
+    { name: "image", maxCount: 1 },
+    { name: "images", maxCount: 6 },
+  ])(req, res, (err) => {
     if (err) {
       return res.status(400).json({ success: false, error: err.message || "Image upload failed for OCR" });
     }
@@ -36,18 +46,35 @@ const handleMulterOcr = (req, res, next) => {
   });
 };
 
-// Public routes (anyone can browse songs, view lyrics/sheet music, and stats)
-router.get("/", optionalAuth, getSongs);
+// Public routes (browse songs, view lyrics/sheet music, stats, synced programmes)
+router.get("/programmes", optionalAuth, getProgrammes);
+router.post(
+  "/programmes/toggle",
+  verifyToken,
+  requireRole(...ALL_COMMUNITY_ADMIN_ROLES),
+  toggleSongInProgramme
+);
 router.get("/stats", optionalAuth, getCategoriesAndStats);
+router.get("/check-duplicate", optionalAuth, checkDuplicateSong);
+router.get("/", optionalAuth, getSongs);
 router.get("/:id", optionalAuth, getSongById);
 
-// Admin routes — Smart OCR text extraction from uploaded image buffer
+// Admin routes — Multilingual Smart OCR text extraction from uploaded image buffer
 router.post(
   "/ocr-extract",
   verifyToken,
   requireRole(...ALL_COMMUNITY_ADMIN_ROLES),
   handleMulterOcr,
   extractLyricsOcr
+);
+
+// Admin routes — Batch create multiple songs from one sheet
+router.post(
+  "/batch-create",
+  verifyToken,
+  requireRole(...ALL_COMMUNITY_ADMIN_ROLES),
+  handleMulterSong,
+  batchCreateSongs
 );
 
 // Admin routes — Create, Update, Delete songs

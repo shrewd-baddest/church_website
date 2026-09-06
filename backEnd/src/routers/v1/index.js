@@ -48,6 +48,7 @@ import whatsappLinksRouter from "./whatsappLinksRoutes.js";
 import profileRoutes from "./profileRoutes.js";
 import practiceSchedulesRouter from "./practiceSchedulesRouter.js";
 import communityTshirtsRouter from "./communityTshirtsRouter.js";
+import communityModuleChannelsRouter from "./communityModuleChannelsRouter.js";
 import communityEnrollmentRouter from "./communityEnrollmentRouter.js";
 import jumuiyaNotificationsRouter from "./jumuiyaNotificationsRouter.js";
 import serialConfigRouter from "./serialConfigRouter.js";
@@ -55,6 +56,7 @@ import jumuiyaTshirtsRouter from "./jumuiyaTshirtsRouter.js";
 import treasuryRouter from "./treasuryRoutes.js";
 import productReviewsRouter from "./productReviewsRoutes.js";
 import choirSongsRouter from "./choirSongsRouter.js";
+import { getHeroSlides } from "../../controllers/heroSlidesController.js";
 
 // Audit trail: records every authenticated admin mutation (who/what/when).
 // Mounted first so it wraps every request in this router; it only writes on
@@ -172,15 +174,17 @@ router.use("/treasury", treasuryRouter);
 // User profile (self-service get + update)
 router.use("/profile", profileRoutes);
 
-// Community practice schedules + tshirt orders + enrollments
+// Community practice schedules + tshirt orders + enrollments + channels
 router.use("/practice-schedules", practiceSchedulesRouter);
 router.use("/community-tshirts", communityTshirtsRouter);
+router.use("/community-channels", communityModuleChannelsRouter);
 router.use("/community-enrollment", communityEnrollmentRouter);
 router.use("/jumuiya-notifications", jumuiyaNotificationsRouter);
 router.use("/serial-config", serialConfigRouter);
 router.use("/jumuiya-tshirts", jumuiyaTshirtsRouter);
 router.use("/choir-songs", choirSongsRouter);
 router.use("/choir_songs", choirSongsRouter);
+router.get("/hero-slides", getHeroSlides);
 
 // Product reviews
 router.use("/", productReviewsRouter);

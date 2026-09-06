@@ -4,11 +4,10 @@ import { memberService } from "../../../api/jumuiyaMemberService";
 import { getYearOfStudy, genderCode, isMale, isFemale } from "../../../utils/memberYear";
 import {
   Users, Church, Calendar, RefreshCw,
-  BarChart3, TrendingUp, Upload, GitMerge, CheckCircle,
+  BarChart3, TrendingUp, GitMerge, CheckCircle,
   ArrowLeftRight, UserCheck, Image, CalendarCheck
 } from "lucide-react";
 import toast from "react-hot-toast";
-import MemberImportForm from "../../Jumuiya/admin/MemberImportForm";
 import OrganizationPanel from "../../Jumuiya/admin/OrganizationPanel";
 import CsaAllocationsApproval from "../../Jumuiya/components/CsaAllocationsApproval";
 import GalleryManager from "./GalleryManager";
@@ -19,13 +18,12 @@ import { Megaphone } from "lucide-react";
 import { SkeletonSummaryBar } from "../../../components/Skeleton";
 
 
-type DashboardTab = "overview" | "import" | "organize" | "allocations" | "analytics" | "gallery" | "attendance" | "announcements";
+type DashboardTab = "overview" | "organize" | "allocations" | "analytics" | "gallery" | "attendance" | "announcements";
 
 const TAB_CONFIGS: Record<string, { id: DashboardTab; label: string; icon: any }[]> = {
   chair: [
     { id: "overview", label: "Dashboard", icon: BarChart3 },
     { id: "announcements", label: "Announcements", icon: Megaphone },
-    { id: "import", label: "New Admission", icon: Upload },
     { id: "organize", label: "Organize", icon: GitMerge },
     { id: "allocations", label: "Allocations", icon: UserCheck },
     { id: "analytics", label: "Reports", icon: TrendingUp },
@@ -431,10 +429,6 @@ export default function SecretaryDashboard() {
           jumuiyaName={jumuiyaInfo.name}
           jumuiyaColor={jumuiyaInfo.color}
         />
-      )}
-
-      {activeTab === "import" && (
-        <MemberImportForm jumuiyaId={jumuiyaId} />
       )}
 
       {activeTab === "organize" && (

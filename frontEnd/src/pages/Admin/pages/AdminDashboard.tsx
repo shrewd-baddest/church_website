@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCachedData } from '../../../hooks/useCachedData';
 import apiService from '../../../services/api';
+import { apiClient } from '../../../api/axiosInstance';
 import { memberService } from '../../../api/jumuiyaMemberService';
 import {
   Users,
@@ -116,14 +117,14 @@ export default function AdminDashboard() {
   const { data, loading, error, refetch: loadDashboardData } = useCachedData(
     'csa_cache_dashboard_overview_v2',
     async () => {
-      const [batchStats, donations, events, orders, hires, pendingRes, suggestions] = await Promise.all([
+      const [batchStats, donations, events, orders, hires, pendingRes, suggestionsRes] = await Promise.all([
         memberService.getBatchStatistics().catch(() => null),
         apiService.fetchTableData('mpesa_request'),
         apiService.fetchTableData('events'),
         apiService.fetchTableData('orders'),
         apiService.fetchTableData('hire_requests'),
         memberService.getPendingPayments().catch(() => null),
-        apiService.fetchTableData('suggestions'),
+        apiClient.get('/suggestions', { params: { jumuiya_id: 'csa' } }).catch(() => ({ data: [] })),
       ]);
 
       const statsMap = batchStats?.data || {};
@@ -132,7 +133,10 @@ export default function AdminDashboard() {
       const ordersArr = Array.isArray(orders) ? orders : [];
       const hiresArr = Array.isArray(hires) ? hires : [];
       const pendingArr = Array.isArray(pendingRes?.data) ? pendingRes.data : [];
-      const suggestionsArr = Array.isArray(suggestions) ? suggestions : [];
+      const suggestionsData = suggestionsRes?.data;
+      const suggestionsArr = Array.isArray(suggestionsData?.data)
+        ? suggestionsData.data
+        : (Array.isArray(suggestionsData) ? suggestionsData : []);
 
       const paid = donationsArr.filter((d: any) => d.status === 'paid');
       const totalDonated = paid.reduce((acc: number, d: any) => acc + Number(d.amount || 0), 0);

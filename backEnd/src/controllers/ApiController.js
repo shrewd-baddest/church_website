@@ -79,12 +79,12 @@ const READ_ONLY_TABLES = new Set([
 // column except the BLOCKED_WRITE_COLUMNS.
 const WRITE_COLUMN_ALLOWLISTS = {
   enrollments: ["module_id", "class_id", "full_name", "name", "email", "phone", "voice_type", "music_level", "status", "source"],
-  hub_modules: ["name", "description", "module_id", "status", "category", "order", "image", "about", "story", "title", "saint_image_url", "history_pdf_url", "training_time", "location", "schedule_label"],
+  hub_modules: ["title", "description", "story", "theme_color", "icon_class", "schedule_label", "training_time", "location", "registration_fee", "subscription_fee", "uniform_info", "saint_image_url", "history_pdf_url"],
   hub_activities: ["module_id", "title", "description", "activity_date", "location", "status"],
   hub_announcements: ["module_id", "title", "content", "announcement_date", "status"],
   hub_gallery: ["module_id", "image_url", "title", "caption", "category", "status"],
   hub_officials: ["module_id", "name", "role", "photo_url", "phone", "email", "bio", "order", "status"],
-  products: ["name", "description", "price", "category", "image", "stock", "status", "featured"],
+  products: ["name", "description", "price", "category", "image", "stock", "status", "is_featured"],
   categories: ["name", "description", "order", "status"],
   testimonials: ["name", "message", "rating", "status"],
   suggestions: ["suggestion", "category", "scope", "jumuiya_id", "name", "email", "user_id", "status", "reply", "replied_at", "replied_by", "approved", "is_approved", "requested_unmask", "unmask_response"],
@@ -316,7 +316,13 @@ export const updateRecord = async (tableName, id, data) => {
       RETURNING *
     `;
     
-    const result = await pool.query(query, [...values, id]);
+    let result = await pool.query(query, [...values, id]);
+    if (result.rows.length === 0 && dbTableName === 'hub_modules') {
+      const altId = id === 'mentorship' ? 'youth' : id === 'youth' ? 'mentorship' : null;
+      if (altId) {
+        result = await pool.query(query, [...values, altId]);
+      }
+    }
     return maybeSanitize(tableName, result.rows)[0];
   } catch (error) {
     console.error(`Error updating record in ${dbTableName}:`, error.message);

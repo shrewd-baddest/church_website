@@ -36,19 +36,24 @@ export const getGallery = async (req, res) => {
             query += ' AND module_id = $1';
             params.push(filterModule);
         } else {
-            // General browsing: only show CSA-level photos (general category)
-            query += " AND (category = 'general' OR category IS NULL)";
-
             // Access Control Logic for public / general browsing
             const roles = user?.role ? (Array.isArray(user.role) ? user.role : [user.role]) : [];
-            const isGlobalViewer = roles.some((r) =>
-              ["csa_chair", "os", "jumuiya_coordinator"].includes(String(r).toLowerCase().trim())
+            const isAdmin = roles.some((r) =>
+              ["csa_chair", "os", "jumuiya_coordinator", "admin", "superadmin", "project_manager"].includes(String(r).toLowerCase().trim())
             );
-            if (user && !isGlobalViewer) {
+
+            if (isAdmin) {
+                // Admin users see ALL categories (Hero Slider, gallery-grid, teaser, general)
+                // No category filter needed
+            } else if (user) {
+                // Logged-in non-admin: only general category + their jumuiya
+                query += " AND (category = 'general' OR category IS NULL)";
                 query += ' AND (module_id = $1 OR module_id = $2)';
                 params.push('general');
                 params.push(user.jumuiya_id?.toString() || 'none');
-            } else if (!user) {
+            } else {
+                // Public: only general category
+                query += " AND (category = 'general' OR category IS NULL)";
                 query += ' AND module_id = $1';
                 params.push('general');
             }

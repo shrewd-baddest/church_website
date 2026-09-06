@@ -12,6 +12,7 @@ import {
   deleteElectionTerm,
   archiveCurrentOfficials,
   handoverOfficials,
+  lookupMember,
   getOfficialsByTerm,
   updateTermClosingMessage,
   restoreArchivedOfficials,
@@ -46,6 +47,9 @@ router.put('/term/:termId/closing-message', verifyToken, requireRole(...OFFICIAL
 router.get('/term/:termId/export', verifyToken, requireRole(...OFFICIAL_ROLES), exportArchivedOfficials);
 router.delete('/term', verifyToken, requireRole(...OFFICIAL_ROLES), bulkDeleteArchivedOfficials);
 router.delete('/term/:officialId', verifyToken, requireRole(...OFFICIAL_ROLES), deleteArchivedOfficial);
+
+// Member lookup for handover
+router.get('/lookup-member/:regNumber', verifyToken, requireRole(...OFFICIAL_ROLES), lookupMember);
 
 // Clear all (admin utility)
 router.delete('/clear-all', verifyToken, requireRole(...OFFICIAL_ROLES), clearAllOfficials);

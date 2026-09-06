@@ -54,7 +54,13 @@ const MODULE_TO_CSA_CATEGORY: Record<string, string> = {
 // communities keep their existing order.
 const OFFICIAL_SUPERIORITY_RANK: Record<string, number> = {
   'choir chairperson': 1,
+  'dance chairperson': 1,
+  'dance coordinator': 1,
+  'chairperson': 1,
   'choir vice chairperson': 2,
+  'dance vice chairperson': 2,
+  'assistant dance coordinator': 2,
+  'vice chairperson': 2,
   'choir master': 3,
   'choir mistress': 4,
   'secretary': 5,

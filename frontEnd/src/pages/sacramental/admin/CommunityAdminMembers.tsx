@@ -59,9 +59,9 @@ const CommunityAdminMembers: React.FC<Props> = ({ color }) => {
 
   const handleExport = () => {
     if (!enrollments.length) return;
-    const headers = ['Name', 'Phone', 'Email', 'Gender', 'Course', 'Year', 'Voice Type', 'Status', 'Joined'];
+    const headers = ['Name', 'Reg No', 'Phone', 'Gender', 'Course', 'Year', 'Voice Type', 'Status', 'Joined'];
     const rows = enrollments.map((m: any) => [
-      m.full_name, m.phone, m.email || '', m.gender || '', m.course || '', m.year_of_study || '',
+      m.full_name, m.reg_number || m.member_id || m.memberId || '', m.phone, m.gender || '', m.course || '', m.year_of_study || '',
       m.voice_type || '', m.status, m.joined_at || m.enrolled_at || '',
     ]);
     const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
@@ -166,6 +166,12 @@ const CommunityAdminMembers: React.FC<Props> = ({ color }) => {
 
                 {/* Member Details */}
                 <div className="mt-3 space-y-1.5">
+                  {(m.reg_number || m.member_id || m.memberId) && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-700">
+                      <span className="text-[10px] font-black uppercase text-slate-400">Reg No:</span>
+                      <span className="font-bold text-slate-800">{m.reg_number || m.member_id || m.memberId}</span>
+                    </div>
+                  )}
                   {m.gender && (
                     <div className="flex items-center gap-2 text-xs text-slate-500">
                       {m.gender === 'Male' ? <FaMars size={10} className="text-blue-500" /> : <FaVenus size={10} className="text-pink-500" />}

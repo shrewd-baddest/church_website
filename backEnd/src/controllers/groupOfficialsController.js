@@ -12,6 +12,7 @@ import {
 } from '../utils/helpers.js';
 import { isOfficial } from '../middlewares/requireRole.js';
 import { autoAssignRoleForOfficial, removeRoleForOfficial } from '../utils/positionToRole.js';
+import { normalizeDancePosition, syncDancerToCsa, syncDancerDeletion } from '../utils/danceSync.js';
 import logger from "../logger/winston.js";
 import { emitSocketEvent } from "../socket/index.js";
 
@@ -35,8 +36,8 @@ export const POSITIONS_BY_GROUP = {
     'Choir Mistress'
   ],
   'Dancers': [
-    'Chairperson',
-    'Vice Chairperson'
+    'Dance Chairperson',
+    'Dance Vice Chairperson'
   ],
   'Charismatic': [
     'Chairperson',
@@ -65,8 +66,8 @@ ORDER BY
     ELSE 6
   END,
   CASE
-    WHEN o.position = 'Chairperson' THEN 1
-    WHEN o.position = 'Vice Chairperson' THEN 2
+    WHEN o.position = 'Dance Chairperson' OR o.position = 'Chairperson' THEN 1
+    WHEN o.position = 'Dance Vice Chairperson' OR o.position = 'Vice Chairperson' THEN 2
     WHEN o.position = 'Secretary' THEN 3
     WHEN o.position = 'Vice Secretary' THEN 4
     WHEN o.position = 'Treasurer' THEN 5
@@ -231,9 +232,11 @@ export const createGroupOfficial = async (req, res) => {
       return res.status(400).json({ success: false, message: `Invalid Group. Must be one of: ${GROUP_OPTIONS.join(', ')}` });
     }
 
+    const finalPosition = category === 'Dancers' ? normalizeDancePosition(position) : position;
+
     const validPositions = POSITIONS_BY_GROUP[category] || [];
-    if (!validPositions.includes(position)) {
-      logger.warn(`Invalid position: ${position} for ${category}`);
+    if (!validPositions.includes(finalPosition)) {
+      logger.warn(`Invalid position: ${finalPosition} for ${category}`);
       return res.status(400).json({ success: false, message: `Invalid Position for ${category}. Must be one of: ${validPositions.join(', ')}` });
     }
 
@@ -270,8 +273,12 @@ export const createGroupOfficial = async (req, res) => {
       const result = await pool.query(
         `INSERT INTO group_officials (name, category, position, contact, photo, election_term_id, status, term_of_service, reg_number)
          VALUES ($1, $2, $3, $4, $5, $6, 'archived', $7, $8) RETURNING *`,
-        [name, category, position, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
+        [name, category, finalPosition, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
       );
+
+      if (category === 'Dancers') {
+        await syncDancerToCsa(result.rows[0]);
+      }
 
       emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "create_group", data: result.rows[0] });
       return res.status(201).json({ success: true, data: result.rows[0] });
@@ -294,7 +301,7 @@ export const createGroupOfficial = async (req, res) => {
 
     const promises = [
       pool.query("SELECT id FROM election_terms WHERE is_current = TRUE"),
-      pool.query("SELECT name FROM group_officials WHERE category = $1 AND position = $2 AND (status = 'active' OR status IS NULL)", [category, position])
+      pool.query("SELECT name FROM group_officials WHERE category = $1 AND position = $2 AND (status = 'active' OR status IS NULL)", [category, finalPosition])
     ];
 
     let contactQueryIndex = -1;
@@ -318,10 +325,10 @@ export const createGroupOfficial = async (req, res) => {
     }
 
     if (posDup.rows.length > 0) {
-      logger.warn(`Position already occupied: ${position} in ${category}`);
+      logger.warn(`Position already occupied: ${finalPosition} in ${category}`);
       return res.status(409).json({
         success: false,
-        message: `The position '${position}' for ${category} is already occupied by ${posDup.rows[0].name}`
+        message: `The position '${finalPosition}' for ${category} is already occupied by ${posDup.rows[0].name}`
       });
     }
 
@@ -331,15 +338,15 @@ export const createGroupOfficial = async (req, res) => {
     const result = await pool.query(
       `INSERT INTO group_officials (name, category, position, contact, photo, election_term_id, status, term_of_service, reg_number) 
        VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, $8) RETURNING *`,
-      [name, category, position, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
+      [name, category, finalPosition, normalizedContact || null, photoUrl, termId, term_of_service || null, validatedRegNumber]
     );
 
     await syncCurrentTerm(term_of_service);
 
     let roleWarning = null;
-    if (validatedRegNumber && position) {
+    if (validatedRegNumber && finalPosition) {
       const roleResult = await autoAssignRoleForOfficial(
-        validatedRegNumber, position, false, category, req.user?.member_id || null, category
+        validatedRegNumber, finalPosition, false, category, req.user?.member_id || null, category
       );
       if (roleResult?.status === 'conflict') {
         roleWarning = roleResult.message;
@@ -347,6 +354,10 @@ export const createGroupOfficial = async (req, res) => {
       } else if (roleResult) {
         logger.info(`Auto-assigned role for group official ${name}: ${JSON.stringify(roleResult)}`);
       }
+    }
+
+    if (category === 'Dancers') {
+      await syncDancerToCsa(result.rows[0]);
     }
 
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "create_group", data: result.rows[0] });
@@ -369,15 +380,19 @@ export const updateGroupOfficial = async (req, res) => {
     }
 
     const currentCategory = category || existing.rows[0].category;
-    const currentPosition = position || existing.rows[0].position;
+    let effectivePosition = position;
+    if (currentCategory === 'Dancers' && (position || !existing.rows[0].position?.startsWith('Dance'))) {
+      effectivePosition = normalizeDancePosition(position || existing.rows[0].position);
+    }
+    const currentPosition = effectivePosition || existing.rows[0].position;
 
     if (category && !GROUP_OPTIONS.includes(category)) {
       return res.status(400).json({ success: false, message: `Invalid Group. Must be one of: ${GROUP_OPTIONS.join(', ')}` });
     }
 
-    if (position) {
+    if (effectivePosition) {
       const validPositions = POSITIONS_BY_GROUP[currentCategory] || [];
-      if (!validPositions.includes(position)) {
+      if (!validPositions.includes(effectivePosition)) {
         return res.status(400).json({ success: false, message: `Invalid Position for ${currentCategory}. Must be one of: ${validPositions.join(', ')}` });
       }
     }
@@ -410,7 +425,7 @@ export const updateGroupOfficial = async (req, res) => {
     // Position uniqueness — skip for archived officials
     const isArchivedUpdate = existing.rows[0].status === 'archived';
 
-    if (!isArchivedUpdate && (category || position)) {
+    if (!isArchivedUpdate && (category || effectivePosition)) {
       const posDup = await pool.query(
         "SELECT name FROM group_officials WHERE category = $1 AND position = $2 AND id != $3 AND (status = 'active' OR status IS NULL)",
         [currentCategory, currentPosition, id]
@@ -469,7 +484,7 @@ export const updateGroupOfficial = async (req, res) => {
       'term_of_service = COALESCE($6, term_of_service)',
       'reg_number = COALESCE($7, reg_number)',
     ];
-    const values = [name, category, position, normalizedContact, photoUrl, term_of_service || null, validatedRegNumber];
+    const values = [name, category, effectivePosition !== undefined ? effectivePosition : position, normalizedContact, photoUrl, term_of_service || null, validatedRegNumber];
     if (resolvedTermId !== undefined) {
       setParts.push(`election_term_id = $${values.length + 1}`);
       values.push(resolvedTermId);
@@ -513,6 +528,12 @@ export const updateGroupOfficial = async (req, res) => {
       }
     }
 
+    if (result.rows[0].category === 'Dancers') {
+      await syncDancerToCsa(result.rows[0]);
+    } else if (existing.rows[0].category === 'Dancers') {
+      await syncDancerDeletion('group_officials', existing.rows[0]);
+    }
+
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "update_group", id, data: result.rows[0] });
 
     res.json({ success: true, data: result.rows[0], ...(roleWarning ? { warning: roleWarning } : {}) });
@@ -547,6 +568,9 @@ export const deleteGroupOfficial = async (req, res) => {
     }
 
     await pool.query('DELETE FROM group_officials WHERE id = $1', [id]);
+    if (official.category === 'Dancers') {
+      await syncDancerDeletion('group_officials', official);
+    }
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete_group", id });
     res.json({ success: true, message: 'Official deleted successfully' });
   } catch (error) {
@@ -967,6 +991,10 @@ export const deleteArchivedGroupOfficial = async (req, res) => {
         }
     }
 
+    if (result.rows[0].category === 'Dancers') {
+      await syncDancerDeletion('group_officials', result.rows[0]);
+    }
+
     emitSocketEvent("CSA_NOTIFICATIONS", "officialsUpdated", { action: "delete_archived_group", id });
 
     res.json({ success: true, message: 'Archived official deleted successfully' });
@@ -1020,6 +1048,12 @@ export const bulkDeleteArchivedGroupOfficials = async (req, res) => {
       `DELETE FROM group_officials WHERE id = ANY($1) AND status = 'archived' RETURNING *`,
       [officialIds]
     );
+
+    for (const off of result.rows) {
+      if (off.category === 'Dancers') {
+        await syncDancerDeletion('group_officials', off);
+      }
+    }
 
     for (const row of snapshot.rows) {
       if (row.photo) {

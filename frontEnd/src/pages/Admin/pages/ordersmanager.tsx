@@ -38,9 +38,10 @@ function normalizePhone(raw: string): string {
 
 interface OrdersManagerProps {
   typeFilter?: 'sale' | 'hire';
+  readOnly?: boolean;
 }
 
-export default function OrdersManager({ typeFilter }: OrdersManagerProps) {
+export default function OrdersManager({ typeFilter, readOnly }: OrdersManagerProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<StatusTab>("all");
@@ -194,7 +195,7 @@ export default function OrdersManager({ typeFilter }: OrdersManagerProps) {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  {["Order #", "Customer", "Phone", "Items", "Amount", "Payment", "Status", "Actions"].map(h => (
+                  {["Order #", "Customer", "Phone", "Items", "Amount", "Payment", "Status", ...(readOnly ? [] : ["Actions"])].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-700 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -232,7 +233,7 @@ export default function OrdersManager({ typeFilter }: OrdersManagerProps) {
                       <td className="px-4 py-3">
                         {updating === o.id ? (
                           <Loader2 size={16} className="animate-spin text-blue-500" />
-                        ) : (
+                        ) : !readOnly ? (
                           <div className="flex gap-1 flex-wrap">
                             {o.status === "pending" && (
                               <button
@@ -297,11 +298,10 @@ export default function OrdersManager({ typeFilter }: OrdersManagerProps) {
                               </button>
                             )}
                           </div>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
-                  );
-                })}
+                  ))}
               </tbody>
             </table>
           </div>

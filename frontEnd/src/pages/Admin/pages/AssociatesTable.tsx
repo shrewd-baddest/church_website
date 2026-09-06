@@ -7,7 +7,7 @@ import { genderCode } from "../../../utils/memberYear";
 
 
 
-export default function AssociatesTable({ refreshKey = 0, jumuiyaId }: { refreshKey?: number; jumuiyaId?: string }) {
+export default function AssociatesTable({ refreshKey = 0, jumuiyaId, moduleId }: { refreshKey?: number; jumuiyaId?: string; moduleId?: string }) {
   const [associates, setAssociates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +35,7 @@ export default function AssociatesTable({ refreshKey = 0, jumuiyaId }: { refresh
     try {
       const params: any = {};
       if (jumuiyaId) params.jumuiya_id = jumuiyaId;
+      if (moduleId) params.module_id = moduleId;
       const res = await memberService.getAssociatesList(params);
       setAssociates(res.data || []);
       const years: Record<string, boolean> = {};
@@ -47,7 +48,7 @@ export default function AssociatesTable({ refreshKey = 0, jumuiyaId }: { refresh
     } finally {
       setLoading(false);
     }
-  }, [jumuiyaId]);
+  }, [jumuiyaId, moduleId]);
 
   useEffect(() => { fetchAssociates(); }, [refreshKey]);
 

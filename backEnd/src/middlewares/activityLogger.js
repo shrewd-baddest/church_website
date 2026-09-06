@@ -2,9 +2,11 @@ import { logActivity } from "../services/activityLogService.js";
 
 // Public / noise / sensitive flows that must never be recorded.
 const SKIP_PREFIXES = [
-  "/authentication", "/files", "/payments", "/stkpush", "/hire",
-  "/questions", "/assistant", "/member/", "/readings", "/bible",
-  "/published", "/gallery/teaser", "/sse", "/setup/admin",
+  "/api/v1/authentication", "/api/v1/files", "/api/v1/payments",
+  "/api/v1/stkpush", "/api/v1/hire", "/api/v1/questions",
+  "/api/v1/assistant", "/api/v1/member/", "/api/v1/readings",
+  "/api/v1/bible", "/api/v1/published", "/api/v1/gallery/teaser",
+  "/api/v1/sse", "/api/v1/setup/admin",
 ];
 
 const ACTION_VERB = {
@@ -153,7 +155,7 @@ const activityLogger = (req, res, next) => {
           path,
           query: Object.keys(req.query || {}).length > 0 ? req.query : undefined,
         },
-      });
+      }).catch(() => {});
     } catch { /* audit must never break the request */ }
   });
 

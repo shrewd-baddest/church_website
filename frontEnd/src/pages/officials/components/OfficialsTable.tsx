@@ -31,7 +31,8 @@ export function OfficialsTable({ officials, searchTerm, onSearchChange, onEdit, 
 
   const grouped: Record<string, Official[]> = {};
   filtered.forEach(o => {
-  const c = o.category || 'Other';
+  const rawCategory = o.category || 'Other';
+  const c = rawCategory === 'Rosary' ? 'Rosary Coordinators' : rawCategory === 'Liturgist' ? 'Liturgists' : rawCategory;
   (grouped[c] ||= []).push(o);
   });
 

@@ -25,6 +25,10 @@ export interface JumuiyaRosterMember {
   sem_6_reg?: boolean;
   sem_7_reg?: boolean;
   sem_8_reg?: boolean;
+  admission_year?: number;
+  graduation_year?: number;
+  class_of?: string | number;
+  is_associate?: boolean;
 }
 
 const BASE = (jumuiyaId: string) => `/jumuiya-members/${jumuiyaId}`;
@@ -83,6 +87,9 @@ export const memberService = {
 
   getJumuiyaRegistered: (jumuiya_id: string) =>
     apiClient.get(`/jumuiya-members/registered`, { params: { jumuiya_id } }).then(r => r.data),
+
+  getJumuiyaAssociates: (jumuiya_id: string) =>
+    apiClient.get(`/jumuiya-members/associates`, { params: { jumuiya_id } }).then(r => r.data),
 
   getMembers: (jumuiyaId: string) =>
     apiClient.get(`${BASE(jumuiyaId)}/members`).then(r => r.data),

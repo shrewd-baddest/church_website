@@ -152,18 +152,43 @@ export const migrateToAssociates = async (req, res) => {
 
 export const getAssociatesList = async (req, res) => {
   try {
-    const { jumuiya_id, graduation_year } = req.query;
-    let query = `SELECT * FROM associates`;
+    const { jumuiya_id, graduation_year, module_id } = req.query;
+    let query = `
+      SELECT 
+        a.*,
+        COALESCE(m.course, '') as course
+      FROM associates a
+      LEFT JOIN members m ON a.member_id = m.member_id
+      LEFT JOIN sub_groups sg ON (a.jumuiya_id = sg.group_id::varchar)
+    `;
     const params = [];
     const conditions = [];
 
+    if (module_id) {
+      conditions.push(`a.module_id = $${params.length + 1}`);
+      params.push(module_id);
+    }
+
     if (jumuiya_id) {
-      conditions.push(`(jumuiya_id = $${params.length + 1} OR jumuiya_name = $${params.length + 1})`);
-      params.push(slugToJumuiyaName[jumuiya_id] || jumuiya_id);
+      const resolvedName = slugToJumuiyaName[jumuiya_id] || jumuiya_id;
+      conditions.push(`(
+        a.jumuiya_id = $${params.length + 1}
+        OR a.jumuiya_name = $${params.length + 1}
+        OR a.jumuiya_id = $${params.length + 2}
+        OR a.jumuiya_name = $${params.length + 2}
+        OR sg.slug = $${params.length + 1}
+        OR sg.slug = $${params.length + 2}
+        OR sg.group_id::varchar = $${params.length + 1}
+        OR sg.group_id::varchar = $${params.length + 2}
+        OR LOWER(sg.name) = LOWER($${params.length + 1})
+        OR LOWER(sg.name) = LOWER($${params.length + 2})
+      )`);
+      params.push(jumuiya_id);
+      params.push(resolvedName);
     }
 
     if (graduation_year) {
-      conditions.push(`graduation_year = $${params.length + 1}`);
+      conditions.push(`a.graduation_year = $${params.length + 1}`);
       params.push(parseInt(graduation_year));
     }
 
@@ -171,10 +196,26 @@ export const getAssociatesList = async (req, res) => {
       query += ` WHERE ${conditions.join(" AND ")}`;
     }
 
-    query += ` ORDER BY graduation_year DESC, name ASC`;
+    query += ` ORDER BY a.graduation_year DESC, a.name ASC`;
 
     const result = await pool.query(query, params);
-    res.json({ success: true, data: result.rows, count: result.rows.length });
+
+    const rows = result.rows.map(r => {
+      const admissionYear = r.admission_year || deriveAdmissionYear(r.member_id);
+      const graduationYear = r.graduation_year || calcGraduationYear(admissionYear);
+      return {
+        ...r,
+        id: r.member_id || String(r.id),
+        name: r.name,
+        course: r.course || '',
+        admission_year: admissionYear,
+        graduation_year: graduationYear,
+        class_of: graduationYear ? `Class of ${graduationYear}` : null,
+        is_associate: true,
+      };
+    });
+
+    res.json({ success: true, data: rows, count: rows.length });
   } catch (error) {
     logger.error("getAssociatesList error:", error.message);
     res.status(500).json({ success: false, error: error.message });

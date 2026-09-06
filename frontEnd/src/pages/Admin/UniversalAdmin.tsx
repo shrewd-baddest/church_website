@@ -27,11 +27,13 @@ import {
   Wallet,
   CalendarCheck2,
   Share2,
+  Home,
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import NotificationDropdown, { type Notification } from './components/NotificationDropdown';
 import apiService from '../../services/api';
+import { apiClient } from '../../api/axiosInstance';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { timeAgo } from '../../utils';
 import { ArtDeco404 } from './components/ArtDeco404';
@@ -79,7 +81,6 @@ const menuSections: NavSection[] = [
       { id: 'community-updates', name: 'Community Updates', icon: Bell, path: '/admin/community-updates' },
       { id: 'gallery', name: 'Gallery', icon: ImageIcon, path: '/admin/gallery' },
       { id: 'suggestions', name: 'Suggestions', icon: MessageSquare, path: '/admin/suggestions' },
-      { id: 'jumuiya-suggestions', name: 'Jumuiya Suggestions', icon: MessageSquare, path: '/admin/jumuiya-suggestions' },
       { id: 'suggestion-bin', name: 'Suggestion Bin', icon: Trash2, path: '/admin/suggestion-bin' },
       { id: 'donations', name: 'Donations', icon: HandCoins, path: '/admin/donations' },
       { id: 'treasury', name: 'Treasury', icon: Wallet, path: '/admin/treasury' },
@@ -104,6 +105,7 @@ const menuSections: NavSection[] = [
     items: [
       { id: 'devotions', name: 'Devotions & AI', icon: BookOpen, path: '/admin/devotions' },
       { id: 'projects', name: 'Projects', icon: Store, path: '/admin/projects' },
+      { id: 'csa-tshirts', name: 'T-Shirts', icon: Shirt, path: '/admin/csa-tshirts' },
     ],
   },
   {
@@ -194,10 +196,15 @@ export default function UniversalAdmin() {
 
   const fetchNotifications = async () => {
     try {
-      const [suggestions, donations] = await Promise.all([
-        apiService.fetchTableData('suggestions'),
+      const [suggestionsRes, donations] = await Promise.all([
+        apiClient.get('/suggestions', { params: { jumuiya_id: 'csa' } }).catch(() => ({ data: [] })),
         apiService.fetchTableData('mpesa_request')
       ]);
+
+      const suggestionsData = suggestionsRes?.data;
+      const suggestions = Array.isArray(suggestionsData?.data)
+        ? suggestionsData.data
+        : (Array.isArray(suggestionsData) ? suggestionsData : []);
 
       const formattedSuggestions: Notification[] = suggestions.map((s: any) => ({
         id: `s-${s.id}`,
@@ -476,6 +483,15 @@ export default function UniversalAdmin() {
             >
               <Menu size={19} />
             </button>
+
+            {/* Home button — mobile only */}
+            <Link
+              to="/"
+              className="sm:hidden w-10 h-10 shrink-0 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-blue-600 hover:border-blue-300 transition-all shadow-xs"
+              aria-label="Back to site"
+            >
+              <Home size={18} />
+            </Link>
 
             {/* Breadcrumb */}
             <nav className="hidden sm:flex items-center gap-1.5 text-sm ml-1 min-w-0">

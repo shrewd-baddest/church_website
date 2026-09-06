@@ -1455,6 +1455,50 @@ const fetchDistributionBaselines = async (strategy, yearFilter) => {
 };
 
 /**
+ * Gender-balanced distribution: distributes each gender independently
+ * in two passes. Males are placed first (round-robin by lowest total,
+ * tiebreak by lowest male count), then females are placed the same way.
+ * This prevents the "all males first, then females" skew that causes
+ * unequal gender distribution across jumuiyas.
+ */
+const distributeGenderBalanced = (members, jumuiyaSlots) => {
+  const males = members.filter(m => m.gender === "Male");
+  const females = members.filter(m => m.gender !== "Male");
+  const assignments = [];
+
+  const placeGroup = (group, isMale) => {
+    for (const member of group) {
+      const target = jumuiyaSlots
+        .sort((a, b) => {
+          const aScore = a.currentTotal + a.newCount;
+          const bScore = b.currentTotal + b.newCount;
+          if (aScore !== bScore) return aScore - bScore;
+          const aGender = isMale ? a.maleCount : a.femaleCount;
+          const bGender = isMale ? b.maleCount : b.femaleCount;
+          return aGender - bGender;
+        })[0];
+
+      if (isMale) target.maleCount++;
+      else target.femaleCount++;
+      target.newCount++;
+
+      assignments.push({
+        member_id: member.id,
+        member_name: member.name,
+        member_gender: member.gender,
+        target_slug: target.slug,
+        target_name: target.name,
+      });
+    }
+  };
+
+  placeGroup(males, true);
+  placeGroup(females, false);
+
+  return assignments;
+};
+
+/**
  * POST /api/v1/jumuiya-members/csa/distribute-preview
  * Run the distribution algorithm and return preview (no DB writes).
  */
@@ -1480,7 +1524,6 @@ export const csaDistributePreview = async (req, res) => {
     const jumuiyaRows = await fetchDistributionBaselines(strategy, yearFilter);
 
     const members = pendingResult.rows;
-    const assignments = [];
     const jumuiyaSlots = jumuiyaRows.map(j => ({
       ...j,
       currentTotal: j.existing.total,
@@ -1489,36 +1532,7 @@ export const csaDistributePreview = async (req, res) => {
       newCount: 0,
     }));
 
-    const sorted = [...members].sort((a, b) => {
-      if (a.gender === "Male" && b.gender !== "Male") return -1;
-      if (a.gender !== "Male" && b.gender === "Male") return 1;
-      return 0;
-    });
-
-    for (const member of sorted) {
-      const isMale = member.gender === "Male";
-      const target = jumuiyaSlots
-        .sort((a, b) => {
-          const aScore = a.currentTotal + a.newCount;
-          const bScore = b.currentTotal + b.newCount;
-          if (aScore !== bScore) return aScore - bScore;
-          const aGender = isMale ? a.maleCount : a.femaleCount;
-          const bGender = isMale ? b.maleCount : b.femaleCount;
-          return aGender - bGender;
-        })[0];
-
-      if (isMale) target.maleCount++;
-      else target.femaleCount++;
-      target.newCount++;
-
-      assignments.push({
-        member_id: member.id,
-        member_name: member.name,
-        member_gender: member.gender,
-        target_slug: target.slug,
-        target_name: target.name,
-      });
-    }
+    const assignments = distributeGenderBalanced(members, jumuiyaSlots);
 
     const summary = {
       totalMembers: members.length,
@@ -1575,37 +1589,7 @@ export const csaDistributeMembers = async (req, res) => {
       newCount: 0,
     }));
 
-    const sorted = [...members].sort((a, b) => {
-      if (a.gender === "Male" && b.gender !== "Male") return -1;
-      if (a.gender !== "Male" && b.gender === "Male") return 1;
-      return 0;
-    });
-
-    const assignments = [];
-    for (const member of sorted) {
-      const isMale = member.gender === "Male";
-      const target = jumuiyaSlots
-        .sort((a, b) => {
-          const aScore = a.currentTotal + a.newCount;
-          const bScore = b.currentTotal + b.newCount;
-          if (aScore !== bScore) return aScore - bScore;
-          const aGender = isMale ? a.maleCount : a.femaleCount;
-          const bGender = isMale ? b.maleCount : b.femaleCount;
-          return aGender - bGender;
-        })[0];
-
-      if (isMale) target.maleCount++;
-      else target.femaleCount++;
-      target.newCount++;
-      target.memberId = member.id;
-
-      assignments.push({
-        member_id: member.id,
-        member_name: member.name,
-        member_gender: member.gender,
-        target_name: target.name,
-      });
-    }
+    const assignments = distributeGenderBalanced(members, jumuiyaSlots);
 
     for (const a of assignments) {
       await pool.query(
@@ -1683,34 +1667,7 @@ const computeDistributionPlan = async (academicYear, strategy) => {
     newCount: 0,
   }));
 
-  const sorted = [...members].sort((a, b) => {
-    if (a.gender === "Male" && b.gender !== "Male") return -1;
-    if (a.gender !== "Male" && b.gender === "Male") return 1;
-    return 0;
-  });
-
-  const assignments = [];
-  for (const member of sorted) {
-    const isMale = member.gender === "Male";
-    const target = slots.sort((a, b) => {
-      const aScore = a.currentTotal + a.newCount;
-      const bScore = b.currentTotal + b.newCount;
-      if (aScore !== bScore) return aScore - bScore;
-      const aGender = isMale ? a.maleCount : a.femaleCount;
-      const bGender = isMale ? b.maleCount : b.femaleCount;
-      return aGender - bGender;
-    })[0];
-    if (isMale) target.maleCount++;
-    else target.femaleCount++;
-    target.newCount++;
-    assignments.push({
-      member_id: member.id,
-      member_name: member.name,
-      member_gender: member.gender,
-      target_name: target.name,
-      target_slug: target.slug,
-    });
-  }
+  const assignments = distributeGenderBalanced(members, slots);
 
   const perJumuiya = slots.map(s => ({
     slug: s.slug, name: s.name,

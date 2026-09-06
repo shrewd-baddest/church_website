@@ -37,6 +37,11 @@ const setupAssociatesSystem = async () => {
       ADD COLUMN IF NOT EXISTS migrated_to_associates BOOLEAN DEFAULT false;
     `);
 
+    await pool.query(`
+      ALTER TABLE associates
+      ADD COLUMN IF NOT EXISTS module_id VARCHAR(50);
+    `);
+
     logger.info("Associates system tables created successfully");
   } catch (error) {
     logger.error("Failed to create Associates system tables:", error.message);

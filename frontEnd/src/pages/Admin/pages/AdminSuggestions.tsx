@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../../../api/axiosInstance';
 import { useAuth } from '../../../context/AuthContext';
+import { memberService } from '../../../api/jumuiyaMemberService';
 import { MessageSquare, Trash2, Search, Calendar, User, Mail, RefreshCcw, Loader2, Shield, Reply, CheckCircle, Check, Filter, Clock, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageLoader from '../../../assets/Layouts/PageLoader';
@@ -40,10 +41,54 @@ const CATEGORY_COLORS: Record<string, string> = {
   events: 'bg-yellow-50 text-yellow-600 border-yellow-200',
 };
 
+const SLUG_NAME_MAP: Record<string, string> = {
+  'st-anthony': 'St. Anthony',
+  'st-augustine': 'St. Augustine',
+  'st-catherine': 'St. Catherine',
+  'st-dominic': 'St. Dominic',
+  'st-elizabeth': 'St. Elizabeth',
+  'st-maria-goretti': 'St. Maria Goretti',
+  'st-monica': 'St. Monica',
+};
+
+
 export default function AdminSuggestions() {
   const { user } = useAuth();
   const userRoles = Array.isArray(user?.role) ? user.role : [user?.role].filter(Boolean);
-  const isVC = userRoles.some((r: any) => ['csa_vice_chair', 'csa_chair', 'jumuiya_vice_chairperson', 'jumuiya_chairperson'].includes(r));
+  const isVC = userRoles.some((r: any) =>
+    ['csa_vice_chair', 'csa_chair', 'jumuiya_vice_chairperson', 'jumuiya_chairperson', 'admin', 'developer'].includes(r)
+  );
+
+  // In the Universal Admin, the suggestion box is strictly for the CSA level.
+  // CSA officials (CSA Vice Chair, CSA Chair, Admin, Developer) focus purely on CSA-level suggestions.
+  // Jumuiya officials are locked to their own specific jumuiya.
+  const isCSAOfficial = userRoles.some((r: any) =>
+    ['csa_vice_chair', 'csa_chair', 'admin', 'developer'].includes(r)
+  );
+
+  // Only the CSA Vice Chairperson (or admin/developer) can soft-delete CSA suggestions.
+  // The CSA Chairperson cannot delete active suggestions; their role is to permanently delete from the bin.
+  const canDelete = isCSAOfficial
+    ? userRoles.some((r: any) => ['csa_vice_chair', 'admin', 'developer'].includes(r))
+    : userRoles.some((r: any) => ['jumuiya_vice_chairperson', 'admin', 'developer'].includes(r));
+
+  const userJumuiyaId = user?.jumuiya_id || '';
+  const selectedJumuiya = isCSAOfficial ? 'csa' : userJumuiyaId;
+
+  const [resolvedName, setResolvedName] = useState<string>('');
+  useEffect(() => {
+    if (isCSAOfficial || !userJumuiyaId) { setResolvedName(''); return; }
+    if (SLUG_NAME_MAP[userJumuiyaId]) { setResolvedName(SLUG_NAME_MAP[userJumuiyaId]); return; }
+    memberService.getJumuiyaLookup()
+      .then((res: any) => {
+        const data = res?.data || res || {};
+        const entry = data[userJumuiyaId];
+        setResolvedName(entry ? (entry.name || entry.fullName || userJumuiyaId) : '');
+      })
+      .catch(() => setResolvedName(''));
+  }, [isCSAOfficial, userJumuiyaId]);
+
+  const displayName = isCSAOfficial ? 'CSA' : (resolvedName || SLUG_NAME_MAP[userJumuiyaId] || (userJumuiyaId ? 'Jumuiya' : 'CSA'));
 
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +105,9 @@ export default function AdminSuggestions() {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get('/suggestions');
+      const activeJumuiya = selectedJumuiya || (isCSAOfficial ? 'csa' : userJumuiyaId);
+      const params = activeJumuiya ? { jumuiya_id: activeJumuiya } : { jumuiya_id: 'csa' };
+      const res = await apiClient.get('/suggestions', { params });
       const data = Array.isArray(res.data?.data) ? res.data.data : [];
       const sortedData = data.sort((a: any, b: any) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -76,16 +123,21 @@ export default function AdminSuggestions() {
 
   useEffect(() => {
     loadSuggestions();
-  }, []);
+  }, [selectedJumuiya, userJumuiyaId]);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this suggestion?')) {
+    if (window.confirm('Are you sure you want to delete this suggestion? It will be moved to the bin.')) {
       try {
-        await apiClient.delete(`/suggestions/${id}`);
-        toast.success('Suggestion deleted');
+        const adminName = user
+          ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || user.name
+          : '';
+        await apiClient.delete(`/suggestions/${id}`, {
+          data: { deleted_by: adminName || undefined }
+        });
+        toast.success('Suggestion moved to bin');
         loadSuggestions();
       } catch (err: any) {
-        toast.error('Failed to delete: ' + err.message);
+        toast.error(err.response?.data?.error || 'Failed to delete: ' + err.message);
       }
     }
   };
@@ -155,8 +207,10 @@ export default function AdminSuggestions() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md p-8 rounded-3xl border border-white/40 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl -mr-32 -mt-32 opacity-40 pointer-events-none"></div>
         <div className="relative z-10">
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight">User Suggestions</h2>
-          <p className="text-slate-500 font-medium mt-1 uppercase tracking-wider text-xs">Manage community feedback and ideas</p>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">{displayName} Suggestions</h2>
+          <p className="text-slate-500 font-medium mt-1 uppercase tracking-wider text-xs">
+            {isCSAOfficial ? 'Manage CSA-level community feedback and ideas' : 'Manage community feedback and ideas'}
+          </p>
         </div>
         <div className="flex items-center gap-3 relative z-10">
           <button
@@ -258,10 +312,11 @@ export default function AdminSuggestions() {
                       </span>
                     )}
                   </div>
-                  {isVC && (
+                  {canDelete && (
                     <button
                       onClick={() => handleDelete(item.id)}
                       className="p-2.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                      title="Move to bin"
                     >
                       <Trash2 size={20} />
                     </button>
@@ -403,7 +458,7 @@ export default function AdminSuggestions() {
               ? `No suggestions categorized as "${categoryFilter}".`
               : statusFilter !== 'all'
                 ? `No suggestions with status "${statusFilter.replace(/_/g, ' ')}".`
-                : 'When users share ideas, they\'ll appear here.'}
+                : `When ${displayName} members submit ideas, they'll appear here.`}
           </p>
         </div>
       )}

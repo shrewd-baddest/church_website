@@ -304,22 +304,23 @@ export default function AdminBookings() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="mb-6 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-2xl font-bold text-slate-800">Activity Bookings</h2>
           <p className="text-sm text-slate-500 mt-1">View all member bookings and payments for paid activities.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto sm:gap-3">
           {canBookForMember && (
-            <button onClick={openBookModal}
-              className="flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition-colors">
-              <UserPlus size={14} /> Book for Member
+            <button onClick={openBookModal} title="Book for Member" aria-label="Book for Member"
+              className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors sm:flex-none sm:gap-2 sm:px-4 sm:text-sm">
+              <UserPlus size={14} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">Book</span><span className="hidden sm:inline">Book for Member</span></span>
             </button>
           )}
           <select
             value={exportStatus}
             onChange={(e) => setExportStatus(e.target.value)}
-            className="border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+            aria-label="Export status"
+            className="min-w-0 flex-1 border border-slate-200 rounded-xl px-2 py-2.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 sm:flex-none sm:px-3 sm:text-sm"
           >
             <option value="all">All statuses</option>
             <option value="paid">Paid</option>
@@ -328,12 +329,14 @@ export default function AdminBookings() {
             <option value="cancelled">Cancelled</option>
           </select>
           <button onClick={handleExport}
-            className="flex items-center gap-2 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-colors">
-            <Download size={14} /> Export Excel
+            title="Export Excel" aria-label="Export Excel"
+            className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-2 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors sm:flex-none sm:gap-2 sm:px-4 sm:text-sm">
+            <Download size={14} className="shrink-0" /> <span className="truncate"><span className="sm:hidden">Export</span><span className="hidden sm:inline">Export Excel</span></span>
           </button>
           <button onClick={load}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
-            <RefreshCw size={14} /> Refresh
+            title="Refresh" aria-label="Refresh"
+            className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-2 text-xs text-slate-500 hover:text-slate-700 transition-colors sm:flex-none sm:gap-2 sm:px-0 sm:py-0 sm:text-sm">
+            <RefreshCw size={14} className="shrink-0" /> <span className="truncate">Refresh</span>
           </button>
         </div>
       </div>

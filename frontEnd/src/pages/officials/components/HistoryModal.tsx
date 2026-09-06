@@ -110,7 +110,15 @@ export function HistoryModal({ isOpen, onClose, activeOfficials, activeTerm, mod
       if (o.isCsa) return String(o.election_term_id) === String(termFilter);
       return true; // group_officials rows are already term-filtered server-side
     };
-    return [...history, ...csaMerged].filter((o) => matchesCategory(o) && matchesTerm(o));
+    const combined = [...history, ...csaMerged].filter((o) => matchesCategory(o) && matchesTerm(o));
+    const seen = new Set<string>();
+    return combined.filter((o) => {
+      const normPos = (o.position || '').toLowerCase().replace(/coordinator/g, 'chairperson').replace(/assistant /g, 'vice ');
+      const key = `${(o.name || '').toLowerCase().trim()}_${o.election_term_id || o.term_of_service}_${normPos}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }, [history, csaMerged, categoryFilter, termFilter, mode]);
 
  useEffect(() => {
