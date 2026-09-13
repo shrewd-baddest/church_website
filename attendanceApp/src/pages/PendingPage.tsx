@@ -7,6 +7,7 @@ import {
   Trash2,
   History,
   ClipboardCheck,
+  AlertTriangle,
 } from "lucide-react";
 import {
   getAllSessions,
@@ -21,6 +22,7 @@ import {
   fetchRecentRecorded,
   type ServerRecordedSession,
 } from "../api/client";
+import { db } from "../db/db";
 import type { AttendanceSession } from "../db/db";
 
 type SavedTab = "pending" | "recorded";
@@ -48,15 +50,23 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
 
   const load = async () => {
     setLoading(true);
-    const [allSessions, allSynced, serverData] = await Promise.all([
-      getAllSessions(),
-      getSyncedSessions(),
-      fetchRecentRecorded(RECORDED_LIMIT),
-    ]);
-    setSessions(allSessions);
-    setSynced(allSynced);
-    setServerRecorded(serverData);
+    // Load local data first (fast, from IndexedDB)
+    try {
+      const [allSessions, allSynced] = await Promise.all([
+        getAllSessions(),
+        getSyncedSessions(),
+      ]);
+      setSessions(allSessions);
+      setSynced(allSynced);
+    } catch {
+      // IndexedDB error — shouldn't happen, but handle gracefully
+    }
     setLoading(false);
+
+    // Fetch server data in background (slow, from API)
+    fetchRecentRecorded(RECORDED_LIMIT)
+      .then(setServerRecorded)
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -114,6 +124,28 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
     } finally {
       setSyncing(false);
     }
+  };
+
+  const removePending = async (s: AttendanceSession) => {
+    if (!confirm(`Delete "${s.date}" from your device?`)) return;
+    await deleteSession(s.sessionId);
+    load();
+    onSynced(0);
+  };
+
+  const clearAllPending = async () => {
+    const pendingSessions = sessions.filter((s) => !s.syncedAt);
+    if (pendingSessions.length === 0) return;
+    if (
+      !confirm(
+        `Delete all ${pendingSessions.length} unsynced record${pendingSessions.length === 1 ? "" : "s"}? ` +
+          "This cannot be undone."
+      )
+    )
+      return;
+    await Promise.all(pendingSessions.map((s) => db.sessions.delete(s.sessionId)));
+    load();
+    onSynced(0);
   };
 
   const removeSynced = async (s: AttendanceSession) => {
@@ -178,6 +210,15 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
           <RefreshCw size={18} className={syncing ? "spin" : ""} />
           {syncing ? "Syncing…" : "Sync now"}
         </button>
+        {pendingSessions.length > 0 && (
+          <button
+            className="btn btn-ghost btn-block"
+            onClick={clearAllPending}
+            style={{ marginTop: 8 }}
+          >
+            <Trash2 size={16} /> Clear all pending
+          </button>
+        )}
         {status && (
           <div
             className={`banner ${status.ok ? "online" : "error"}`}
@@ -257,7 +298,7 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
           </p>
         </div>
       ) : tab === "pending" ? (
-        /* ── Pending tab — full tally details ── */
+        /* ── Pending tab ── */
         pendingSessions.length === 0 ? (
           <div className="card">
             <div
@@ -298,49 +339,79 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
                     {s.activityLabel} · recorded by {s.recordedBy}
                   </div>
                 </div>
-                <span className="chip pending">
-                  <Clock size={12} /> Pending
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="chip pending">
+                    <Clock size={12} /> Pending
+                  </span>
+                  <button
+                    onClick={() => removePending(s)}
+                    style={{
+                      border: 0,
+                      background: "transparent",
+                      color: "var(--red)",
+                      cursor: "pointer",
+                      padding: 4,
+                    }}
+                    aria-label="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
               {/* Tally breakdown */}
               <div style={{ borderTop: "1px solid var(--line)", paddingTop: 8 }}>
-                {s.counts.map((c, i) => (
+                {s.counts.length === 0 ? (
+                  <p
+                    style={{
+                      color: "var(--muted)",
+                      fontSize: 12,
+                      margin: 0,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    No tally data recorded
+                  </p>
+                ) : (
+                  s.counts.map((c, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "4px 0",
+                        fontSize: 13,
+                      }}
+                    >
+                      <span style={{ color: "var(--ink)" }}>
+                        {s.dimension === "year"
+                          ? `Year ${c.year}`
+                          : c.jumuiyaName || c.jumuiyaId || "Unknown"}
+                      </span>
+                      <strong>{c.count}</strong>
+                    </div>
+                  ))
+                )}
+                {s.counts.length > 0 && (
                   <div
-                    key={i}
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      padding: "4px 0",
+                      padding: "6px 0 0",
                       fontSize: 13,
+                      fontWeight: 700,
+                      borderTop: "1px solid var(--line)",
+                      marginTop: 4,
                     }}
                   >
-                    <span style={{ color: "var(--ink)" }}>
-                      {s.dimension === "year"
-                        ? `Year ${c.year}`
-                        : c.jumuiyaName || c.jumuiyaId || "Unknown"}
-                    </span>
-                    <strong>{c.count}</strong>
+                    <span>Total</span>
+                    <span>{s.counts.reduce((t, c) => t + c.count, 0)}</span>
                   </div>
-                ))}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "6px 0 0",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    borderTop: "1px solid var(--line)",
-                    marginTop: 4,
-                  }}
-                >
-                  <span>Total</span>
-                  <span>{s.counts.reduce((t, c) => t + c.count, 0)}</span>
-                </div>
+                )}
               </div>
             </div>
           ))
         )
-      ) : /* ── Recorded tab — last 3 from server + local ── */
+      ) : /* ── Recorded tab ── */
       serverRecorded.length === 0 && latestSynced.length === 0 ? (
         <div className="card">
           <div
@@ -354,9 +425,7 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
               size={28}
               style={{ margin: "0 auto 8px", opacity: 0.5 }}
             />
-            <p style={{ margin: 0, fontSize: 14 }}>
-              No recorded dates yet.
-            </p>
+            <p style={{ margin: 0, fontSize: 14 }}>No recorded dates yet.</p>
             <p style={{ margin: "4px 0 0", fontSize: 12 }}>
               Synced tallies appear here for quick reference.
             </p>
@@ -369,7 +438,6 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
             Latest tallies on the main site. Delete once verified.
           </p>
           <div>
-            {/* Server data (from main site) */}
             {serverRecorded.map((s) => (
               <div key={`srv-${s.date}`} className="record-row">
                 <div style={{ flex: 1 }}>
@@ -397,7 +465,6 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
                 </span>
               </div>
             ))}
-            {/* Local synced entries (only show if not already in server list) */}
             {latestSynced
               .filter((ls) => !serverRecorded.some((sr) => sr.date === ls.date))
               .map((s) => (
