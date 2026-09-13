@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-/* ── Service worker with auto-update detection ── */
+/* ── Service worker with aggressive auto-update detection ── */
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   let currentVersion: string | null = null;
 
@@ -36,10 +36,14 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", async () => {
     try {
       const reg = await navigator.serviceWorker.register("/sw.js");
-      // Check for updates every 60 seconds.
-      setInterval(checkForUpdate, 60_000);
+      // Check for updates every 30 seconds (faster propagation).
+      setInterval(checkForUpdate, 30_000);
       // Also check once right after registration.
       checkForUpdate();
+      // Re-check every time the user returns to the tab.
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkForUpdate();
+      });
       // Listen for new SW taking control.
       reg.addEventListener("updatefound", () => {
         const newSW = reg.installing;
