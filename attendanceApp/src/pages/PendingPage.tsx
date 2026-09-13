@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   RefreshCw,
   WifiOff,
@@ -38,17 +38,12 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
   const [synced, setSynced] = useState<AttendanceSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(
-    null
-  );
-  const [serverRecorded, setServerRecorded] = useState<ServerRecordedSession[]>(
-    []
-  );
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const [serverRecorded, setServerRecorded] = useState<ServerRecordedSession[]>([]);
   const [recordedFromCache, setRecordedFromCache] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    // Load local data first (fast, from IndexedDB)
     try {
       const [allSessions, allSynced] = await Promise.all([
         getAllSessions(),
@@ -56,23 +51,20 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
       ]);
       setSessions(allSessions);
       setSynced(allSynced);
-    } catch {
-      // IndexedDB error — shouldn't happen, but handle gracefully
-    }
+    } catch { /* IndexedDB error */ }
     setLoading(false);
 
-    // Fetch server data in background (slow, from API), with caching for offline
     fetchAndCacheRecorded(RECORDED_LIMIT)
       .then(({ data, fromCache }) => {
         setServerRecorded(data);
         setRecordedFromCache(fromCache);
       })
       .catch(() => {});
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const sync = async () => {
     setSyncing(true);
@@ -97,31 +89,19 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
         errors.push(`${_s.date}: ${msg}`);
       });
       if (res.pushed > 0 && res.failed === 0) {
-        setStatus({
-          ok: true,
-          text: `Synced ${res.pushed} date${res.pushed === 1 ? "" : "s"}`,
-        });
+        setStatus({ ok: true, text: `Synced ${res.pushed} date${res.pushed === 1 ? "" : "s"}` });
         onSynced(res.pushed);
       } else if (res.pushed > 0 && res.failed > 0) {
-        setStatus({
-          ok: false,
-          text: `Synced ${res.pushed}, but ${res.failed} failed: ${errors[0] || "server error"}`,
-        });
+        setStatus({ ok: false, text: `Synced ${res.pushed}, but ${res.failed} failed: ${errors[0] || "server error"}` });
         onSynced(res.pushed);
       } else if (res.failed > 0) {
-        setStatus({
-          ok: false,
-          text: `All ${res.failed} failed: ${errors[0] || "server error"}. Check date & try again.`,
-        });
+        setStatus({ ok: false, text: `All ${res.failed} failed: ${errors[0] || "server error"}. Check date & try again.` });
       } else {
         setStatus({ ok: true, text: "Nothing to sync" });
       }
       load();
     } catch {
-      setStatus({
-        ok: false,
-        text: "Sync failed — you're likely offline. It will retry automatically.",
-      });
+      setStatus({ ok: false, text: "Sync failed — you're likely offline. It will retry automatically." });
     } finally {
       setSyncing(false);
     }
@@ -137,13 +117,7 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
   const clearAllPending = async () => {
     const pendingSessions = sessions.filter((s) => !s.syncedAt);
     if (pendingSessions.length === 0) return;
-    if (
-      !confirm(
-        `Delete all ${pendingSessions.length} unsynced record${pendingSessions.length === 1 ? "" : "s"}? ` +
-          "This cannot be undone."
-      )
-    )
-      return;
+    if (!confirm(`Delete all ${pendingSessions.length} unsynced record${pendingSessions.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
     await Promise.all(pendingSessions.map((s) => db.sessions.delete(s.sessionId)));
     load();
     onSynced(0);
@@ -153,30 +127,12 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
     if (navigator.onLine) {
       const exists = await checkSessionExists(s.date);
       if (!exists) {
-        if (
-          !confirm(
-            "This session was NOT found on the server. " +
-              "It may have failed to sync. Delete it from your device anyway?"
-          )
-        )
-          return;
+        if (!confirm("This session was NOT found on the server. It may have failed to sync. Delete it from your device anyway?")) return;
       } else {
-        if (
-          !confirm(
-            `Delete "${s.date}" from your device? ` +
-              "The server copy is safe — you're only removing the local record."
-          )
-        )
-          return;
+        if (!confirm(`Delete "${s.date}" from your device? The server copy is safe.`)) return;
       }
     } else {
-      if (
-        !confirm(
-          `You're offline. Delete "${s.date}" from your device? ` +
-            "Make sure it has already synced."
-        )
-      )
-        return;
+      if (!confirm(`You're offline. Delete "${s.date}" from your device? Make sure it has already synced.`)) return;
     }
     await deleteSession(s.sessionId);
     load();
@@ -185,14 +141,84 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
   const pendingSessions = sessions.filter((s) => !s.syncedAt);
   const latestSynced = synced.slice(0, RECORDED_LIMIT);
 
+  const formatDate = (d: string) =>
+    new Date(d + "T00:00:00").toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+
+  const totalOf = (s: AttendanceSession) => s.counts.reduce((t, c) => t + c.count, 0);
+
+  const renderTallyBreakdown = (s: AttendanceSession) => (
+    <div style={{ borderTop: "1px solid var(--line)", paddingTop: 8, marginTop: 8 }}>
+      {s.counts.length === 0 ? (
+        <p style={{ color: "var(--muted)", fontSize: 12, margin: 0, fontStyle: "italic" }}>
+          No tally data recorded
+        </p>
+      ) : (
+        s.counts.map((c, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "4px 0",
+              fontSize: 13,
+            }}
+          >
+            <span style={{ color: "var(--ink)" }}>
+              {s.dimension === "year" ? `Year ${c.year}` : c.jumuiyaName || c.jumuiyaId || "Unknown"}
+            </span>
+            <strong>{c.count}</strong>
+          </div>
+        ))
+      )}
+      {s.counts.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "6px 0 0",
+            fontSize: 13,
+            fontWeight: 700,
+            borderTop: "1px solid var(--line)",
+            marginTop: 4,
+          }}
+        >
+          <span>Total</span>
+          <span>{totalOf(s)}</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderDeleteButton = (onClick: () => void) => (
+    <button
+      onClick={onClick}
+      style={{
+        border: 0,
+        background: "transparent",
+        color: "var(--red)",
+        cursor: "pointer",
+        padding: 6,
+        borderRadius: 8,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+      aria-label="Delete"
+    >
+      <Trash2 size={18} />
+    </button>
+  );
+
   return (
     <div className="space-y-4">
       {/* Header card */}
       <div className="card">
-        <div
-          className="flex"
-          style={{ justifyContent: "space-between", alignItems: "center" }}
-        >
+        <div className="flex" style={{ justifyContent: "space-between", alignItems: "center" }}>
           <h2>Saved Dates</h2>
           <span className={`chip ${pending > 0 ? "pending" : "synced"}`}>
             {pending > 0 ? <Clock size={12} /> : <CheckCircle2 size={12} />}
@@ -200,8 +226,7 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
           </span>
         </div>
         <p className="sub">
-          Tap Sync Now, or just wait — saved dates auto-sync when internet
-          returns.
+          Tap Sync Now, or just wait — saved dates auto-sync when internet returns.
         </p>
         <button
           className="btn btn-primary btn-block"
@@ -264,10 +289,7 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
           onClick={() => setTab("recorded")}
           style={{ flex: 1 }}
         >
-          <ClipboardCheck
-            size={14}
-            style={{ verticalAlign: -2, marginRight: 4 }}
-          />
+          <ClipboardCheck size={14} style={{ verticalAlign: -2, marginRight: 4 }} />
           Recorded
           {synced.length > 0 && (
             <span
@@ -294,28 +316,15 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
       {/* Tab content */}
       {loading ? (
         <div className="card">
-          <p className="sub" style={{ margin: 0 }}>
-            Loading…
-          </p>
+          <p className="sub" style={{ margin: 0 }}>Loading…</p>
         </div>
       ) : tab === "pending" ? (
         /* ── Pending tab ── */
         pendingSessions.length === 0 ? (
           <div className="card">
-            <div
-              style={{
-                textAlign: "center",
-                color: "var(--muted)",
-                padding: "8px 0",
-              }}
-            >
-              <WifiOff
-                size={28}
-                style={{ margin: "0 auto 8px", opacity: 0.5 }}
-              />
-              <p style={{ margin: 0, fontSize: 14 }}>
-                No unsynced dates — you're all up to date.
-              </p>
+            <div style={{ textAlign: "center", color: "var(--muted)", padding: "8px 0" }}>
+              <WifiOff size={28} style={{ margin: "0 auto 8px", opacity: 0.5 }} />
+              <p style={{ margin: 0, fontSize: 14 }}>No unsynced dates — you're all up to date.</p>
             </div>
           </div>
         ) : (
@@ -325,119 +334,42 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
                 className="flex"
                 style={{
                   justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 8,
+                  alignItems: "flex-start",
+                  marginBottom: 0,
                 }}
               >
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <strong style={{ fontSize: 15 }}>
-                    {new Date(s.date + "T00:00:00").toLocaleDateString(
-                      undefined,
-                      { weekday: "short", month: "short", day: "numeric" }
-                    )}
+                    {formatDate(s.date)}
                   </strong>
                   <div style={{ color: "var(--muted)", fontSize: 12 }}>
                     {s.activityLabel} · recorded by {s.recordedBy}
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                   <span className="chip pending">
                     <Clock size={12} /> Pending
                   </span>
-                  <button
-                    onClick={() => removePending(s)}
-                    style={{
-                      border: 0,
-                      background: "transparent",
-                      color: "var(--red)",
-                      cursor: "pointer",
-                      padding: 4,
-                    }}
-                    aria-label="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {renderDeleteButton(() => removePending(s))}
                 </div>
               </div>
-              {/* Tally breakdown */}
-              <div style={{ borderTop: "1px solid var(--line)", paddingTop: 8 }}>
-                {s.counts.length === 0 ? (
-                  <p
-                    style={{
-                      color: "var(--muted)",
-                      fontSize: 12,
-                      margin: 0,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    No tally data recorded
-                  </p>
-                ) : (
-                  s.counts.map((c, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "4px 0",
-                        fontSize: 13,
-                      }}
-                    >
-                      <span style={{ color: "var(--ink)" }}>
-                        {s.dimension === "year"
-                          ? `Year ${c.year}`
-                          : c.jumuiyaName || c.jumuiyaId || "Unknown"}
-                      </span>
-                      <strong>{c.count}</strong>
-                    </div>
-                  ))
-                )}
-                {s.counts.length > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "6px 0 0",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      borderTop: "1px solid var(--line)",
-                      marginTop: 4,
-                    }}
-                  >
-                    <span>Total</span>
-                    <span>{s.counts.reduce((t, c) => t + c.count, 0)}</span>
-                  </div>
-                )}
-              </div>
+              {renderTallyBreakdown(s)}
             </div>
           ))
         )
       ) : /* ── Recorded tab ── */
       serverRecorded.length === 0 && latestSynced.length === 0 ? (
         <div className="card">
-          <div
-            style={{
-              textAlign: "center",
-              color: "var(--muted)",
-              padding: "8px 0",
-            }}
-          >
-            <ClipboardCheck
-              size={28}
-              style={{ margin: "0 auto 8px", opacity: 0.5 }}
-            />
+          <div style={{ textAlign: "center", color: "var(--muted)", padding: "8px 0" }}>
+            <ClipboardCheck size={28} style={{ margin: "0 auto 8px", opacity: 0.5 }} />
             <p style={{ margin: 0, fontSize: 14 }}>No recorded dates yet.</p>
-            <p style={{ margin: "4px 0 0", fontSize: 12 }}>
-              Synced tallies appear here for quick reference.
-            </p>
+            <p style={{ margin: "4px 0 0", fontSize: 12 }}>Synced tallies appear here for quick reference.</p>
           </div>
         </div>
       ) : (
         <div className="card">
           <h2>Recently Synced</h2>
-          <p className="sub">
-            Latest tallies on the main site. Delete once verified.
-          </p>
+          <p className="sub">Latest tallies on the main site. Delete once verified.</p>
           {recordedFromCache && (
             <div
               style={{
@@ -457,22 +389,11 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
             {serverRecorded.map((s) => (
               <div key={`srv-${s.date}`} className="record-row">
                 <div style={{ flex: 1 }}>
-                  <strong>
-                    {new Date(s.date + "T00:00:00").toLocaleDateString(
-                      undefined,
-                      { weekday: "short", month: "short", day: "numeric" }
-                    )}
-                  </strong>
+                  <strong>{formatDate(s.date)}</strong>
                   <div style={{ color: "var(--muted)", fontSize: 12 }}>
                     {s.activityLabel} · {s.totalCount} total
                   </div>
-                  <div
-                    style={{
-                      color: "var(--green)",
-                      fontSize: 11,
-                      marginTop: 2,
-                    }}
-                  >
+                  <div style={{ color: "var(--green)", fontSize: 11, marginTop: 2 }}>
                     On main site
                   </div>
                 </div>
@@ -486,45 +407,18 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
               .map((s) => (
                 <div key={s.sessionId} className="record-row">
                   <div style={{ flex: 1 }}>
-                    <strong>
-                      {new Date(s.date + "T00:00:00").toLocaleDateString(
-                        undefined,
-                        { weekday: "short", month: "short", day: "numeric" }
-                      )}
-                    </strong>
+                    <strong>{formatDate(s.date)}</strong>
                     <div style={{ color: "var(--muted)", fontSize: 12 }}>
-                      {s.activityLabel} ·{" "}
-                      {s.counts.reduce((t, c) => t + c.count, 0)} total
+                      {s.activityLabel} · {totalOf(s)} total
                     </div>
-                    <div
-                      style={{
-                        color: "var(--green)",
-                        fontSize: 11,
-                        marginTop: 2,
-                      }}
-                    >
-                      Synced{" "}
-                      {s.syncedAt
-                        ? new Date(s.syncedAt).toLocaleDateString()
-                        : ""}
+                    <div style={{ color: "var(--green)", fontSize: 11, marginTop: 2 }}>
+                      Synced {s.syncedAt ? new Date(s.syncedAt).toLocaleDateString() : ""}
                     </div>
                   </div>
                   <span className="chip synced">
                     <CheckCircle2 size={12} /> Recorded
                   </span>
-                  <button
-                    onClick={() => removeSynced(s)}
-                    style={{
-                      border: 0,
-                      background: "transparent",
-                      color: "var(--red)",
-                      cursor: "pointer",
-                      padding: 4,
-                    }}
-                    aria-label="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {renderDeleteButton(() => removeSynced(s))}
                 </div>
               ))}
           </div>

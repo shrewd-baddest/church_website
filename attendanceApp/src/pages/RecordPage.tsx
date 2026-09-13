@@ -45,6 +45,7 @@ export default function RecordPage({ token, onSaved }: Props) {
   const [activeNovenas, setActiveNovenas] = useState<NovenaWindow[]>([]);
   const [activity, setActivity] = useState<{ isTallyDay: boolean; type: string; label: string } | null>(null);
   const [canSave, setCanSave] = useState(false);
+  const [semester, setSemester] = useState<{ start_date: string; end_date: string } | null>(null);
   const [, setLoadingContext] = useState(false);
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -85,6 +86,7 @@ export default function RecordPage({ token, onSaved }: Props) {
           label: ctx.activityLabel,
         });
         setCanSave(ctx.canSave);
+        setSemester(ctx.semester || null);
         await setMeta("jumuiyas", ctx.jumuiyas);
         await setMeta("active_novenas", ctx.active_novenas || []);
         if (ctx.isTallyDay && !ctx.canSave) {
@@ -273,6 +275,7 @@ export default function RecordPage({ token, onSaved }: Props) {
             type="date"
             className="input"
             value={date}
+            max={todayISO()}
             onChange={(e) => setDate(e.target.value)}
             style={{ width: 190, padding: "8px 10px", fontSize: 14 }}
           />
@@ -285,6 +288,12 @@ export default function RecordPage({ token, onSaved }: Props) {
         ) : (
           <p className="sub" style={{ marginTop: -6 }}>
             {dateLabel} is not a tally day (Mon/Wed/Thu or a scheduled novena), so no tally can be saved.
+          </p>
+        )}
+
+        {semester && (
+          <p className="sub" style={{ marginTop: -8, fontSize: 11 }}>
+            Semester: {semester.start_date} → {semester.end_date}
           </p>
         )}
 

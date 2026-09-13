@@ -1,5 +1,5 @@
 /* CSA Attendance — offline-first service worker with auto-update. */
-const CACHE = "csa-attendance-v5";
+const CACHE = "csa-attendance-v6";
 const SHELL = [
   "/",
   "/index.html",
