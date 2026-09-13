@@ -1,5 +1,5 @@
 /* CSA Attendance — offline-first service worker with auto-update. */
-const CACHE = "csa-attendance-v2";
+const CACHE = "csa-attendance-v3";
 const SHELL = [
   "/",
   "/index.html",
@@ -22,15 +22,13 @@ self.addEventListener("install", (event) => {
   );
 });
 
-/* ── Activate: purge old caches and claim all clients ── */
+/* ── Activate: purge ALL old caches and claim all clients ── */
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
       .then((keys) =>
-        Promise.all(
-          keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))
-        )
+        Promise.all(keys.map((k) => caches.delete(k)))
       )
       .then(() => self.clients.claim())
   );
@@ -80,22 +78,20 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets (JS, CSS, images): stale-while-revalidate.
+  // Static assets (JS, CSS, images): network-first.
+  // This ensures new builds are always fetched fresh.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches
-              .open(CACHE)
-              .then((c) => c.put(request, copy))
-              .catch(() => {});
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
+    fetch(request)
+      .then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches
+            .open(CACHE)
+            .then((c) => c.put(request, copy))
+            .catch(() => {});
+        }
+        return res;
+      })
+      .catch(() => caches.match(request))
   );
 });

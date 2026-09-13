@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { PencilLine, History, Wifi, WifiOff, Download } from "lucide-react";
+import { PencilLine, History, Wifi, WifiOff, Download, LogOut } from "lucide-react";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
-import { getSession } from "./db/db";
+import { getSession, clearSession } from "./db/db";
 import { syncPending, getAuthToken } from "./sync/sync";
 import LoginPage from "./pages/LoginPage";
 import RecordPage from "./pages/RecordPage";
@@ -46,6 +46,15 @@ export default function App() {
   const refreshPendingCount = async () => {
     const { pendingCount } = await import("./sync/sync");
     setPending(await pendingCount());
+  };
+
+  const handleLogout = async () => {
+    if (!confirm("Sign out? Pending records will stay on this device.")) return;
+    localStorage.removeItem("csa_attendance_token");
+    await clearSession();
+    setToken(null);
+    setOfflineMode(false);
+    setTab("record");
   };
 
   useEffect(() => {
@@ -192,6 +201,10 @@ export default function App() {
           <History size={20} />
           Saved
           {pending > 0 && <span className="badge">{pending > 99 ? "99+" : pending}</span>}
+        </button>
+        <button onClick={handleLogout}>
+          <LogOut size={20} />
+          Sign out
         </button>
       </nav>
         </div>
