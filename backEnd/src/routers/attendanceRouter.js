@@ -7,6 +7,7 @@ import {
   getRecentStatus,
   saveSession,
   deleteSession,
+  cleanupTallies,
   getAnalytics,
   exportAnalyticsExcel,
   getHistory,
@@ -28,6 +29,7 @@ router.get("/recent-status", getRecentStatus);
 router.get("/sessions", getSession);
 router.post("/sessions", saveSession);
 router.delete("/sessions/:date", deleteSession);
+router.post("/cleanup", cleanupTallies);
 router.get("/analytics/export", exportAnalyticsExcel);
 router.get("/analytics", getAnalytics);
 router.get("/history", getHistory);

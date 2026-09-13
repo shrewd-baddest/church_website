@@ -188,10 +188,20 @@ export async function getCachedRecordedSessions(): Promise<
 export async function fetchAndCacheRecorded(
   limit = 3
 ): Promise<{ data: ServerRecordedSession[]; fromCache: boolean }> {
+  // If offline, skip the network call entirely — serve from cache.
+  if (!navigator.onLine) {
+    const cached = await getCachedRecordedSessions();
+    return { data: cached.slice(0, limit), fromCache: cached.length > 0 };
+  }
+
   try {
     const data = await fetchRecentRecorded(limit);
-    // Cache successful fetch
-    await cacheRecordedSessions(data);
+    // Only overwrite cache if the server actually returned data.
+    // fetchRecentRecorded returns [] on network errors, so an empty
+    // result while online means the server genuinely has no records.
+    if (data.length > 0) {
+      await cacheRecordedSessions(data);
+    }
     return { data, fromCache: false };
   } catch {
     // Network error — try cache

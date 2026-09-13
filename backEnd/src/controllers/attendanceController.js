@@ -540,6 +540,45 @@ export const deleteSession = async (req, res) => {
   }
 };
 
+// Temporary admin endpoint — delete all tallies EXCEPT the dates in keepDates.
+// Remove this after running the cleanup.
+export const cleanupTallies = async (req, res) => {
+  try {
+    const { keepDates } = req.body || {};
+    if (!Array.isArray(keepDates) || keepDates.length === 0) {
+      return res.status(400).json({ success: false, error: "keepDates array is required" });
+    }
+    const validated = keepDates.map(normalizeDate).filter(Boolean);
+    if (validated.length === 0) {
+      return res.status(400).json({ success: false, error: "No valid dates in keepDates" });
+    }
+
+    // First, show what will be deleted
+    const toDelete = await pool.query(
+      `SELECT DISTINCT to_char(tally_date, 'YYYY-MM-DD') AS tally_date
+       FROM attendance_tallies
+       WHERE tally_date != ALL($1)`,
+      [validated]
+    );
+    const dates = toDelete.rows.map((r) => r.tally_date);
+
+    if (dates.length === 0) {
+      return res.json({ success: true, data: { deleted: 0, dates: [] } });
+    }
+
+    // Delete all tallies NOT in keepDates
+    const result = await pool.query(
+      `DELETE FROM attendance_tallies WHERE tally_date != ALL($1)`,
+      [validated]
+    );
+
+    res.json({ success: true, data: { deleted: result.rowCount, dates } });
+  } catch (error) {
+    console.error("cleanupTallies error:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 const computeAnalytics = async (from, to, dimension = "jumuiya") => {
   const span = daysBetween(from, to);
   const prevFrom = addDays(from, -(span + 1));
