@@ -1,5 +1,11 @@
-import { db, getSession, type AttendanceSession } from "../db/db";
-import { pushSession, getApiErrorMessage, type SessionPayload } from "../api/client";
+import { db, getSession, setMeta, getMeta, type AttendanceSession } from "../db/db";
+import {
+  pushSession,
+  getApiErrorMessage,
+  fetchRecentRecorded,
+  type SessionPayload,
+  type ServerRecordedSession,
+} from "../api/client";
 import { BASE_URL } from "../api/client";
 
 export interface SyncResult {
@@ -149,4 +155,47 @@ export async function getSyncedSessions(): Promise<AttendanceSession[]> {
 
 export async function deleteSession(sessionId: string): Promise<void> {
   await db.sessions.delete(sessionId);
+}
+
+// ── Recorded data caching for offline display ──
+
+const RECORDED_CACHE_KEY = "recorded_cache";
+
+/**
+ * Caches server-recorded data in IndexedDB for offline access.
+ */
+export async function cacheRecordedSessions(
+  sessions: ServerRecordedSession[]
+): Promise<void> {
+  await setMeta(RECORDED_CACHE_KEY, sessions);
+}
+
+/**
+ * Loads cached server-recorded data from IndexedDB.
+ */
+export async function getCachedRecordedSessions(): Promise<
+  ServerRecordedSession[]
+> {
+  const data = await getMeta<ServerRecordedSession[]>(RECORDED_CACHE_KEY);
+  return data || [];
+}
+
+/**
+ * Fetches recent recorded sessions from server and caches them.
+ * On network error, returns cached data if available.
+ * Returns null if both fetch and cache fail.
+ */
+export async function fetchAndCacheRecorded(
+  limit = 3
+): Promise<{ data: ServerRecordedSession[]; fromCache: boolean }> {
+  try {
+    const data = await fetchRecentRecorded(limit);
+    // Cache successful fetch
+    await cacheRecordedSessions(data);
+    return { data, fromCache: false };
+  } catch {
+    // Network error — try cache
+    const cached = await getCachedRecordedSessions();
+    return { data: cached.slice(0, limit), fromCache: true };
+  }
 }

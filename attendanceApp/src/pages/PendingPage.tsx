@@ -16,12 +16,9 @@ import {
   pendingCount,
   deleteSession,
   getAuthToken,
+  fetchAndCacheRecorded,
 } from "../sync/sync";
-import {
-  checkSessionExists,
-  fetchRecentRecorded,
-  type ServerRecordedSession,
-} from "../api/client";
+import { checkSessionExists, type ServerRecordedSession } from "../api/client";
 import { db } from "../db/db";
 import type { AttendanceSession } from "../db/db";
 
@@ -47,6 +44,7 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
   const [serverRecorded, setServerRecorded] = useState<ServerRecordedSession[]>(
     []
   );
+  const [recordedFromCache, setRecordedFromCache] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -63,9 +61,12 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
     }
     setLoading(false);
 
-    // Fetch server data in background (slow, from API)
-    fetchRecentRecorded(RECORDED_LIMIT)
-      .then(setServerRecorded)
+    // Fetch server data in background (slow, from API), with caching for offline
+    fetchAndCacheRecorded(RECORDED_LIMIT)
+      .then(({ data, fromCache }) => {
+        setServerRecorded(data);
+        setRecordedFromCache(fromCache);
+      })
       .catch(() => {});
   };
 
@@ -437,6 +438,21 @@ export default function PendingPage({ token, pending, onSynced }: Props) {
           <p className="sub">
             Latest tallies on the main site. Delete once verified.
           </p>
+          {recordedFromCache && (
+            <div
+              style={{
+                color: "var(--amber)",
+                fontSize: 11,
+                marginBottom: 8,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <WifiOff size={12} />
+              Showing cached data — connect to refresh
+            </div>
+          )}
           <div>
             {serverRecorded.map((s) => (
               <div key={`srv-${s.date}`} className="record-row">
